@@ -1,0 +1,1476 @@
+[
+  {
+    "id": "TC001",
+    "title": "Browse Phones category and open a listing details page from the grid",
+    "description": "Verifies a user can browse from the landing page into a category, view a listings grid, and open a listing details page.",
+    "category": "Landing and Browse Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Phones\" category in the horizontal category navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Phones\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Listings\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible listing card in the grid"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Listing details\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Cr\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Search within a category using Enter and verify results update",
+    "description": "Verifies search within a browse category works via typing a query and pressing Enter to filter results.",
+    "category": "Landing and Browse Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Phones\" category in the horizontal category navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"iPhone 12\" into the search bar"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"iPhone 12\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"listing card\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Open listing details and verify key fields are visible",
+    "description": "Verifies listing details page renders the key information fields (condition, seller, credits, and location).",
+    "category": "Landing and Browse Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Phones\" category in the horizontal category navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible listing card in the grid"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Condition\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Seller\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Cr\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \",\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Open Filters panel and apply brand and condition filters",
+    "description": "Verifies applying brand and condition filters updates the browse results and shows selected filter state.",
+    "category": "Landing and Browse Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Phones\" category in the horizontal category navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Filters\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Brand\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select the first available option from the \"Brand\" dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select the first available option from the \"Condition\" dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"listing card\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Filters\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Search with a gibberish query yields empty or no-results state",
+    "description": "Verifies the browse page handles no matching results gracefully when the search query returns nothing.",
+    "category": "Landing and Browse Marketplace",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Phones\" category in the horizontal category navigation"
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzxxyyqqlistingdoesnotexist\" into the search bar"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Filters\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Login and view profile page",
+    "description": "Verifies a user can log in with valid credentials and reach the profile page.",
+    "category": "Authentication and Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/profile\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Profile\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Invalid password shows authentication error on login",
+    "description": "Verifies logging in with an incorrect password displays an authentication error and stays on the login page.",
+    "category": "Authentication and Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"fake.user@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"wrong-password-123\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Edit profile display name and bio and save changes",
+    "description": "Verifies an authenticated user can edit display name and bio and see updates reflected on the profile page.",
+    "category": "Authentication and Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Edit profile\" button"
+      },
+      {
+        "type": "action",
+        "description": "Type \"QA Updated Name\" into the display name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Updated bio for end-to-end test.\" into the bio field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Save\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"QA Updated Name\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Settings page loads for authenticated user",
+    "description": "Verifies an authenticated user can access the settings page and see key settings sections.",
+    "category": "Authentication and Profile",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Settings\" link"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/settings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Notifications\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Logout from settings returns to unauthenticated state",
+    "description": "Verifies an authenticated user can log out from account actions and is returned to an unauthenticated screen.",
+    "category": "Authentication and Profile",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Settings\" link"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log out\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Publish a new listing using pricing helper and view the published listing page",
+    "description": "Verifies an authenticated user can complete the multi-step listing flow, use the pricing helper, publish, and land on the new listing details page.",
+    "category": "Listing Creation and Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Create listing\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a device model option"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Complete details step then proceed to condition step via Next",
+    "description": "Verifies the listing wizard allows entering title/description and moving to the next step.",
+    "category": "Listing Creation and Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /list"
+      },
+      {
+        "type": "action",
+        "description": "Type \"iPhone 13 - Great condition\" into the title field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Used for 1 year, no repairs, includes original box.\" into the description field"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Attempt to publish with missing price shows inline validation and stays on form",
+    "description": "Verifies server-side validation error is shown when price is missing and the user remains on the current step.",
+    "category": "Listing Creation and Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /list"
+      },
+      {
+        "type": "action",
+        "description": "Type \"MacBook Pro 14\" into the title field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Publish\" button"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Pricing helper returns a recommended price and populates or displays recommendation",
+    "description": "Verifies the pricing helper produces a visible recommended price for the listing.",
+    "category": "Listing Creation and Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Use pricing helper\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Recommended\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Publish flow shows success state and navigates to listing details page",
+    "description": "Verifies clicking Publish results in navigation to the new listing page and the listing content is visible.",
+    "category": "Listing Creation and Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Publish\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Listing\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Inline validation message appears for missing required fields (title)",
+    "description": "Verifies required field validation is visible when attempting to publish without a title.",
+    "category": "Listing Creation and Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Publish\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Title is required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Condition selection is required before proceeding/publishing",
+    "description": "Verifies the condition step enforces selecting a condition option before continuing.",
+    "category": "Listing Creation and Management",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Next\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Select a condition\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Send a message in an existing swap thread",
+    "description": "Verifies an authenticated user can open a swap message thread and send a message that appears in the conversation.",
+    "category": "Swaps, Messaging, and Meetups",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/swaps\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the first swap in the swaps list"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Hello—can we coordinate pickup?\" into the message input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Hello—can we coordinate pickup?\" is visible in the message thread"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Propose a pickup slot from a swap message thread",
+    "description": "Verifies an authenticated user can open the pickup proposal flow and submit a proposal with date/time and a meeting spot.",
+    "category": "Swaps, Messaging, and Meetups",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/swaps\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the first swap in the swaps list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Propose pickup slot\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Propose pickup\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select the next available date from the date picker"
+      },
+      {
+        "type": "action",
+        "description": "Select a time option from the time dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select a meetup location option from the meetup location list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Submit\" or \"Send proposal\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pickup proposed\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "View meetup details for a swap with an agreed pickup",
+    "description": "Verifies an authenticated user can access the meetup page from a swap and see pickup time and location details.",
+    "category": "Swaps, Messaging, and Meetups",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/swaps\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a swap that shows an accepted/agreed pickup status"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Meetup\" or \"View meetup\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/meetup\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pickup time\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Meeting spot\" or \"Location\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Get directions from the meetup page",
+    "description": "Verifies the meetup page provides a directions action for the selected meeting spot.",
+    "category": "Swaps, Messaging, and Meetups",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/swaps\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a swap that shows an accepted/agreed pickup status"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Meetup\" or \"View meetup\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/meetup\""
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Get directions\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Directions\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Swaps page shows login prompt when session is not authenticated (in-app login link flow)",
+    "description": "Verifies the swaps page provides a visible path to log in when access requires authentication via a login link.",
+    "category": "Swaps, Messaging, and Meetups",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"fake.user@example.com\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"wrong-password\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid\" or \"Incorrect\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the site logo or \"Home\" link"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Swaps\" navigation item"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Log in\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" link from the prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Meetup page shows safety/guidelines section and current stage label",
+    "description": "Verifies the meetup screen includes user-visible status/stage and safety guidance content for the in-person exchange.",
+    "category": "Swaps, Messaging, and Meetups",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/swaps\""
+      },
+      {
+        "type": "action",
+        "description": "Click on a swap that shows an accepted/agreed pickup status"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Meetup\" or \"View meetup\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/meetup\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Stage\" or \"Status\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Safety\" or \"Guidelines\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Swappa pricing lookup returns a recommended price",
+    "description": "Verifies a user can search a device on Pricing and see a Swappa recommended price result on screen.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /pricing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pricing\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"iPhone 13\" into the device query field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Swappa\" price lookup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Recommended\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a price value is visible in the Swappa result area"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Swappa lookup with empty query shows a visible validation or no-results state",
+    "description": "Verifies the Pricing page handles an empty device query safely without crashing and provides visible user feedback.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /pricing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pricing\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Swappa\" price lookup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Enter\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"device\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Swappa lookup for a nonsense query shows a visible no-results message/state",
+    "description": "Verifies Swappa lookup gracefully handles queries that are unlikely to match any device and shows a visible no-results state.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /pricing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pricing\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzz-not-a-real-device-12345\" into the device query field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Swappa\" price lookup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Try\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "PriceCharting lookup failure shows error and allows manual price entry",
+    "description": "Verifies when PriceCharting lookup fails, the UI shows \"Price lookup failed\" and the user can proceed with manual price entry.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /pricing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pricing\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Pokemon Red\" into the device query field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"PriceCharting\" lookup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Price lookup failed\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Manual price\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"50\" into the manual price field"
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "PriceCharting lookup success displays a price result",
+    "description": "Verifies PriceCharting lookup can return results and show a visible price value for a common query.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /pricing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pricing\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Super Mario 64\" into the device query field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"PriceCharting\" lookup"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Recommended\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a price value is visible in the PriceCharting result area"
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Wallet page shows credits balance and recent transactions (authenticated)",
+    "description": "Verifies an authenticated user can open Wallet and see a visible credits balance and a list of recent transactions.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email or username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /wallet"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Credits balance\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Recent transactions\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Wallet transactions list renders at least one row or an empty-state message (authenticated)",
+    "description": "Verifies the Wallet page provides a clear visible state for the transactions section whether there are transactions or none.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email or username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /wallet"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Transactions\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No transactions\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Wallet page loads without hanging and shows a stable header (authenticated)",
+    "description": "Verifies the Wallet page reaches a stable UI state after login and does not remain stuck on an indefinite loading indicator.",
+    "category": "Wallet, Credits, and Pricing",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email or username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /wallet"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Wallet\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Credits\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Safety page displays safety guidelines content",
+    "description": "Verifies the Safety page loads and shows key safety guideline content to the user.",
+    "category": "Safety, Help, and Static Content",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /safety"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/safety\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Safety\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Safety\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Safety guidelines\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "Safety page links to Guidelines page and Guidelines content is visible",
+    "description": "Verifies users can open the detailed Guidelines page from Safety and see static content.",
+    "category": "Safety, Help, and Static Content",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /safety"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Safety\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the link to \"Guidelines\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/guidelines\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Guidelines\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Guidelines\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Navigate from Guidelines back to More menu",
+    "description": "Verifies users can return to the More menu from the Guidelines page using in-app navigation.",
+    "category": "Safety, Help, and Static Content",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /guidelines"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/guidelines\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Guidelines\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"More\" in the navigation menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/more\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"More\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "More menu surfaces navigation links to Safety, Help, and About",
+    "description": "Verifies the More menu provides visible entry points to key static/support pages.",
+    "category": "Safety, Help, and Static Content",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /more"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/more\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"More\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Safety\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Help\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"About\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC036",
+    "title": "About page displays static about content",
+    "description": "Verifies the About page loads and shows static product/company information.",
+    "category": "Safety, Help, and Static Content",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /about"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/about\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"About\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"About\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"About\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC037",
+    "title": "Help page loads and shows support entry point",
+    "description": "Verifies the Help page loads successfully and provides a visible way to contact support.",
+    "category": "Safety, Help, and Static Content",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /help"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/help\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Help\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Contact support\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to \"Contact support\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Contact support\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC038",
+    "title": "Help: Contact support form validates required fields before submit",
+    "description": "Verifies the support form shows a visible validation message when required information is missing.",
+    "category": "Safety, Help, and Static Content",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /help"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Contact support\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Support form\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Submit\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
+      }
+    ]
+  }
+]

@@ -1,0 +1,670 @@
+
+--- Speaker (87 models) ---
+
+Sonos / Play: 1
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $156
+  Reverb:     FAIL: HTTP 403
+  Avg: $156
+Ultimate Ears / Wonderboom
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $70
+  Reverb:     FAIL: HTTP 403
+  Avg: $70
+Ultimate Ears / Wonderboom 2
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $228
+  Reverb:     FAIL: HTTP 403
+  Avg: $228
+Sonos / One
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $160
+  Reverb:     FAIL: HTTP 403
+  Avg: $160
+Sonos / Boost
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $63
+  Reverb:     FAIL: HTTP 403
+  Avg: $63
+Harman Kardon / Aura Studio 3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $757
+  Reverb:     FAIL: HTTP 403
+  Avg: $757
+Ultimate Ears / Wonderboom 3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $50
+  Reverb:     FAIL: HTTP 403
+  Avg: $50
+JBL / Flip 7
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $452
+  Reverb:     FAIL: HTTP 403
+  Avg: $452
+Bose / Soundlink Flex (2nd Gen)
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $140
+  Reverb:     FAIL: HTTP 403
+  Avg: $140
+Sonos / SUB
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $441
+  Reverb:     FAIL: HTTP 403
+  Avg: $441
+Sony / ULT FIELD 5
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $215
+  Reverb:     FAIL: HTTP 403
+  Avg: $215
+Harman Kardon / Onyx Studio 8
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $261
+  Reverb:     FAIL: HTTP 403
+  Avg: $261
+Marshall / Acton II
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $183
+  Reverb:     FAIL: HTTP 403
+  Avg: $183
+JBL / PartyBox Club 120
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $1553
+  Reverb:     FAIL: HTTP 403
+  Avg: $1553
+JBL / Charge 5
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $103
+  Reverb:     FAIL: HTTP 403
+  Avg: $103
+Sonos / One SL
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $201
+  Reverb:     FAIL: HTTP 403
+  Avg: $201
+Bose / Soundlink Revolve 2
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $257
+  Reverb:     FAIL: HTTP 403
+  Avg: $257
+JBL / Clip 5
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $182
+  Reverb:     FAIL: HTTP 403
+  Avg: $182
+Marshall / Emberton
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $96
+  Reverb:     FAIL: HTTP 403
+  Avg: $96
+Ultimate Ears / Boom 3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $182
+  Reverb:     FAIL: HTTP 403
+  Avg: $182
+Sony / SRSXB43 EXTRA BASS
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $178
+  Reverb:     FAIL: HTTP 403
+  Avg: $178
+JBL / PartyBox 100
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $834
+  Reverb:     FAIL: HTTP 403
+  Avg: $834
+SVS / Prime Wireless Pro SoundBase
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $772
+  Reverb:     FAIL: HTTP 403
+  Avg: $772
+JBL / Boombox 3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $288
+  Reverb:     FAIL: HTTP 403
+  Avg: $288
+Totem / KIN Play
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $1052
+  Reverb:     FAIL: HTTP 403
+  Avg: $1052
+Bose / SoundLink Revolve Plus II
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $910
+  Reverb:     FAIL: HTTP 403
+  Avg: $910
+Polk / Speakers
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $1193
+  Reverb:     FAIL: HTTP 403
+  Avg: $1193
+Bose / TV Speaker Soundbar
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $182
+  Reverb:     FAIL: HTTP 403
+  Avg: $182
+Marshall / Willen
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $76
+  Reverb:     FAIL: HTTP 403
+  Avg: $76
+Marshall / Kilburn III
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $305
+  Reverb:     FAIL: HTTP 403
+  Avg: $305
+Marshall / Stanmore III
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $886
+  Reverb:     FAIL: HTTP 403
+  Avg: $886
+Marshall / Stockwell II
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $284
+  Reverb:     FAIL: HTTP 403
+  Avg: $284
+Soundcore / Flare 2
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $101
+  Reverb:     FAIL: HTTP 403
+  Avg: $101
+Harman Kardon / Onyx Studio 7
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $250
+  Reverb:     FAIL: HTTP 403
+  Avg: $250
+Sonos / Era 300
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $374
+  Reverb:     FAIL: HTTP 403
+  Avg: $374
+JBL / PartyBox On-The-Go
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $840
+  Reverb:     FAIL: HTTP 403
+  Avg: $840
+TRIBIT / StormBox Blast
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $891
+  Reverb:     FAIL: HTTP 403
+  Avg: $891
+Sonos / Ray
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $166
+  Reverb:     FAIL: HTTP 403
+  Avg: $166
+Sonos / Era 100
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $193
+  Reverb:     FAIL: HTTP 403
+  Avg: $193
+JBL / Soundbar System
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $266
+  Reverb:     FAIL: HTTP 403
+  Avg: $266
+Sonos / Sub Mini
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $465
+  Reverb:     FAIL: HTTP 403
+  Avg: $465
+Sonos / Arc
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $559
+  Reverb:     FAIL: HTTP 403
+  Avg: $559
+Sonos / Move
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $286
+  Reverb:     FAIL: HTTP 403
+  Avg: $286
+Sonos / Five
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $479
+  Reverb:     FAIL: HTTP 403
+  Avg: $479
+Samsung / Soundbar System
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $137
+  Reverb:     FAIL: HTTP 403
+  Avg: $137
+Beats / Pill
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $144
+  Reverb:     FAIL: HTTP 403
+  Avg: $144
+Ultimate Ears / MEGABOOM 3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $152
+  Reverb:     FAIL: HTTP 403
+  Avg: $152
+Ultimate Ears / Hyperboom
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $240
+  Reverb:     FAIL: HTTP 403
+  Avg: $240
+Ultimate Ears / Megaboom 4
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $142
+  Reverb:     FAIL: HTTP 403
+  Avg: $142
+JBL / Pulse 4
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $230
+  Reverb:     FAIL: HTTP 403
+  Avg: $230
+JBL / PartyBox 1000
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $2334
+  Reverb:     FAIL: HTTP 403
+  Avg: $2334
+JBL / Partybox Encore Essential
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $911
+  Reverb:     FAIL: HTTP 403
+  Avg: $911
+JBL / Xtreme 4
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $824
+  Reverb:     FAIL: HTTP 403
+  Avg: $824
+JBL / PartyBox 310
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $570
+  Reverb:     FAIL: HTTP 403
+  Avg: $570
+JBL / Go 4
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $46
+  Reverb:     FAIL: HTTP 403
+  Avg: $46
+Bose / Smart Ultra Soundbar
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $1790
+  Reverb:     FAIL: HTTP 403
+  Avg: $1790
+Sonos / Move 2
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $391
+  Reverb:     FAIL: HTTP 403
+  Avg: $391
+Yamaha / Soundbar YAS-207
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $155
+  Reverb:     FAIL: HTTP 403
+  Avg: $155
+JBL / Authentics 500
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $635
+  Reverb:     FAIL: HTTP 403
+  Avg: $635
+Bose / Smart Soundbar
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $386
+  Reverb:     FAIL: HTTP 403
+  Avg: $386
+JBL / Charge 6
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $456
+  Reverb:     FAIL: HTTP 403
+  Avg: $456
+Bose / Soundlink Bluetooth Speaker II
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $135
+  Reverb:     FAIL: HTTP 403
+  Avg: $135
+JBL / Partybox 710
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $551
+  Reverb:     FAIL: HTTP 403
+  Avg: $551
+Polk / Soundbar
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $169
+  Reverb:     FAIL: HTTP 403
+  Avg: $169
+Bose / Soundlink Max
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $389
+  Reverb:     FAIL: HTTP 403
+  Avg: $389
+Bose / SoundLink Flex 1st Gen
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $83
+  Reverb:     FAIL: HTTP 403
+  Avg: $83
+Bose / SoundLink Color III
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $13
+  Reverb:     FAIL: HTTP 403
+  Avg: $13
+Bose / Smart Soundbar 900
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $2858
+  Reverb:     FAIL: HTTP 403
+  Avg: $2858
+Bose / Smart Soundbar 600
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $622
+  Reverb:     FAIL: HTTP 403
+  Avg: $622
+Bang & Olufsen / Beoplay M3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $230
+  Reverb:     FAIL: HTTP 403
+  Avg: $230
+Bang & Olufsen / Beosound 2 3rd-Gen Speaker
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $853
+  Reverb:     FAIL: HTTP 403
+  Avg: $853
+Bang & Olufsen / Beosound A1 3rd Gen
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $330
+  Reverb:     FAIL: HTTP 403
+  Avg: $330
+Bang & Olufsen / Beosound Explore
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $198
+  Reverb:     FAIL: HTTP 403
+  Avg: $198
+Bang & Olufsen / Beoplay A9
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $1287
+  Reverb:     FAIL: HTTP 403
+  Avg: $1287
+JBL / Charge 4
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $88
+  Reverb:     FAIL: HTTP 403
+  Avg: $88
+Marshall / Uxbridge
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $145
+  Reverb:     FAIL: HTTP 403
+  Avg: $145
+Sony / SRS-XB33 EXTRA BASS Portable Speaker
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $189
+  Reverb:     FAIL: HTTP 403
+  Avg: $189
+Sony / SRS-XG500
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $224
+  Reverb:     FAIL: HTTP 403
+  Avg: $224
+Sony / SRS-XP700
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $426
+  Reverb:     FAIL: HTTP 403
+  Avg: $426
+Sony / SRS-XP500
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $219
+  Reverb:     FAIL: HTTP 403
+  Avg: $219
+Apple / HomePod Mini
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $174
+  Reverb:     FAIL: HTTP 403
+  Avg: $174
+Apple / HomePod 1st Gen
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $189
+  Reverb:     FAIL: HTTP 403
+  Avg: $189
+Apple / HomePod 2nd Gen
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $185
+  Reverb:     FAIL: HTTP 403
+  Avg: $185
+LG / S95TR Soundbar (Flagship 2024)
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: FAIL: No prices in page
+  Reverb:     FAIL: HTTP 403
+  No price
+LG / SG10TY Soundbar (Flagship Wall-mount)
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: FAIL: No prices in page
+  Reverb:     FAIL: HTTP 403
+  No price
+LG / Sound Suite M7 (Premium Wireless)
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: FAIL: No prices in page
+  Reverb:     FAIL: HTTP 403
+  No price
+LG / XBOOM 360 (Portable Flagship)
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: FAIL: No prices in page
+  Reverb:     FAIL: HTTP 403
+  No price
+
+--- Headphones (23 models) ---
+
+Apple / AirPods Max
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $332
+  Reverb:     FAIL: HTTP 403
+  Avg: $332
+Apple / AirPods Max USB-C
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $660
+  Reverb:     FAIL: HTTP 403
+  Avg: $660
+Sony / WH-1000XM5
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $214
+  Reverb:     FAIL: HTTP 403
+  Avg: $214
+Beats / Studio Pro
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $351
+  Reverb:     FAIL: HTTP 403
+  Avg: $351
+Sony / WH-1000XM4
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $160
+  Reverb:     FAIL: HTTP 403
+  Avg: $160
+Beats / Studio3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $137
+  Reverb:     FAIL: HTTP 403
+  Avg: $137
+Beats / Solo 4
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $173
+  Reverb:     FAIL: HTTP 403
+  Avg: $173
+Beats / Solo3
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $88
+  Reverb:     FAIL: HTTP 403
+  Avg: $88
+Sony / WH1000XM5-B Wireless Headphones
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $130
+  Reverb:     FAIL: HTTP 403
+  Avg: $130
+Microsoft Surface / Headphones
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $235
+  Reverb:     FAIL: HTTP 403
+  Avg: $235
+Bose / QuietComfort Ultra Headphones
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $320
+  Reverb:     FAIL: HTTP 403
+  Avg: $320
+Bose / QuietComfort 35 II
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $137
+  Reverb:     FAIL: HTTP 403
+  Avg: $137
+Skullcandy / Headphones
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $104
+  Reverb:     FAIL: HTTP 403
+  Avg: $104
+Xbox / Wireless Headset
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $100
+  Reverb:     FAIL: HTTP 403
+  Avg: $100
+Sony / MDR-XB950B1
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $127
+  Reverb:     FAIL: HTTP 403
+  Avg: $127
+Sony / MDR-XB650BT Wireless Headphones
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $52
+  Reverb:     FAIL: HTTP 403
+  Avg: $52
+Marshall / Major V On-Ear Headphone
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $81
+  Reverb:     FAIL: HTTP 403
+  Avg: $81
+Bowers & Wilkins / PX8
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $387
+  Reverb:     FAIL: HTTP 403
+  Avg: $387
+Microsoft Surface / Headphones 2
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $307
+  Reverb:     FAIL: HTTP 403
+  Avg: $307
+Bose / QuietComfort 45
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $247
+  Reverb:     FAIL: HTTP 403
+  Avg: $247
+Bose / Noise Cancelling Headphones 700
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $171
+  Reverb:     FAIL: HTTP 403
+  Avg: $171
+Shure / AONIC 50 GEN 2
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $1123
+  Reverb:     FAIL: HTTP 403
+  Avg: $1123
+Shure / SRH1840
+  Audiogon:   FAIL: HTTP 403
+  UsedPrice:  FAIL: HTTP 403
+  HiFi Shark: $477
+  Reverb:     FAIL: HTTP 403
+  Avg: $477
+
+--- Summary ---
+Total: 110 | With average price: 106 | No price: 4
+Audiogon: 0 | UsedPrice: 0 | HiFi Shark: 106 | Reverb: 0
