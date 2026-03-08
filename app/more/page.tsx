@@ -127,7 +127,7 @@ export default function MorePage() {
                       const username = (profile.display_name ?? '').trim() || 'user';
                       router.push(`/profile/${encodeURIComponent(username)}`);
                     }}
-                    className="mt-1 text-xs font-semibold text-indigo-500 hover:text-indigo-400 active:opacity-80 transition-colors"
+                    className="mt-1 text-xs font-semibold text-primary hover:opacity-90 active:opacity-80 transition-colors"
                   >
                     View public profile
                   </button>

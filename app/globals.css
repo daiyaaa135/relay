@@ -18,7 +18,15 @@ a.mapboxgl-ctrl-logo,
   50% { transform: scale(1.6); opacity: 0.1; }
 }
 
+/* Skeleton loading: shimmer sweep left → right */
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 :root {
+  --skeleton-base: #e0e0e0;
+  --skeleton-highlight: #f0f0f0;
   --background: #E8E9EC;
   --foreground: #000000;
   --primary: #FF5721;
@@ -33,6 +41,8 @@ a.mapboxgl-ctrl-logo,
 }
 
 .dark {
+  --skeleton-base: #2a2a2a;
+  --skeleton-highlight: #3a3a3a;
   --background: #000000;
   --foreground: #FFFFFF;
   --relay-bg: #000000;

@@ -47,6 +47,14 @@ export default function RootLayout({
         className="antialiased bg-relay-bg text-relay-text"
         suppressHydrationWarning
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__SUPABASE_PUBLIC_ENV__=${JSON.stringify({
+              url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+              anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+            })};`,
+          }}
+        />
         <Layout>{children}</Layout>
       </body>
     </html>

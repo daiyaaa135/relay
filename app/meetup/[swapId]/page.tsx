@@ -11,6 +11,41 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 type Slot = { date: string; start: string; end: string };
 type ChosenLocation = { latitude: number; longitude: number; displayName?: string; city?: string; state?: string };
 
+function BroadcastLocationIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width={24}
+      height={24}
+      viewBox="0 0 200 200"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      {/* Left waves */}
+      <path d="M45 80 Q35 100 45 120" stroke="currentColor" strokeWidth={3} strokeLinecap="round" opacity={0.4} />
+      <path d="M55 85 Q48 100 55 115" stroke="currentColor" strokeWidth={3} strokeLinecap="round" opacity={0.6} />
+      <path d="M65 90 Q61 100 65 110" stroke="currentColor" strokeWidth={3} strokeLinecap="round" opacity={0.8} />
+      {/* Right waves */}
+      <path d="M155 80 Q165 100 155 120" stroke="currentColor" strokeWidth={3} strokeLinecap="round" opacity={0.4} />
+      <path d="M145 85 Q152 100 145 115" stroke="currentColor" strokeWidth={3} strokeLinecap="round" opacity={0.6} />
+      <path d="M135 90 Q139 100 135 110" stroke="currentColor" strokeWidth={3} strokeLinecap="round" opacity={0.8} />
+      {/* Pin outline */}
+      <path
+        d="M100 50 C85 50 73 62 73 77 C73 92 100 130 100 130 C100 130 127 92 127 77 C127 62 115 50 100 50 Z"
+        stroke="currentColor"
+        strokeWidth={3}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Pin inner circle */}
+      <circle cx={100} cy={77} r={10} stroke="currentColor" strokeWidth={3} fill="none" />
+      {/* Center dot */}
+      <circle cx={100} cy={77} r={4} fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function MeetupPage() {
   const params = useParams();
   const router = useRouter();
@@ -543,77 +578,76 @@ export default function MeetupPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark">
       <div className="page-scroll">
-      <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-transparent" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-        <button type="button" onClick={() => router.back()} className="size-10 rounded-full flex items-center justify-center text-relay-text dark:text-relay-text-dark" aria-label="Back">
-          <span className="material-symbols-outlined">close</span>
-        </button>
-        <span className="text-[10px] font-bold tracking-tight text-relay-muted">Meetup</span>
-        <Link href={otherId ? `/report?userId=${otherId}` : '/report'} className="size-10 rounded-full flex items-center justify-center text-relay-muted" aria-label="Report issue">
-          <span className="material-symbols-outlined">help</span>
-        </Link>
-      </header>
+        <header
+          className="sticky top-0 z-20 glass-card flex items-center justify-between px-4 py-3 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md"
+          style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+        >
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="size-10 rounded-full flex items-center justify-center text-relay-text dark:text-relay-text-dark"
+            aria-label="Back"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+          <span className="text-[10px] font-bold tracking-tight text-relay-muted">Meetup</span>
+          <Link
+            href={otherId ? `/report?userId=${otherId}` : '/report'}
+            className="size-10 rounded-full flex items-center justify-center text-relay-muted"
+            aria-label="Report issue"
+          >
+            <span className="material-symbols-outlined">help</span>
+          </Link>
+        </header>
 
-      <div>
-      {location && (
-        <div className="border-b border-relay-border dark:border-relay-border-dark">
-          <div className="relative w-full aspect-[4/3] bg-relay-bg dark:bg-relay-bg-dark">
-            <LivePickupMap
-              meetingLat={location.latitude}
-              meetingLon={location.longitude}
-              buyerPoint={isBuyer ? (myLivePoint ?? (buyerLat != null && buyerLon != null ? { lat: buyerLat, lon: buyerLon } : null)) : (buyerLat != null && buyerLon != null ? { lat: buyerLat, lon: buyerLon } : null)}
-              sellerPoint={!isBuyer ? (myLivePoint ?? (sellerLat != null && sellerLon != null ? { lat: sellerLat, lon: sellerLon } : null)) : (sellerLat != null && sellerLon != null ? { lat: sellerLat, lon: sellerLon } : null)}
-              buyerLabel={isBuyer ? 'You' : otherDisplayName || 'Buyer'}
-              sellerLabel={isBuyer ? otherDisplayName || 'Seller' : 'You'}
-              buyerAvatarUrl={isBuyer ? myAvatarUrl : otherAvatarUrl}
-              sellerAvatarUrl={isBuyer ? otherAvatarUrl : myAvatarUrl}
-            />
+        <div>
+          {location && (
+            <div className="border-b border-relay-border dark:border-relay-border-dark">
+              <div className="relative w-full aspect-[4/3] bg-relay-bg dark:bg-relay-bg-dark">
+                <LivePickupMap
+                  meetingLat={location.latitude}
+                  meetingLon={location.longitude}
+                  buyerPoint={isBuyer ? (myLivePoint ?? (buyerLat != null && buyerLon != null ? { lat: buyerLat, lon: buyerLon } : null)) : (buyerLat != null && buyerLon != null ? { lat: buyerLat, lon: buyerLon } : null)}
+                  sellerPoint={!isBuyer ? (myLivePoint ?? (sellerLat != null && sellerLon != null ? { lat: sellerLat, lon: sellerLon } : null)) : (sellerLat != null && sellerLon != null ? { lat: sellerLat, lon: sellerLon } : null)}
+                  buyerLabel={isBuyer ? 'You' : otherDisplayName || 'Buyer'}
+                  sellerLabel={isBuyer ? otherDisplayName || 'Seller' : 'You'}
+                  buyerAvatarUrl={isBuyer ? myAvatarUrl : otherAvatarUrl}
+                  sellerAvatarUrl={isBuyer ? otherAvatarUrl : myAvatarUrl}
+                />
+              </div>
+              <div className="px-4 py-3">
+              <p className="font-normal text-relay-text dark:text-relay-text-dark text-[12px] tracking-tighter">
+                {locationName}
+              </p>
+              {addressLine && (
+                <p className="text-[10px] text-relay-muted flex items-center gap-1 mt-0.5">
+                  <span className="material-symbols-outlined !text-xs">location_on</span>
+                  {addressLine}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="px-4 py-3 bg-relay-surface dark:bg-relay-surface-dark border-t border-relay-border dark:border-relay-border-dark">
-            <p className="font-normal text-relay-text dark:text-relay-text-dark text-[12px] tracking-tighter">{locationName}</p>
-            {addressLine && <p className="text-[10px] text-relay-muted flex items-center gap-1 mt-0.5"><span className="material-symbols-outlined !text-xs">location_on</span>{addressLine}</p>}
-          </div>
-        </div>
-      )}
+        )}
 
-      <div className="flex-1 px-4 pt-4 pb-6">
+        <div className="flex-1 px-4 pt-4 pb-6">
         <div className="p-4 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg">
           <div className="flex flex-nowrap items-center gap-3 mb-1">
             <p className="text-relay-text dark:text-relay-text-dark font-semibold text-base min-w-0 flex-1">{statusHeading}</p>
-            {location &&
-              (!sharingLocation ? (
-                <button
-                  type="button"
-                  onClick={startSharingLocation}
-                  className="shrink-0 text-[10px] font-semibold tracking-tighter text-primary active-scale"
-                  style={{ margin: 2 }}
-                >
-                  Share my location
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={stopSharingLocation}
-                  className="shrink-0 active-scale text-primary"
-                  style={{ margin: 2 }}
-                  aria-label="Stop sharing location"
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="block"
-                  >
-                    <path
-                      d="M15 8L12.9785 10.5088C12.1774 11.5029 11.7769 12 11.25 12C10.7231 12 10.3226 11.5029 9.5215 10.5088L9 9.86157M20 9.6087C20 12.4759 17.0905 16.7551 14.7808 19.7005C13.5758 21.2371 12.9732 22.0055 12 22.0055C11.0268 22.0055 10.4242 21.2371 9.21921 19.7005C6.90945 16.7551 4 12.4759 4 9.6087C4 4.85424 7.58172 1 12 1C16.4183 1 20 4.85424 20 9.6087Z"
-                      stroke="#2D264B"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              ))}
+            {location && (
+              <button
+                type="button"
+                onClick={sharingLocation ? stopSharingLocation : startSharingLocation}
+                className={`shrink-0 active-scale ${
+                  sharingLocation
+                    ? 'text-primary'
+                    : 'text-relay-muted dark:text-relay-muted-light hover:text-primary'
+                }`}
+                style={{ margin: 2 }}
+                aria-label={sharingLocation ? 'Stop sharing location' : 'Share my location'}
+              >
+                <BroadcastLocationIcon className="size-6" />
+              </button>
+            )}
           </div>
           <p className="text-relay-text dark:text-relay-text-dark text-sm text-relay-muted mb-2">{pickupTimeLabel}</p>
           <div className="flex gap-1 mb-4">

@@ -10,7 +10,12 @@ function getApp(): admin.app.App {
     throw new Error('Missing FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_PROJECT_ID env vars');
   }
 
-  const serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+  let serviceAccount: admin.ServiceAccount;
+  try {
+    serviceAccount = JSON.parse(serviceAccountJson) as admin.ServiceAccount;
+  } catch {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON');
+  }
 
   return admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),

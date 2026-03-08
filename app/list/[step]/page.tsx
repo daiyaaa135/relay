@@ -47,6 +47,249 @@ function NextStepIcon() {
   );
 }
 
+const CONSOLE_ACCESSORY_OPTIONS = [
+  { id: 'Power cord', required: true },
+  { id: 'Controller', required: true },
+  { id: 'HDMI cable', required: false },
+] as const;
+
+function ConsoleAccessoryField({ accessories, onToggle }: { accessories: string[]; onToggle: (item: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const optionIds = CONSOLE_ACCESSORY_OPTIONS.map((o) => o.id);
+  const selected = accessories.filter((a) => optionIds.includes(a));
+  const displayText = selected.length > 0 ? selected.join(', ') : '';
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="space-y-2" ref={containerRef}>
+      <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+        Accessory
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-left text-relay-text dark:text-relay-text-dark px-4 text-sm flex items-center justify-between"
+        >
+          <span className={displayText ? '' : 'text-relay-muted dark:text-relay-muted-light'}>
+            {displayText || 'Select accessories'}
+          </span>
+          <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light text-lg shrink-0">
+            {open ? 'expand_less' : 'expand_more'}
+          </span>
+        </button>
+        {open && (
+          <div className="absolute top-full left-0 right-0 mt-1 z-10 rounded-lg border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark shadow-lg py-1">
+            {CONSOLE_ACCESSORY_OPTIONS.map((opt) => {
+              const isSelected = accessories.includes(opt.id);
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => onToggle(opt.id)}
+                  className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-relay-bg dark:hover:bg-relay-bg-dark"
+                >
+                  <span
+                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-transparent bg-primary' : 'border-relay-border dark:border-relay-border-dark'}`}
+                  >
+                    {isSelected && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
+                  </span>
+                  {opt.id}
+                  {!opt.required && (
+                    <span className="text-relay-muted dark:text-relay-muted-light text-xs">(not required)</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const MAPBOX_LIGHT = 'mapbox://styles/mapbox/light-v11';
+const MAPBOX_DARK = 'mapbox://styles/mapbox/dark-v11';
+const PICKUP_MAP_PADDING = 0.012;
+
+function isDarkMode() {
+  if (typeof document === 'undefined') return false;
+  return document.documentElement.classList.contains('dark');
+}
+
+function createPickupPin(num: 1 | 2, color: string): HTMLElement {
+  const symbol = num === 1 ? '①' : '②';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
+  const circle = document.createElement('div');
+  circle.style.cssText = [
+    'width:28px;height:28px;border-radius:50%;',
+    `background:${color};`,
+    'border:2px solid white;',
+    'box-shadow:0 2px 8px rgba(0,0,0,0.15);',
+    'display:flex;align-items:center;justify-content:center;',
+    'font-size:14px;font-weight:700;color:white;line-height:1;',
+  ].join('');
+  circle.textContent = symbol;
+  const tip = document.createElement('div');
+  tip.style.cssText = `width:6px;height:6px;border-radius:50%;background:${color};margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,0.2);`;
+  wrap.appendChild(circle);
+  wrap.appendChild(tip);
+  return wrap;
+}
+
+/** Mapbox map with two pins (coral ①, blue ②) and legend pills. Same layout as reference. */
+function SharedMap({
+  loc1,
+  loc2,
+}: {
+  loc1: PickupLocationRow | null;
+  loc2: PickupLocationRow | null;
+}) {
+  const hasAny = loc1 || loc2;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [containerMounted, setContainerMounted] = useState(false);
+
+  const setContainerRef = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el;
+    setContainerMounted(!!el);
+  }, []);
+
+  const token = typeof process !== 'undefined' ? (process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? '') : '';
+
+  const name1 = loc1?.displayName?.split(',')[0]?.trim() ?? loc1?.city ?? '1';
+  const name2 = loc2?.displayName?.split(',')[0]?.trim() ?? loc2?.city ?? '2';
+
+  useEffect(() => {
+    if (!hasAny || !token || !containerMounted || !containerRef.current) {
+      setMapReady(false);
+      return;
+    }
+
+    const container = containerRef.current;
+    let map: import('mapbox-gl').Map | undefined;
+    let observer: MutationObserver;
+    let mounted = true;
+
+    const init = async () => {
+      const mbgl = (await import('mapbox-gl')).default as unknown as {
+        accessToken: string;
+        Map: new (opts: { container: HTMLElement; style: string; center: [number, number]; zoom: number; interactive: boolean; attributionControl: boolean }) => { on: (e: string, cb: () => void) => void; fitBounds: (b: unknown, o: { padding: number; maxZoom: number; duration: number }) => void; setStyle: (s: string) => void; remove: () => void };
+        LngLat: new (lng: number, lat: number) => unknown;
+        LngLatBounds: new (sw: unknown, ne: unknown) => unknown;
+        Marker: new (opts: { element: HTMLElement; anchor: string }) => { setLngLat: (c: [number, number]) => { addTo: (m: unknown) => void }; addTo: (m: unknown) => void };
+      };
+      if (!mounted || !container.parentElement) return;
+
+      mbgl.accessToken = token;
+
+      const points = [loc1, loc2].filter(Boolean) as PickupLocationRow[];
+      const lats = points.map((p) => p.latitude);
+      const lons = points.map((p) => p.longitude);
+      const center: [number, number] = [
+        (Math.min(...lons) + Math.max(...lons)) / 2,
+        (Math.min(...lats) + Math.max(...lats)) / 2,
+      ];
+
+      map = new mbgl.Map({
+        container,
+        style: isDarkMode() ? MAPBOX_DARK : MAPBOX_LIGHT,
+        center,
+        zoom: 12,
+        interactive: false,
+        attributionControl: false,
+      }) as import('mapbox-gl').Map;
+
+      map.on('load', () => {
+        if (!mounted || !map) return;
+        const sw = new mbgl.LngLat(Math.min(...lons) - PICKUP_MAP_PADDING, Math.min(...lats) - PICKUP_MAP_PADDING);
+        const ne = new mbgl.LngLat(Math.max(...lons) + PICKUP_MAP_PADDING, Math.max(...lats) + PICKUP_MAP_PADDING);
+        map.fitBounds(new mbgl.LngLatBounds(sw, ne) as Parameters<typeof map.fitBounds>[0], { padding: 40, maxZoom: 15, duration: 0 });
+
+        if (loc1) {
+          const el1 = createPickupPin(1, '#f08070');
+          new mbgl.Marker({ element: el1, anchor: 'bottom' })
+            .setLngLat([loc1.longitude, loc1.latitude])
+            .addTo(map);
+        }
+        if (loc2) {
+          const el2 = createPickupPin(2, '#3b82f6');
+          new mbgl.Marker({ element: el2, anchor: 'bottom' })
+            .setLngLat([loc2.longitude, loc2.latitude])
+            .addTo(map);
+        }
+
+        setMapReady(true);
+      });
+
+      observer = new MutationObserver(() => {
+        if (map) map.setStyle(isDarkMode() ? MAPBOX_DARK : MAPBOX_LIGHT);
+      });
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    };
+
+    init();
+
+    return () => {
+      mounted = false;
+      observer?.disconnect();
+      map?.remove();
+      setMapReady(false);
+    };
+  }, [hasAny, token, containerMounted, loc1?.latitude, loc1?.longitude, loc2?.latitude, loc2?.longitude]);
+
+  const hasToken = !!token;
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden relative"
+      style={{ background: '#eef0ea', minHeight: 210 }}
+    >
+      {!hasAny && (
+        <div className="flex items-center justify-center h-[210px] text-[#bbb] text-sm font-medium">
+          Enter a location above to preview
+        </div>
+      )}
+      {hasAny && hasToken && (
+        <>
+          {!mapReady && (
+            <div className="absolute inset-0 z-10 animate-pulse bg-[#e2e5e9] dark:bg-[#1c1c1e]" />
+          )}
+          <div ref={setContainerRef} className="relative w-full h-[210px]" />
+          <div className="absolute bottom-2.5 left-2.5 flex gap-1.5 z-10">
+            {loc1 && (
+              <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full py-1 px-2.5 shadow-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#f08070] shrink-0" />
+                <span className="text-[11px] font-bold text-[#333]">{name1.length > 10 ? name1.slice(0, 9) + '…' : name1}</span>
+              </div>
+            )}
+            {loc2 && (
+              <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full py-1 px-2.5 shadow-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6] shrink-0" />
+                <span className="text-[11px] font-bold text-[#333]">{name2.length > 10 ? name2.slice(0, 9) + '…' : name2}</span>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      {hasAny && !hasToken && (
+        <div className="flex items-center justify-center h-[210px] text-[#888] text-sm">
+          Map unavailable (no API key)
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Functionality checklist for valuation deduction. Weight = % of base value deducted when this check FAILS (unchecked). */
 const FUNCTIONALITY_CHECKS: { text: string; weight: number }[] = [
   { text: 'The device turns on, turns off, and charges. It has a battery, case, and SIM drawer.', weight: 0.4 },
@@ -371,14 +614,16 @@ export default function StepPage() {
       : undefined;
     const t = setTimeout(async () => {
       setLocationSuggestionsLoading(true);
+      // Always use Nominatim (OSM) for pickup location search; Mapbox is used only for the map.
+      const search = searchLocations;
       if (q1.length < 2) setLocation1Suggestions([]);
       else {
-        const list = await searchLocations(q1, userLoc);
+        const list = await search(q1, userLoc);
         setLocation1Suggestions(list);
       }
       if (q2.length < 2) setLocation2Suggestions([]);
       else {
-        const list = await searchLocations(q2, userLoc);
+        const list = await search(q2, userLoc);
         setLocation2Suggestions(list);
       }
       setLocationSuggestionsLoading(false);
@@ -1004,7 +1249,7 @@ export default function StepPage() {
     [frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight]
   );
   const effectiveCondition = condition ?? derivedCondition;
-  const { estimatedCredits, estimatedCreditsReason } = useMemo(() => {
+  const { estimatedCredits: baseEstimatedCredits, estimatedCreditsReason } = useMemo(() => {
     const swappaCategories = ['Phones', 'Tablets', 'Laptops', 'Console'];
     const ebayCategories = ['MP3'];
     const valuationCategories = [...swappaCategories, ...ebayCategories];
@@ -1047,6 +1292,15 @@ export default function StepPage() {
       : 'Valuation may not be available for this category.';
     return { estimatedCredits: null as number | null, estimatedCreditsReason: reason };
   }, [category, swappaCredits, swappaLookupError, functionalityOptions, consoleFunctional, minListingPhotos]);
+  const consoleAccessoryBonus = useMemo(() => {
+    if (category !== 'Console') return 0;
+    if (baseEstimatedCredits == null || baseEstimatedCredits <= 0) return 0;
+    let bonus = 0;
+    if (accessories.includes('Controller')) bonus += 15;
+    if (accessories.includes('Power cord')) bonus += 8;
+    return bonus;
+  }, [category, baseEstimatedCredits, accessories]);
+  const estimatedCredits = baseEstimatedCredits != null ? baseEstimatedCredits + consoleAccessoryBonus : null;
   const categoryToDeviceType = (): DeviceType => (({ Phones: 'phone', Laptops: 'laptop', Tablets: 'tablet', Headphones: 'headphones', Speaker: 'speaker', Console: 'gaming_console', 'Video Games': 'video_game', MP3: 'phone', 'Gaming Handhelds': 'gaming_handheld' } as Record<string, DeviceType>)[category] ?? 'phone');
   const showSPen = brand === 'Samsung' && /ultra/i.test(modelName);
   const hideSimPin = brand === 'Apple' && /iphone\s*1[56]/i.test(modelName);
@@ -1311,6 +1565,7 @@ export default function StepPage() {
 
   if (showPickupLocationsModal && newGadgetId) {
     const canConfirm = pickupLocation1 && pickupLocation2;
+    const mapVisible = !!pickupLocation1;
     const selectLocation = (which: '1' | '2', s: LocationSuggestion) => {
       const exactLocation = s.displayName || [s.city, s.state].filter(Boolean).join(', ') || 'Unknown';
       const loc: PickupLocationRow = { latitude: s.latitude, longitude: s.longitude, city: s.city, state: s.state, displayName: exactLocation };
@@ -1326,77 +1581,115 @@ export default function StepPage() {
         setPickupDropdownVisible(null);
       }
     };
-    return (
-      <div className="fixed inset-0 z-[9998] flex items-center justify-center p-6 bg-relay-bg/70 dark:bg-relay-bg-dark/70">
-        <div className="relative z-10 w-full max-w-sm glass-card shadow-xl p-6 space-y-5 pointer-events-auto">
-          <h2 className="text-lg font-semibold text-relay-text dark:text-relay-text-dark uppercase">Pickup locations</h2>
-          <p className="text-sm text-relay-muted dark:text-relay-muted-light">Choose 2 pickup locations so the buyer can pick one when they swap. Type to search.</p>
-          <div className="space-y-3">
-            <div className="relative">
-              <label className="block text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light mb-2 uppercase">Location 1</label>
-              <input
-                type="text"
-                value={location1Query}
-                onChange={(e) => { setLocation1Query(e.target.value); setPickupLocation1(null); setPickupDropdownVisible('1'); }}
-                onFocus={() => setPickupDropdownVisible('1')}
-                onBlur={() => setTimeout(() => setPickupDropdownVisible(null), 150)}
-                placeholder="Search for a location..."
-                className="w-full h-12 rounded-xl border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark px-4 text-sm text-relay-text dark:text-relay-text-dark placeholder:text-relay-muted dark:placeholder:text-relay-muted-light"
-              />
-              {pickupDropdownVisible === '1' && (location1Suggestions.length > 0 || locationSuggestionsLoading) && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark shadow-lg max-h-48 overflow-y-auto z-40">
-                  {locationSuggestionsLoading ? (
-                    <div className="p-3 text-center text-relay-muted text-xs">Searching...</div>
-                  ) : (
-                    location1Suggestions.map((s, i) => (
-                      <button key={i} type="button" onClick={() => selectLocation('1', s)} className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-relay-text dark:text-relay-text-dark hover:bg-relay-bg dark:hover:bg-relay-bg-dark border-b border-relay-border dark:border-relay-border-dark last:border-0">
-                        <span className="material-symbols-outlined !text-lg text-primary">location_on</span>
-                        <span className="truncate">{s.displayName}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
+    const renderLocationInput = (which: '1' | '2') => {
+      const is1 = which === '1';
+      const query = is1 ? location1Query : location2Query;
+      const setQuery = is1 ? (v: string) => { setLocation1Query(v); if (!v) setPickupLocation1(null); } : (v: string) => { setLocation2Query(v); if (!v) setPickupLocation2(null); };
+      const value = is1 ? pickupLocation1 : pickupLocation2;
+      const suggestions = is1 ? location1Suggestions : location2Suggestions;
+      const open = pickupDropdownVisible === which;
+      const setOpen = (v: boolean) => setPickupDropdownVisible(v ? which : null);
+      const dotColor = is1 ? '#f08070' : '#3b82f6';
+      const excludeDisplayName = is1 ? pickupLocation2?.displayName : pickupLocation1?.displayName;
+      const filtered = excludeDisplayName
+        ? suggestions.filter((s) => (s.displayName || [s.city, s.state].filter(Boolean).join(', ')) !== excludeDisplayName)
+        : suggestions;
+      return (
+        <div key={which} className="relative">
+          <label className="flex items-center gap-1.5 text-[11px] font-bold tracking-widest text-[#aaa] mb-1.5 uppercase">
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />
+            LOCATION {which}
+          </label>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setTimeout(() => setOpen(false), 160)}
+            placeholder="Search for a location..."
+            className={`w-full py-3.5 px-4 rounded-xl text-sm text-[#222] outline-none font-[inherit] box-border transition-all border-[1.5px] bg-[#f2f1ee] dark:bg-[#2a2a2a] dark:text-gray-100 placeholder:text-[#999] ${
+              value
+                ? is1
+                  ? 'border-[#f08070]/30 dark:border-[#f08070]/40'
+                  : 'border-[#3b82f6]/30 dark:border-[#3b82f6]/40'
+                : 'border-transparent dark:border-transparent'
+            }`}
+          />
+          {value && (
+            <div className="flex items-center gap-1 mt-1.5 pl-0.5 text-[11px] text-[#aaa]">
+              <span style={{ color: dotColor }}>✓</span>
+              <span className="truncate">{value.displayName || [value.city, value.state].filter(Boolean).join(', ')}</span>
             </div>
-            <div className="relative">
-              <label className="block text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light mb-2 uppercase">Location 2</label>
-              <input
-                type="text"
-                value={location2Query}
-                onChange={(e) => { setLocation2Query(e.target.value); setPickupLocation2(null); setPickupDropdownVisible('2'); }}
-                onFocus={() => setPickupDropdownVisible('2')}
-                onBlur={() => setTimeout(() => setPickupDropdownVisible(null), 150)}
-                placeholder="Search for a location..."
-                className="w-full h-12 rounded-xl border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark px-4 text-sm text-relay-text dark:text-relay-text-dark placeholder:text-relay-muted dark:placeholder:text-relay-muted-light"
-              />
-              {pickupDropdownVisible === '2' && (location2Suggestions.length > 0 || locationSuggestionsLoading) && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark shadow-lg max-h-48 overflow-y-auto z-40">
-                  {locationSuggestionsLoading ? (
-                    <div className="p-3 text-center text-relay-muted text-xs">Searching...</div>
-                  ) : (
-                    location2Suggestions.map((s, i) => (
-                      <button key={i} type="button" onClick={() => selectLocation('2', s)} className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-relay-text dark:text-relay-text-dark hover:bg-relay-bg dark:hover:bg-relay-bg-dark border-b border-relay-border dark:border-relay-border-dark last:border-0">
-                        <span className="material-symbols-outlined !text-lg text-primary">location_on</span>
-                        <span className="truncate">{s.displayName}</span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-          {pickupLocationsError && (
-            <p className="text-sm text-center -mt-1 text-relay-text dark:text-relay-text-dark/80">
-              {pickupLocationsError}
-            </p>
           )}
-          <div className="relative z-30 flex flex-col gap-2 pt-2 -mx-6 -mb-6 px-6 pb-6 rounded-b-2xl">
+          {open && (filtered.length > 0 || locationSuggestionsLoading) && (
+            <div className="absolute top-[calc(100%+4px)] left-0 right-0 z-50 bg-white dark:bg-[#1a1a1a] rounded-[14px] shadow-lg overflow-hidden border border-[#f0f0ee] dark:border-gray-700">
+              {locationSuggestionsLoading ? (
+                <div className="p-3 text-center text-[#888] text-xs">Searching...</div>
+              ) : (
+                filtered.map((s, i) => {
+                  const exact = s.displayName || [s.city, s.state].filter(Boolean).join(', ') || 'Unknown';
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onMouseDown={() => { selectLocation(which, s); setQuery(exact); setOpen(false); }}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-left text-sm text-[#222] dark:text-gray-100 hover:bg-[#fafaf8] dark:hover:bg-[#252525] border-b border-[#f8f8f6] dark:border-gray-800 last:border-0"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-[#f5f4f0] dark:bg-[#333] flex items-center justify-center text-sm shrink-0">📍</div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-[#222] dark:text-gray-100 truncate">{s.displayName?.split(',')[0]?.trim() || s.city || 'Location'}</div>
+                        <div className="text-[11px] text-[#aaa] mt-0.5 truncate">{s.displayName || [s.city, s.state].filter(Boolean).join(', ')}</div>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      );
+    };
+    return (
+      <div className="fixed inset-0 z-[9998] flex items-center justify-center p-6 bg-[#e8e6e0]/90 dark:bg-black/60">
+        <div className="w-full max-w-[420px]">
+          <div className="w-9 h-1 rounded-full bg-[#ccc] mx-auto mb-4" aria-hidden />
+          <div className="bg-white dark:bg-[#1a1a1a] rounded-[28px] pt-7 px-[22px] pb-[22px] shadow-[0_2px_40px_rgba(0,0,0,0.08)]">
+            <h2 className="text-[22px] font-extrabold tracking-tight text-[#111] dark:text-gray-100 mb-2">
+              PICKUP LOCATIONS
+            </h2>
+            <p className="text-sm text-[#aaa] dark:text-gray-400 leading-relaxed mb-6">
+              Choose 2 pickup locations so the buyer can pick one when they swap. Type to search.
+            </p>
+            <div className="flex flex-col gap-[18px]">
+              {renderLocationInput('1')}
+              {renderLocationInput('2')}
+              <div
+                className="overflow-hidden transition-all duration-500 ease-out"
+                style={{
+                  maxHeight: mapVisible ? 220 : 0,
+                  opacity: mapVisible ? 1 : 0,
+                  transitionProperty: 'max-height, opacity',
+                  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1), ease',
+                }}
+              >
+                <SharedMap loc1={pickupLocation1} loc2={pickupLocation2} />
+              </div>
+            </div>
+            {pickupLocationsError && (
+              <p className="text-sm text-center mt-2 text-red-600 dark:text-red-400">
+                {pickupLocationsError}
+              </p>
+            )}
             <button
               type="button"
               onClick={handlePickupLocationsConfirm}
               disabled={!canConfirm || pickupLocationsSaving}
-              className="w-full rounded-xl bg-primary text-white text-xs font-semibold tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              style={{ height: '42px' }}
+              className="w-full mt-5 py-4 rounded-[14px] text-[13px] font-extrabold tracking-widest transition-all duration-250 font-[inherit] disabled:cursor-not-allowed"
+              style={{
+                background: canConfirm ? '#f08070' : '#f2f1ee',
+                color: canConfirm ? '#fff' : '#ccc',
+                cursor: canConfirm ? 'pointer' : 'default',
+              }}
             >
               {pickupLocationsSaving ? 'Saving...' : 'CONFIRM AND FINISH'}
             </button>
@@ -1709,6 +2002,9 @@ export default function StepPage() {
                   <input value={imei} onChange={(e) => setImei(e.target.value)} placeholder={identifierLabel === 'IMEI Number' ? '15-digit' : 'Serial #'} className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark px-4 text-sm" />
                 </div>
               </div>
+            )}
+            {category === 'Console' && (
+              <ConsoleAccessoryField accessories={accessories} onToggle={toggleAccessory} />
             )}
             {category === 'Tablets' && carrier === 'Unlocked' && imei.trim().length > 0 && imei.trim().length < 15 && (
               <p className="text-amber-600 dark:text-amber-400 text-xs">IMEI must be 15 digits for Unlocked iPad.</p>

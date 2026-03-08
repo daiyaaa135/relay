@@ -123,8 +123,8 @@ export const PRICING_PLANS = [
   {
     id: 'relay-plus',
     name: 'Rellaey+',
-    price: '$5.99',
-    annualPrice: '$49',
+    price: '$4.99',
+    annualPrice: '$47.99',
     interval: 'mo',
     description: 'The ultimate tech rotation experience.',
     features: [

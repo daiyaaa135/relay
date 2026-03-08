@@ -90,7 +90,10 @@ interface ConditionStepPartProps {
 }
 
 export function ConditionStepPart({ question, value, onChange, variant = 'front', category }: ConditionStepPartProps) {
-  const selected = value ?? 'Poor';
+  const useLimitedGrades = category === 'Console' || category === 'Speaker';
+  const grades = useLimitedGrades ? (['Good', 'Mint', 'New'] as const) : CONDITION_GRADES;
+  const defaultGrade = useLimitedGrades ? 'Good' : 'Poor';
+  const selected = value ?? defaultGrade;
   const images = variant === 'back' ? CONDITION_IMAGES_BACK : CONDITION_IMAGES_FRONT;
   const imgSrc = images[selected] ?? images.Poor;
   const useDescriptions = category && (DEVICE_LOOK_CATEGORIES as readonly string[]).includes(category);
@@ -114,7 +117,7 @@ export function ConditionStepPart({ question, value, onChange, variant = 'front'
         )}
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {CONDITION_GRADES.map((grade) => (
+        {grades.map((grade) => (
           <button
             key={grade}
             type="button"

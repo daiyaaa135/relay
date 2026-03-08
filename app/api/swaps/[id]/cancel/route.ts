@@ -90,13 +90,6 @@ export async function POST(
 
     // Refund buyer credits if debit already happened
     if (existingDebit?.id && amount > 0) {
-      const { data: buyerProfile } = await server
-        .from('profiles')
-        .select('credits_balance')
-        .eq('id', buyerId)
-        .single();
-      const currentBalance = buyerProfile?.credits_balance != null ? Number(buyerProfile.credits_balance) : 0;
-
       const { error: txError } = await server.from('transactions').insert({
         profile_id: buyerId,
         amount: amount,
@@ -104,10 +97,31 @@ export async function POST(
         description: 'Swap cancelled — refund',
         reference_id: swapId,
       });
-      const { error: balanceError } = await server.from('profiles')
-        .update({ credits_balance: currentBalance + amount, updated_at: now })
-        .eq('id', buyerId);
+      if (txError) {
+        return Response.json({ error: 'Failed to record refund transaction' }, { status: 500 });
+      }
 
+      // Atomic increment to avoid TOCTOU race if two requests run concurrently
+      const { error: balanceError } = await server.rpc('increment_credits', {
+        p_profile_id: buyerId,
+        p_amount: amount,
+      });
+      if (balanceError) {
+        // Fallback: read-modify-write (best-effort if RPC not deployed yet)
+        const { data: buyerProfile } = await server
+          .from('profiles')
+          .select('credits_balance')
+          .eq('id', buyerId)
+          .single();
+        const currentBalance = buyerProfile?.credits_balance != null ? Number(buyerProfile.credits_balance) : 0;
+        const { error: fallbackError } = await server
+          .from('profiles')
+          .update({ credits_balance: currentBalance + amount, updated_at: now })
+          .eq('id', buyerId);
+        if (fallbackError) {
+          return Response.json({ error: 'Failed to restore credits balance' }, { status: 500 });
+        }
+      }
     }
 
     return Response.json({ ok: true, refunded: !!(existingDebit?.id && amount > 0) });

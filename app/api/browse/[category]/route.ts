@@ -46,6 +46,9 @@ const VALID_CATEGORIES = new Set([
   'Phones', 'Laptops', 'Tablets', 'Headphones', 'Speaker', 'Console', 'Video Games', 'MP3', 'Gaming Handhelds',
 ]);
 
+/** Module-level cache so CSV files are only read once per server instance. */
+const csvCache = new Map<string, BrowseDevice[]>();
+
 function parseCSVLine(line: string): string[] {
   const out: string[] = [];
   let i = 0;
@@ -243,9 +246,16 @@ export async function GET(
 
   if (csvRel) {
     try {
-      const csvPath = join(process.cwd(), csvRel);
-      const csvDevices = await loadFromCsv(category, csvPath);
-      if (csvDevices.length > 0) devices = csvDevices;
+      if (csvCache.has(category)) {
+        devices = csvCache.get(category)!;
+      } else {
+        const csvPath = join(process.cwd(), csvRel);
+        const csvDevices = await loadFromCsv(category, csvPath);
+        if (csvDevices.length > 0) {
+          csvCache.set(category, csvDevices);
+          devices = csvDevices;
+        }
+      }
     } catch {
       // CSV missing or unreadable
     }

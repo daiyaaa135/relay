@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { PRICING_PLANS } from '@/lib/constants';
 import { type } from '@/lib/typography';
 
+const STRIPE_MEMBERSHIP_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_MEMBERSHIP_PAYMENT_LINK ?? '';
+
 export default function PricingPage() {
   const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
@@ -41,7 +43,7 @@ export default function PricingPage() {
             onClick={() => setBillingCycle('annual')}
             className={`px-8 py-3 rounded-xl text-[10px] font-bold tracking-widest transition-all ${billingCycle === 'annual' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-relay-muted hover:text-relay-text dark:hover:text-relay-text-dark'}`}
           >
-            Annual <span className="ml-1 text-[8px] opacity-70">Save 30%</span>
+            Annual <span className="ml-1 text-[8px] opacity-70">Save 20%</span>
           </button>
         </div>
       </div>
@@ -81,8 +83,18 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <button 
-                onClick={() => router.push(plan.id === 'guest' ? '/' : '/profile')}
+              <button
+                onClick={() => {
+                  if (plan.id === 'guest') {
+                    router.push('/');
+                    return;
+                  }
+                  if (STRIPE_MEMBERSHIP_PAYMENT_LINK) {
+                    window.location.href = STRIPE_MEMBERSHIP_PAYMENT_LINK;
+                  } else {
+                    router.push('/profile');
+                  }
+                }}
                 className={`w-full max-w-[50%] mx-auto h-8 rounded-[24px] text-xs font-semibold tracking-[0.15em] transition-all active-scale ${plan.popular ? 'bg-primary text-white hover:bg-primary/90 shadow-2xl shadow-primary/30' : 'border-2 border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:bg-relay-bg transition-colors'}`}
               >
                 {plan.id === 'guest' ? 'Continue as Guest' : `Get ${plan.name} ${billingCycle === 'annual' ? 'Annual' : 'Monthly'}`}

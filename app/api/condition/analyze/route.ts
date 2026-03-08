@@ -1,37 +1,5 @@
 import { NextRequest } from 'next/server';
-import { readFileSync, existsSync } from 'fs';
-import { join, resolve } from 'path';
-
-function getOpenAIApiKey(): string | null {
-  const fromEnv = process.env.OPENAI_API_KEY?.trim();
-  if (fromEnv) return fromEnv;
-  try {
-    let dir = process.cwd();
-    for (let i = 0; i < 10; i++) {
-      for (const envFile of ['.env.local', '.env']) {
-        const envPath = join(dir, envFile);
-        if (!existsSync(envPath)) continue;
-        const raw = readFileSync(envPath, 'utf8').replace(/^\uFEFF/, '');
-        const lines = raw.split(/\r?\n/);
-        for (const line of lines) {
-          const commentIdx = line.indexOf('#');
-          const part = (commentIdx >= 0 ? line.slice(0, commentIdx) : line).trim();
-          if (!part.startsWith('OPENAI_API_KEY')) continue;
-          const eq = part.indexOf('=');
-          if (eq === -1) continue;
-          const value = part.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
-          if (value) return value;
-        }
-      }
-      const parent = resolve(dir, '..');
-      if (parent === dir) break;
-      dir = parent;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+import { createAnonClient } from '@/lib/supabase-server';
 
 function buildConditionPrompt(userFront: string, userBack: string): string {
   return `You are a device condition evaluator. The user has provided:
@@ -88,10 +56,22 @@ function parsePercentage(text: string): number | null {
 }
 
 export async function POST(request: NextRequest) {
-  const apiKey = getOpenAIApiKey();
+  // Require auth to prevent unauthenticated callers from burning OpenAI credits
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const anon = createAnonClient(token);
+  const { data: { user }, error: authError } = await anon.auth.getUser(token);
+  if (authError || !user?.id) {
+    return Response.json({ error: 'Invalid or expired token' }, { status: 401 });
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
     return Response.json(
-      { error: 'OPENAI_API_KEY is not set. Add it to .env.local and restart the dev server.' },
+      { error: 'OPENAI_API_KEY is not set.' },
       { status: 500 }
     );
   }

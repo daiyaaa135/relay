@@ -7,6 +7,7 @@ import { extractImeiAndCarrierFromOcr, verifyImeiAndCarrier } from '@/lib/imeiVe
 import { lookupByImeidb, type ImeidbLookupResult } from '@/lib/imeidb';
 import { isAliasForModel } from '@/lib/modelAliases';
 import { lookupSamsungByImei } from '@/lib/snlookup';
+import { createAnonClient } from '@/lib/supabase-server';
 
 /** Max image size 10MB */
 const MAX_SIZE = 10 * 1024 * 1024;
@@ -51,16 +52,18 @@ function checkOemUnlockingEnabled(ocrText: string): boolean {
   return hasOemUnlock && hasOnOrUnlocked && !hasOff;
 }
 
-/** Log OEM OCR and check result for debugging. */
-function logOemCheck(ocrText: string, result: boolean): void {
-  const t = ocrText.toLowerCase().replace(/\s+/g, ' ');
-  const hasOemUnlock = /oem\s*unlock/.test(t);
-  const hasOnOrUnlocked =
-    /\b(on|enabled|yes|unlocked)\b/.test(t) || /[✓✔]|checkmark|check\s*mark/.test(t);
-  const hasOff = /\b(off|disabled|no|x)\b/.test(t);
-}
-
 export async function POST(request: NextRequest) {
+  // Require auth to prevent unauthenticated IMEI lookups and OCR abuse
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const anon = createAnonClient(token);
+  const { data: { user }, error: authError } = await anon.auth.getUser(token);
+  if (authError || !user?.id) {
+    return Response.json({ error: 'Invalid or expired token' }, { status: 401 });
+  }
   let tempPath: string | null = null;
   try {
     const formData = await request.formData();
@@ -246,7 +249,6 @@ export async function POST(request: NextRequest) {
             });
           }
           const oemPass = checkOemUnlockingEnabled(oemData.text);
-          logOemCheck(oemData.text, oemPass);
           if (!oemPass) {
             return Response.json({
               passed: false,

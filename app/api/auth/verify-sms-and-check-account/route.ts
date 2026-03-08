@@ -59,9 +59,19 @@ export async function POST(request: NextRequest) {
 
     const norm = (p: string) => p.replace(/\D/g, '').slice(-10);
     const phoneNorm = norm(phone);
-    const { data: listData } = await admin.auth.admin.listUsers({ perPage: 1000 });
-    const users = listData?.users ?? [];
-    const existingUser = users.find((u) => norm(u.phone ?? '') === phoneNorm);
+
+    // Paginate through all auth users to find matching phone.
+    // TODO: store phone in profiles table and index it to avoid O(N) scan.
+    let existingUser: Awaited<ReturnType<typeof admin.auth.admin.listUsers>>['data']['users'][number] | undefined;
+    let page = 1;
+    const PAGE_SIZE = 1000;
+    while (!existingUser) {
+      const { data: listData } = await admin.auth.admin.listUsers({ perPage: PAGE_SIZE, page });
+      const users = listData?.users ?? [];
+      existingUser = users.find((u) => norm(u.phone ?? '') === phoneNorm);
+      if (users.length < PAGE_SIZE) break;
+      page++;
+    }
 
     if (!existingUser) {
       return Response.json({ ok: true, existingAccount: false });
