@@ -1,0 +1,405 @@
+@import "tailwindcss";
+@import "mapbox-gl/dist/mapbox-gl.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Mapbox branding ── */
+a.mapboxgl-ctrl-logo,
+.mapboxgl-ctrl-attrib-inner,
+.mapboxgl-ctrl-attrib { display: none !important; }
+
+/* ── Map marker animations ── */
+@keyframes mapPing {
+  0% { transform: scale(1); opacity: 0.75; }
+  75%, 100% { transform: scale(2.5); opacity: 0; }
+}
+@keyframes mapSlowPulse {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.6); opacity: 0.1; }
+}
+
+:root {
+  --background: #E8E9EC;
+  --foreground: #000000;
+  --primary: #FF5721;
+  --relay-bg: #E8E9EC;
+  --relay-surface: #F2F2F2;
+  --relay-border: transparent;
+  --relay-text: #000000;
+  --relay-muted: #595959;
+  --relay-muted-light: #9B9B9B;
+  /* Filter panel: semi-transparent glass */
+  --filter-panel-glass: rgba(255, 255, 255, 0.45);
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --relay-bg: #000000;
+  --relay-surface: #111111;
+  --relay-border: transparent;
+  --relay-text: #FFFFFF;
+  --relay-muted: #9B9B9B;
+  --relay-muted-light: #7A7A7A;
+  --filter-panel-glass: rgba(17, 17, 17, 0.9);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: #FF5721;
+  --color-relay-bg: #E8E9EC;
+  --color-relay-bg-dark: #000000;
+  --color-relay-surface: #F2F2F2;
+  --color-relay-surface-dark: #111111;
+  --color-relay-border: transparent;
+  --color-relay-border-dark: transparent;
+  --color-relay-text: #000000;
+  --color-relay-text-dark: #FFFFFF;
+  --color-relay-muted: #595959;
+  --color-relay-muted-light: #9B9B9B;
+  --color-relay-muted-light-dark: #7A7A7A;
+  --color-relay-input: #e8e9ec;
+  --color-relay-input-dark: #1c1c1e;
+  --font-sans: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Georgia", "Times New Roman", Times, serif;
+  --font-display: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* ---- Rellaey type scale (Plus Jakarta Sans) ---- */
+  --text-h1: 1.75rem;              /* 28px — Screen Title / H1, Bold 700 */
+  --text-h1--line-height: 1.25;
+  --text-h2: 1.375rem;             /* 22px — Section Heading / H2, SemiBold 600 */
+  --text-h2--line-height: 1.35;
+  --text-label: 0.9375rem;         /* 15px — Subheading / Label / Button, Medium 500 or SemiBold 600 */
+  --text-label--line-height: 1.4;
+  --text-price: 1rem;              /* 16px — Price / Highlight, Bold 700 */
+  --text-price--line-height: 1.25;
+}
+
+/* Filter drawer: semi-transparent glass with backdrop blur (content stays readable) */
+.filter-panel-bg {
+  background: var(--filter-panel-glass) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Root scroll so iOS applies rubber-band to the vertical content (Browse by category + listings) */
+html {
+  height: 100%;
+}
+body {
+  min-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+  font-family: var(--font-sans);
+  background: var(--relay-bg);
+  color: var(--relay-text);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Input & search bar background — applies globally to all text inputs and textareas */
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
+textarea {
+  background-color: #e8e9ec !important;
+}
+:where(.dark) input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
+:where(.dark) textarea {
+  background-color: #1c1c1e !important;
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Standard page scroll container — enables glassmorphism by extending behind fixed nav/header */
+.page-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+}
+.page-scroll::-webkit-scrollbar { display: none; }
+.page-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* iOS-style rubber-band overscroll on the main content (Browse by category + listings) */
+.scroll-bounce {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+}
+
+/* Welcome / auth hero: floating gadget images */
+.gadget-float {
+  animation: gadget-float 6s ease-in-out infinite;
+  will-change: transform;
+}
+.gadget-float.stagger-1 { animation-delay: 0s; }
+.gadget-float.stagger-2 { animation-delay: 1.5s; }
+.gadget-float.stagger-3 { animation-delay: 3s; }
+@keyframes gadget-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.active-scale:active { transform: scale(0.96); }
+.hover-lift:hover { transform: translateY(-4px); }
+.glass-card {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Listing (Swap) center nav button: orange gradient fill, gradient border, shadows */
+.listing-nav-button {
+  background-image:
+    linear-gradient(135deg, #FF5621 0%, rgba(255, 137, 0, 0.49) 100%),
+    linear-gradient(to bottom, #FF5416, #FFDFAC);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  border: 2px solid transparent;
+  box-shadow:
+    42px 42px 52px rgba(142, 155, 174, 0.2),
+    inset -2px -4px 4px rgba(255, 255, 255, 0.6);
+}
+
+/* Next Step button (list flow): gradient fill, transparent border, shadows */
+.next-step-button {
+  background-image: linear-gradient(135deg, #FF5621 0%, rgba(255, 137, 0, 0.49) 100%);
+  background-origin: padding-box;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  box-shadow:
+    42px 42px 52px rgba(142, 155, 174, 0.2),
+    inset -2px -4px 4px rgba(255, 255, 255, 0.6);
+}
+
+/* ---- Coin celebration animation ---- */
+@keyframes coin-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(80px) scale(0.4) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(20px) scale(1) rotate(40deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-80px) scale(1.05) rotate(120deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120px) scale(0.8) rotate(200deg);
+  }
+}
+@keyframes coin-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(-20deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.3) rotate(10deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.95) rotate(-5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.6) rotate(15deg);
+  }
+}
+@keyframes credits-count-up {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(30px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) translateY(-5px);
+  }
+  70% {
+    transform: scale(0.95) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(-10px) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(120px) rotate(360deg);
+  }
+}
+.animate-coin-rise {
+  animation: coin-rise 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-coin-pop {
+  animation: coin-pop 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-credits-count-up {
+  animation: credits-count-up 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+.animate-confetti-fall {
+  animation: confetti-fall 2s ease-in forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ------------------------------------------------------------------------ */
+/* Metal Design System Overrides                                            */
+/* ------------------------------------------------------------------------ */
+
+:root {
+  /* Golden ratio for line-heights / layout ratios */
+  --phi: 1.618;
+
+  /* 4pt spacing scale (Fibonacci-aligned) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+  --space-16: 64px;
+
+  /* App background + surfaces (Light) */
+  --background: #F3F4F7;
+  --foreground: #1F2129;
+  --relay-bg: #F3F4F7;
+  --relay-surface: #FFFFFF;
+  --relay-border: rgba(255, 255, 255, 0.30);
+
+  /* Typography (Light) */
+  --relay-text: #1F2129;
+  --relay-muted: #7C8292;
+  --relay-muted-light: #7C8292;
+
+  /* Inputs */
+  --relay-input: #E3E5EB;
+
+  /* Glassmorphism layers (Light) */
+  --glass-fill-1: rgba(255, 255, 255, 0.44);
+  --glass-fill-2: rgba(255, 255, 255, 0.83);
+  --glass-stroke: rgba(255, 255, 255, 0.30);
+  --glass-blur: blur(20px);
+  --glass-webkit-blur: blur(20px);
+  --glass-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.83);
+  --glass-radius: 28px;
+
+  /* Override Tailwind theme color vars to Metal palette */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: #1F2129;
+
+  --color-relay-bg: #F3F4F7;
+  --color-relay-bg-dark: #0E151E;
+  --color-relay-surface: #FFFFFF;
+  --color-relay-surface-dark: #1F2129;
+  --color-relay-border: rgba(255, 255, 255, 0.30);
+  --color-relay-border-dark: rgba(255, 255, 255, 0.16);
+  --color-relay-text: #1F2129;
+  --color-relay-text-dark: #F4F4F4;
+  --color-relay-muted: #7C8292;
+  --color-relay-muted-light: #7C8292;
+  --color-relay-muted-light-dark: #969CAC;
+  --color-relay-input: #E3E5EB;
+  --color-relay-input-dark: #171D26;
+
+  /* Typography: Plus Jakarta Sans stack */
+  --font-sans: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Georgia", "Times New Roman", Times, serif;
+  --font-display: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+:root.dark,
+.dark {
+  /* App background + surfaces (Dark) */
+  --background: #0E151E;
+  --foreground: #F4F4F4;
+  --relay-bg: #0E151E;
+  --relay-surface: #1F2129;
+  --relay-border: rgba(255, 255, 255, 0.16);
+
+  /* Typography (Dark) */
+  --relay-text: #F4F4F4;
+  --relay-muted: #969CAC;
+  --relay-muted-light: #969CAC;
+
+  /* Inputs */
+  --relay-input: #171D26;
+
+  /* Glassmorphism layers (Dark) */
+  --glass-fill-1: rgba(255, 255, 255, 0.18);
+  --glass-fill-2: rgba(255, 255, 255, 0.30);
+  --glass-stroke: rgba(255, 255, 255, 0.30);
+
+  /* Theme color overrides in dark mode */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: #F4F4F4;
+
+  --color-relay-bg: #0E151E;
+  --color-relay-bg-dark: #0E151E;
+  --color-relay-surface: #1F2129;
+  --color-relay-surface-dark: #1F2129;
+  --color-relay-border: rgba(255, 255, 255, 0.16);
+  --color-relay-border-dark: rgba(255, 255, 255, 0.16);
+  --color-relay-text: #F4F4F4;
+  --color-relay-text-dark: #F4F4F4;
+  --color-relay-muted: #969CAC;
+  --color-relay-muted-light: #969CAC;
+  --color-relay-muted-light-dark: #969CAC;
+  --color-relay-input: #171D26;
+  --color-relay-input-dark: #171D26;
+}
+
+/* Glassmorphism for overlays / nav / panels (Metal Glass spec) */
+.filter-panel-bg,
+.glass-card {
+  background: linear-gradient(135deg, var(--glass-fill-1), var(--glass-fill-2));
+  border: 1px solid var(--glass-stroke);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-webkit-blur);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--glass-radius);
+}
+
+/* Inputs: use Metal input token in both themes */
+input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
+textarea {
+  background-color: var(--relay-input) !important;
+}
+:where(.dark) input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
+:where(.dark) textarea {
+  background-color: var(--relay-input) !important;
+}
+
+/* Auth/signup input cards: transparent bg to show glass-card (matches login) */
+.auth-input-card input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
+.auth-input-card textarea {
+  background-color: transparent !important;
+}

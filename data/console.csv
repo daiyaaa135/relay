@@ -1,0 +1,48 @@
+BRAND,MODEL,VARIANT,STORAGE,IMAGE_URL,PRICE
+Nintendo,Switch,,32GB,/images/consoles/nintendo-switch.png,129
+Nintendo,Switch 2,,256GB,https://static.swappa.com/images/cache/6a/87/6a876bcdd778c335a4cff336b5c0108b.png,349
+Nintendo,Switch - OLED,,64GB,/images/consoles/nintendo-switch-oled.png,231
+Nintendo,Switch Lite,,32GB,/images/consoles/nintendo-switch-lite.png,113
+Nintendo,Wii,,—,https://static.swappa.com/images/cache/3d/9e/3d9e1e41ef4c9c8a227f1b380eb820da.png,92
+Nintendo,Original 3DS XL,,4GB,https://static.swappa.com/images/cache/6d/d0/6dd01300609766a45ead61cd82b1f606.png,309
+Nintendo,New 3DS XL,,4GB,https://static.swappa.com/images/cache/6d/d0/6dd01300609766a45ead61cd82b1f606.png,309
+Steam,Deck,-,64GB,https://static.swappa.com/images/cache/8a/28/8a28475aa0f81a40dbbbeadba668a724.png,389
+Steam,Deck,-,256GB,https://static.swappa.com/images/cache/8a/28/8a28475aa0f81a40dbbbeadba668a724.png,389
+Steam,Deck,-,512GB,https://static.swappa.com/images/cache/8a/28/8a28475aa0f81a40dbbbeadba668a724.png,389
+Steam,Deck,OLED Edition,512GB,https://static.swappa.com/images/cache/8a/28/8a28475aa0f81a40dbbbeadba668a724.png,389
+Steam,Deck,OLED Edition,1TB,https://static.swappa.com/images/cache/8a/28/8a28475aa0f81a40dbbbeadba668a724.png,389
+Steam,Deck,OLED Limited Edition,1TB,https://static.swappa.com/images/cache/8a/28/8a28475aa0f81a40dbbbeadba668a724.png,389
+Steam,Deck,OLED Limited Edition White,1TB,https://static.swappa.com/images/cache/8a/28/8a28475aa0f81a40dbbbeadba668a724.png,389
+Analogue,3D,Black,—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,White,—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Clear],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Fire],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Gold],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Grape],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Ice],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Jungle],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Smoke],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Funtastic [Watermelon],—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Analogue,3D,Extreme Green,—,https://static.swappa.com/images/cache/8e/c1/8ec1c133d1b0c6faf39f7b660c6ef510.png,255
+Xbox,Series X (2020),,1TB,https://static.swappa.com/images/cache/8a/f9/8af9d5a13dfb17dd851eef4d65a9fd40.png,432
+Xbox,Series S (2020),,512GB,https://static.swappa.com/images/cache/5f/46/5f467a0d5709e165220bcbff86c6f506.png,273
+Xbox,One S (2016),,500GB,https://static.swappa.com/images/cache/73/ba/73ba3b238cc344aa52c3258b65834d51.png,184
+Xbox,One X (2017),,1TB,https://static.swappa.com/images/cache/e0/dc/e0dcbe9796e46229c6e3cc7b8158e536.png,218
+Xbox,One (2013),,500GB,https://static.swappa.com/images/cache/8e/cc/8ecce7b29575d51af8de18256e9f1562.png,69
+PlayStation,5 Standard Edition (2020),,825GB,https://static.swappa.com/images/cache/26/56/2656a781f9848ba15db230122596df45.png,334
+PlayStation,5 Slim Standard Edition (2023),,1TB,https://static.swappa.com/images/cache/62/02/620252a3e7d4457aaf8569e70a518f45.png,386
+PlayStation,5 Slim Digital Edition (2023),,1TB,https://static.swappa.com/images/cache/a0/06/a006d1adf041e53d1485a8fb8483124e.png,360
+PlayStation,5 Digital Edition (2020),,825GB,https://static.swappa.com/images/cache/87/fe/87fe4e7883e7eee2adbfc573da7f8bfc.png,378
+PlayStation,4 Pro,,1TB,https://static.swappa.com/images/cache/91/6c/916cfa4897fe4ba53e46eac7a8220e7f.png,204
+PlayStation,4 Slim,,500GB,https://static.swappa.com/images/cache/ce/4d/ce4d1a432399e63a43c57a19f48882ba.png,126
+PlayStation,4,,500GB,https://static.swappa.com/images/cache/5b/72/5b726639fada8773bef88ad0e33f02ef.png,168
+Asus ROG,Ally,Ally X,1TB,https://static.swappa.com/images/cache/52/a0/52a01042f0d7f8bef4e2341cb93e16c6.png,1179
+Asus ROG,Ally,Handheld Console (original),512GB,https://static.swappa.com/images/cache/9a/88/9a881c550711b9b12bd0a6eff1a6471c.png,523
+Lenovo Legion,Go,512GB,512GB,https://static.swappa.com/images/cache/dc/60/dc60fc44e59958c05475b2e8ef37452f.png,1467
+Lenovo Legion,Go,1TB,1TB,https://static.swappa.com/images/cache/dc/60/dc60fc44e59958c05475b2e8ef37452f.png,1467
+Lenovo Legion,Go,S 16GB,512GB,https://static.swappa.com/images/cache/7c/73/7c733cb186930d1e8fc39beeee3c700e.png,721
+Lenovo Legion,Go,S 1TB Glacier White,1TB,https://static.swappa.com/images/cache/7c/73/7c733cb186930d1e8fc39beeee3c700e.png,721
+Lenovo Legion,Go,S Z1 Extreme,512GB,https://static.swappa.com/images/cache/7c/73/7c733cb186930d1e8fc39beeee3c700e.png,721
+Lenovo Legion,Go,2 Z2 Extreme,1TB,https://static.swappa.com/images/cache/dc/60/dc60fc44e59958c05475b2e8ef37452f.png,1467
+Arcade1Up,Counter-Cade,—,—,https://static.swappa.com/images/cache/4b/d0/4bd0ee6778ca804ff0b4c7c3d7f8b510.png,231
+Arcade1Up,Deluxe Street Fighter 2 Champion Edition,—,—,https://static.swappa.com/images/cache/4b/d0/4bd0ee6778ca804ff0b4c7c3d7f8b510.png,231

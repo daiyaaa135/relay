@@ -1,0 +1,284 @@
+version: "2"
+type: frontend
+tech_stack:
+  - language: TypeScript
+  - framework: Next.js 16 (App Router)
+  - ui_library: Tailwind CSS
+  - other: Supabase, Capacitor, Tesseract.js, Lucide React
+routes:
+  - path: /
+    file: app/page.tsx
+    auth_required: false
+    description: Landing and marketplace browse page with search, filters, and meetup banner.
+  - path: /browse/[category]
+    file: app/browse/[category]/page.tsx
+    auth_required: false
+    description: Browse catalog devices by category and brand.
+features:
+  - name: Marketplace Landing and Search
+    description: Browse and filter gadget listings, search by device, and open listings.
+    files:
+      - app/page.tsx
+      - app/browse/[category]/page.tsx
+      - app/components/DeviceSearchBar.tsx
+      - lib/gadgets.ts
+      - lib/constants.ts
+      - lib/geo.ts
+      - lib/wishlist.ts
+      - lib/avatars.ts
+    entry_route: /
+    user_interactions:
+      - Open the home page to see marketplace items.
+      - Type into the search bar to look up a device.
+      - Tap a suggested device from the search dropdown.
+      - Change category chips to filter by category.
+      - Open and adjust filters such as brand, condition, storage, distance, and price.
+      - Toggle wishlist (favorite) on a listing card.
+      - Tap a listing card to open its detail page.
+    api_calls:
+      - method: GET
+        endpoint: /api/browse/[category]
+      - method: GET
+        endpoint: /api/browse/[category]/brands
+      - method: GET
+        endpoint: /api/device-listings
+    auth_required: false
+  - name: Category Catalog Browsing
+    description: Browse catalog of devices for a specific category and jump into a specific model’s listings.
+    files:
+      - app/browse/[category]/page.tsx
+      - app/api/browse/[category]/route.ts
+      - data/*.csv
+    entry_route: /browse/[category]
+    user_interactions:
+      - Navigate to a category from the home page.
+      - Scroll horizontally through brand sections.
+      - Tap a catalog card to navigate to a model-specific browse route.
+      - Use back navigation to return to the home page.
+    api_calls:
+      - method: GET
+        endpoint: /api/browse/[category]
+    auth_required: false
+known_limitations:
+  - issue: Authenticated flows, swaps, wallet, and profile features exist but are not fully described in this summary.
+    location: app/**
+    impact: Some end-to-end flows may not be covered by generated tests until the summary is expanded.
+version: "2"
+type: backend
+tech_stack:
+  - TypeScript
+  - Next.js 16 (App Router)
+  - Supabase (Postgres, Auth, Storage)
+  - Tailwind CSS 4
+  - React 19
+  - Capacitor (iOS shell)
+features:
+  - name: Landing and Browse Marketplace
+    description: >
+      Landing page and browse flows for discovering local gadget listings, filtering by category,
+      condition, distance, price, and brand, and viewing individual listing details.
+    files:
+      - app/page.tsx
+      - app/browse/[category]/page.tsx
+      - app/listing/[id]/page.tsx
+      - app/components/Layout.tsx
+      - lib/gadgets.ts
+      - lib/constants.ts
+    endpoints:
+      - method: GET
+        path: /api/devices
+        description: Fetch general gadget catalog with filters
+        auth_required: false
+        response_schema:
+          "200": Gadget[]
+      - method: GET
+        path: /api/device-listings
+        description: Fetch live marketplace listings for gadgets
+        auth_required: false
+        response_schema:
+          "200": Listing[]
+    depends_on:
+      - Supabase Database
+      - Supabase Storage for listing images
+
+  - name: Authentication and Profile
+    description: >
+      Email-based authentication with Supabase, user profile management, editable profile fields,
+      avatars, and settings for notifications, privacy, and account actions.
+    files:
+      - app/login/page.tsx
+      - app/signup/page.tsx
+      - app/profile/page.tsx
+      - app/profile/ProfileContent.tsx
+      - app/settings/page.tsx
+      - lib/supabase.ts
+      - lib/supabase-server.ts
+      - lib/profiles.ts
+    endpoints:
+      - method: POST
+        path: /auth/v1/token
+        description: Supabase email login/signup endpoint (handled by Supabase)
+        auth_required: false
+        response_schema:
+          "200": AuthSession
+          "400": AuthError
+      - method: GET
+        path: /rest/v1/profiles
+        description: Fetch current user profile by id
+        auth_required: true
+        response_schema:
+          "200": Profile
+    depends_on:
+      - Supabase Auth
+      - Supabase profiles table
+
+  - name: Listing Creation and Management
+    description: >
+      Multi-step flow for creating, editing, and managing device listings including condition
+      assessment, pricing helpers, photos, and publishing.
+    files:
+      - app/list/page.tsx
+      - app/list/layout.tsx
+      - app/list/[step]/layout.tsx
+      - app/list/[step]/page.tsx
+      - app/list/ListingContext.tsx
+      - app/list/ConditionStepPart.tsx
+      - app/listing/[id]/page.tsx
+      - lib/devices.ts
+      - lib/types.ts
+      - schema.sql
+    endpoints:
+      - method: POST
+        path: /api/device-listings
+        description: Create a new device listing
+        auth_required: true
+        request_schema:
+          body:
+            title: string
+            description: string
+            device_id: string
+            condition: string
+            price_credits: number
+        response_schema:
+          "200": Listing
+          "400": ValidationError
+      - method: PATCH
+        path: /api/device-listings/{id}
+        description: Update an existing listing
+        auth_required: true
+        response_schema:
+          "200": Listing
+          "404": NotFound
+    depends_on:
+      - Authentication and Profile
+      - Gadgets and devices tables
+
+  - name: Swaps, Messaging, and Meetups
+    description: >
+      Real-time-ish swaps between users, in-app messaging tied to a swap, meetup coordination with
+      live and preset pickup locations, calendars, and safety guidelines.
+    files:
+      - app/swaps/page.tsx
+      - app/messages/page.tsx
+      - app/messages/[id]/page.tsx
+      - app/meetup/[swapId]/page.tsx
+      - app/components/MeetingSpotMap.tsx
+      - app/components/LivePickupMap.tsx
+      - app/components/PickupCalendarModal.tsx
+      - lib/swaps.ts
+      - lib/messages.ts
+      - lib/geo.ts
+    endpoints:
+      - method: GET
+        path: /api/swaps
+        description: List swaps involving current user
+        auth_required: true
+        response_schema:
+          "200": Swap[]
+      - method: GET
+        path: /api/messages
+        description: Fetch messages for a given swap
+        auth_required: true
+        response_schema:
+          "200": Message[]
+      - method: POST
+        path: /api/swaps/{id}/location
+        description: Update live meetup location for a swap
+        auth_required: true
+        response_schema:
+          "200": Swap
+    depends_on:
+      - Authentication and Profile
+      - Supabase realtime & Postgres
+
+  - name: Wallet, Credits, and Pricing
+    description: >
+      User wallet and credits balance, pricing helpers backed by external providers (Swappa,
+      PriceCharting, etc.), and credits flows tied to swaps and listings.
+    files:
+      - app/wallet/page.tsx
+      - app/pricing/page.tsx
+      - app/api/credits/swappa-lookup/route.ts
+      - app/api/credits/pricecharting-lookup/route.ts
+      - app/api/credits/compare-laptop-prices-lookup/route.ts
+      - lib/transactions.ts
+      - lib/gadgets.ts
+      - data/*.csv
+    endpoints:
+      - method: GET
+        path: /api/credits/swappa-lookup
+        description: Look up resale pricing for specific devices from Swappa
+        auth_required: false
+        response_schema:
+          "200": SwappaPriceLookupResult
+      - method: GET
+        path: /api/credits/pricecharting-lookup
+        description: Look up retro game pricing via PriceCharting
+        auth_required: false
+        response_schema:
+          "200": PriceChartingLookupResult
+      - method: GET
+        path: /rest/v1/transactions
+        description: Fetch wallet transactions and credits balance
+        auth_required: true
+        response_schema:
+          "200": Transaction[]
+    depends_on:
+      - Supabase Database
+      - External pricing APIs
+
+  - name: Safety, Help, and Static Content
+    description: >
+      Static informational pages for safety, help center, guidelines, about, and more menu that
+      ties navigation together on mobile.
+    files:
+      - app/safety/page.tsx
+      - app/help/page.tsx
+      - app/guidelines/page.tsx
+      - app/about/page.tsx
+      - app/more/page.tsx
+      - app/components/Layout.tsx
+    endpoints:
+      - method: GET
+        path: /about
+        description: Static about page rendered by Next.js
+        auth_required: false
+        response_schema:
+          "200": HtmlPage
+      - method: GET
+        path: /safety
+        description: Static safety guidelines page
+        auth_required: false
+        response_schema:
+          "200": HtmlPage
+    depends_on:
+      - Next.js App Router
+
+known_limitations:
+  - issue: Many API route handlers rely on Supabase row-level security and do limited explicit input validation.
+    location: app/api/**
+    impact: Bad inputs may surface as generic 400/500 errors rather than user-friendly validation messages.
+  - issue: Some flows assume the user is logged in but do not always handle anonymous states gracefully.
+    location: app/profile/page.tsx, app/wallet/page.tsx, app/swaps/page.tsx
+    impact: Anonymous users may see loading states without clear prompts to log in.
+

@@ -1,0 +1,18 @@
+{
+  "status": "init",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000/",
+  "executionArgs": {
+    "projectName": "relay",
+    "projectPath": "/Users/serenachan/Documents/dev/relay",
+    "testIds": [],
+    "additionalInstruction": "Focus on core logged-in user journeys: login, create listing, browse and open listing details, open messages, view wallet.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-FyodxGuDliiy5eIwmtMqn2_TgWoMGddY5PW0sqdEdYsbjBv82nlpkI4_NxeO_9hdcKoRrUDZGdSpvnjULcr7bX8hu8NRYJm2ZY_E-c1YFgers8GpyKA5ut15c28i48up9Pk"
+    }
+  },
+  "serverPort": 59591,
+  "proxy": "http://223c729c-8313-4c7b-b146-957f9b318079:7ah9Oj3wmzviJmi7gLTW5resqALJn9vH@tun.testsprite.com:8080"
+}
