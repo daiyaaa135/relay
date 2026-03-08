@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase';
 import { fetchProfile } from '@/lib/profiles';
 import { fetchTransactions, transactionDisplay } from '@/lib/transactions';
 import { type } from '@/lib/typography';
-import { CONDITION_BG } from '@/lib/constants';
 
 export default function WalletPage() {
   const router = useRouter();
@@ -54,14 +53,14 @@ export default function WalletPage() {
           </button>
           <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Wallet</h1>
         </header>
-        <header className="shrink-0 px-6 py-8 flex flex-col items-center justify-center bg-transparent" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}>
+        <section className="shrink-0 px-6 py-8 flex flex-col items-center justify-center bg-transparent" aria-label="Credit balance" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}>
           <div className="w-full rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden relative aspect-[4/3] bg-cover bg-center" style={{ backgroundImage: 'url(/wallet-credits-bg.png)' }}>
             <div className="absolute inset-x-4 bottom-4 rounded-xl glass-card px-6 py-5 flex flex-col items-center justify-center gap-2">
               <p className="text-[10px] text-relay-muted font-bold tracking-[0.3em]">Available credits:</p>
               <div className="h-8 w-24 bg-relay-surface/60 rounded animate-pulse" />
             </div>
           </div>
-        </header>
+        </section>
         <div className="flex-1 flex items-center justify-center px-6">
           <div className="size-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
@@ -82,14 +81,14 @@ export default function WalletPage() {
           </button>
           <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Wallet</h1>
         </header>
-        <header className="shrink-0 px-6 py-8 flex flex-col items-center justify-center bg-transparent" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}>
+        <section className="shrink-0 px-6 py-8 flex flex-col items-center justify-center bg-transparent" aria-label="Credit balance" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}>
           <div className="w-full rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden relative aspect-[4/3] bg-cover bg-center" style={{ backgroundImage: 'url(/wallet-credits-bg.png)' }}>
             <div className="absolute inset-x-4 bottom-4 rounded-xl glass-card px-6 py-5 flex flex-col items-center justify-center gap-2">
               <p className="text-[10px] text-relay-muted font-bold tracking-[0.3em]">Available credits:</p>
               <p className="font-display text-2xl font-bold text-relay-text dark:text-relay-text-dark tracking-tighter">0</p>
             </div>
           </div>
-        </header>
+        </section>
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
           <p className="text-relay-muted dark:text-relay-muted-light text-sm mb-4">Log in to view your wallet.</p>
           <button
@@ -107,7 +106,7 @@ export default function WalletPage() {
   const balance = credits ?? 0;
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
+    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <header className="shrink-0 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
         <button
           onClick={() => router.back()}
@@ -118,14 +117,14 @@ export default function WalletPage() {
         </button>
         <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Wallet</h1>
       </header>
-      <header className="shrink-0 px-6 py-8 flex flex-col items-center justify-center bg-transparent" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}>
+      <section className="shrink-0 px-6 py-8 flex flex-col items-center justify-center bg-transparent" aria-label="Credit balance" style={{ paddingTop: 'max(2rem, env(safe-area-inset-top))' }}>
         <div className="w-full rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] overflow-hidden relative aspect-[4/3] bg-cover bg-center" style={{ backgroundImage: 'url(/wallet-credits-bg.png)' }}>
           <div className="absolute inset-x-0 bottom-0 rounded-t-2xl glass-card px-6 py-5 flex flex-col items-center justify-center gap-3" style={{ borderBottomWidth: 0 }}>
             <p className="text-[10px] text-relay-muted font-bold tracking-[0.3em]">Available credits:</p>
               <p className="font-display text-3xl font-bold text-relay-text dark:text-relay-text-dark tracking-tighter">{balance.toLocaleString()} <span className="text-primary text-xl font-serif ">Cr</span></p>
           </div>
         </div>
-      </header>
+      </section>
 
       <div className="px-6 pt-12 pb-20">
         <div className="flex items-end justify-between mb-10">
@@ -156,14 +155,14 @@ export default function WalletPage() {
                     </div>
                     <div className="text-right">
                       <span
-                        className={`text-base font-bold tracking-tighter ${tx.type === 'credit' ? 'text-primary' : ''}`}
-                        style={tx.type === 'debit' ? { color: CONDITION_BG.New } : undefined}
+                        className={`text-base font-bold tracking-tighter ${tx.type === 'credit' ? 'text-green-500' : ''}`}
+                        style={tx.type === 'debit' ? { color: '#EF4444' } : undefined}
                       >
                         {tx.type === 'credit' ? '+' : '-'}{tx.amount.toLocaleString()}
                       </span>
                       <span
-                        className={`block text-[8px] font-bold tracking-widest ${tx.type === 'credit' ? 'text-primary' : ''}`}
-                        style={tx.type === 'debit' ? { color: CONDITION_BG.New } : undefined}
+                        className={`block text-[8px] font-bold tracking-widest ${tx.type === 'credit' ? 'text-green-500' : ''}`}
+                        style={tx.type === 'debit' ? { color: '#EF4444' } : undefined}
                       >
                         Cr
                       </span>
@@ -180,7 +179,6 @@ export default function WalletPage() {
             </div>
           )}
         </div>
-      </div>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const showToast = (message: string) => {
     setError(message);
@@ -188,9 +189,11 @@ export default function LoginPage() {
             </p>
           )}
           <div className="group relative">
+            <label htmlFor="email" className="sr-only">Email address</label>
             <div className={`relative flex h-12 items-center bg-relay-bg dark:bg-relay-bg-dark rounded-xl px-4 py-0 border border-relay-border dark:border-relay-border-dark group-focus-within:border-primary/80 transition-colors ${styles.loginInputCard}`}>
               <EmailIcon className="w-5 h-5 shrink-0 text-relay-muted" />
               <input
+                id="email"
                 className="block w-full py-2 pl-3 bg-transparent text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-0 focus:outline-none transition-colors text-xs font-medium tracking-tighter"
                 placeholder="Email address"
                 type="email"
@@ -202,16 +205,28 @@ export default function LoginPage() {
           </div>
 
           <div className="group relative">
+            <label htmlFor="password" className="sr-only">Password</label>
             <div className={`relative flex h-12 items-center bg-relay-bg dark:bg-relay-bg-dark rounded-xl px-4 py-0 border border-relay-border dark:border-relay-border-dark group-focus-within:border-primary/80 transition-colors ${styles.loginInputCard}`}>
               <LockIcon className="w-5 h-5 shrink-0 text-relay-muted" />
               <input
+                id="password"
                 className="block w-full py-2 pl-3 bg-transparent text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-0 focus:outline-none transition-colors text-xs font-medium tracking-tighter"
                 placeholder="Password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="ml-2 shrink-0 text-relay-muted hover:text-relay-text transition-colors"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
             </div>
             <div className="flex justify-center mt-3">
               <button

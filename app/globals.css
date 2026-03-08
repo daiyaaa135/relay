@@ -26,7 +26,7 @@ a.mapboxgl-ctrl-logo,
   --relay-surface: #F2F2F2;
   --relay-border: transparent;
   --relay-text: #000000;
-  --relay-muted: #7A7A7A;
+  --relay-muted: #595959;
   --relay-muted-light: #9B9B9B;
   /* Filter panel: semi-transparent glass */
   --filter-panel-glass: rgba(255, 255, 255, 0.45);
@@ -56,13 +56,13 @@ a.mapboxgl-ctrl-logo,
   --color-relay-border-dark: transparent;
   --color-relay-text: #000000;
   --color-relay-text-dark: #FFFFFF;
-  --color-relay-muted: #7A7A7A;
+  --color-relay-muted: #595959;
   --color-relay-muted-light: #9B9B9B;
   --color-relay-muted-light-dark: #7A7A7A;
   --color-relay-input: #e8e9ec;
   --color-relay-input-dark: #1c1c1e;
   --font-sans: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-serif: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Georgia", "Times New Roman", Times, serif;
   --font-display: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* ---- Rellaey type scale (Plus Jakarta Sans) ---- */
@@ -331,7 +331,7 @@ textarea {
 
   /* Typography: Plus Jakarta Sans stack */
   --font-sans: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-serif: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Georgia", "Times New Roman", Times, serif;
   --font-display: "Plus Jakarta Sans", -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 

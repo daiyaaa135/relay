@@ -161,7 +161,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const saved = localStorage.getItem('theme');
-    const isDark = saved === 'dark';
+    const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
     if (isDark) {
       document.documentElement.classList.add('dark');
