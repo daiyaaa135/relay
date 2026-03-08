@@ -1,6 +1,16 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import type mapboxgl from 'mapbox-gl';
+
+type MapboxMap = InstanceType<typeof mapboxgl.Map>;
+type MapboxGLLoaded = {
+  accessToken: string;
+  Map: new (options: mapboxgl.MapOptions) => MapboxMap;
+  Marker: typeof mapboxgl.Marker;
+  LngLat: typeof mapboxgl.LngLat;
+  LngLatBounds: typeof mapboxgl.LngLatBounds;
+};
 
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v11';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
@@ -61,7 +71,7 @@ export function PickupLocationsMap({ locations, className = '' }: Props) {
     let mounted = true;
 
     const init = async () => {
-      const mbgl = (await import('mapbox-gl')).default as typeof import('mapbox-gl');
+      const mbgl = (await import('mapbox-gl')).default as MapboxGLLoaded;
       if (!mounted || !containerRef.current) return;
 
       mbgl.accessToken = TOKEN;

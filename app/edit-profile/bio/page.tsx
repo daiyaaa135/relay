@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchProfile, updateProfile } from '@/lib/profiles';
+import { ScreenSkeleton } from '@/app/components/Skeleton';
 
 const BIO_MAX = 200;
 
@@ -67,9 +68,10 @@ export default function EditProfileBioPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-relay-bg-dark transition-colors">
-        <div className="size-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-      </div>
+      <ScreenSkeleton
+        className="min-h-screen bg-white dark:bg-relay-bg-dark transition-colors"
+        rows={4}
+      />
     );
   }
 

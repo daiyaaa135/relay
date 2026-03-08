@@ -335,16 +335,19 @@ export default function LandingPage() {
     'Gaming Handhelds': '/icons/gaming-handhelds-nav.png',
     'Video Games': '/icons/video-games-nav.png',
   };
+  // Explore page category cards: place SVGs in public/category-cards/ with these exact filenames.
+  // Bump CATEGORY_CARD_VERSION when you replace assets so browsers load the new SVGs (avoids cache).
+  const CATEGORY_CARD_VERSION = '2';
   const CATEGORY_CARD_IMAGES: Record<string, string> = {
-    Phones: '/category-cards/phones.svg',
-    Laptops: '/category-cards/laptops.svg',
-    Console: '/category-cards/console.svg',
-    Tablets: '/category-cards/tablets.svg',
-    Headphones: '/category-cards/headphones.svg',
-    Speaker: '/category-cards/speaker.svg',
-    MP3: '/category-cards/mp3.svg',
-    'Gaming Handhelds': '/category-cards/gaming-handhelds.svg',
-    'Video Games': '/category-cards/video-games.svg',
+    Phones: `/category-cards/phones.svg?v=${CATEGORY_CARD_VERSION}`,
+    Laptops: `/category-cards/laptops.svg?v=${CATEGORY_CARD_VERSION}`,
+    Console: `/category-cards/console.svg?v=${CATEGORY_CARD_VERSION}`,
+    Tablets: `/category-cards/tablets.svg?v=${CATEGORY_CARD_VERSION}`,
+    Headphones: `/category-cards/headphones.svg?v=${CATEGORY_CARD_VERSION}`,
+    Speaker: `/category-cards/speaker.svg?v=${CATEGORY_CARD_VERSION}`,
+    MP3: `/category-cards/mp3.svg?v=${CATEGORY_CARD_VERSION}`,
+    'Gaming Handhelds': `/category-cards/gaming-handhelds.svg?v=${CATEGORY_CARD_VERSION}`,
+    'Video Games': `/category-cards/video-games.svg?v=${CATEGORY_CARD_VERSION}`,
   };
   const categories = [
     { name: 'Explore', icon: 'explore', navIcon: '/icons/nav/explore.png', useMaterialIcon: false, iconScale: 'scale-110', iconClass: 'brightness-0 opacity-80 dark:invert dark:opacity-90' },
@@ -413,7 +416,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <header
-        className="shrink-0 z-40 glass-card border-b border-relay-border dark:border-relay-border-dark px-6 pb-2 space-y-2"
+        className="shrink-0 z-40 glass-card no-blur border-b border-relay-border dark:border-relay-border-dark px-6 pb-2 space-y-2"
         style={{ paddingTop: 'max(2.5rem, env(safe-area-inset-top))', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
       >
         <div className="flex items-center gap-3">

@@ -5,6 +5,10 @@ import { useEffect, useState } from 'react';
 const letters = ['R', 'e', 'l', 'l', 'a', 'e', 'y'];
 const ACCENT_INDICES = [2, 5];
 
+// Brand colors for splash: primary orange + warm gold accent
+const PRIMARY_COLOR = '#FF5721';
+const ACCENT_COLOR = '#FBC881';
+
 type SplashScreenProps = {
   onDone?: () => void;
 };
@@ -36,14 +40,14 @@ const styles = {
   },
   bar: {
     height: '3px',
-    background: 'linear-gradient(90deg, #FF5721, #FBC881)',
+    background: `linear-gradient(90deg, ${PRIMARY_COLOR}, ${ACCENT_COLOR})`,
     borderRadius: '2px',
   },
   tagline: {
     fontSize: 'clamp(0.7rem, 3.5vw, 0.9rem)',
     fontWeight: 300,
     letterSpacing: '0.3em',
-    color: '#FBC881',
+    color: ACCENT_COLOR,
     textTransform: 'uppercase' as const,
     margin: 0,
   },
@@ -63,8 +67,8 @@ const styles = {
     inset: '-3px',
     borderRadius: '50%',
     border: '3px solid transparent',
-    borderTopColor: '#FF5721',
-    borderRightColor: '#FBC881',
+    borderTopColor: PRIMARY_COLOR,
+    borderRightColor: ACCENT_COLOR,
     animation: 'spin 0.9s linear infinite',
     boxSizing: 'border-box' as const,
   },
@@ -110,7 +114,8 @@ export default function SplashScreen({ onDone }: SplashScreenProps) {
               transition: `opacity 0.5s ${i * 0.08 + 0.2}s ease-out, transform 0.5s ${
                 i * 0.08 + 0.2
               }s ease-out`,
-              color: ACCENT_INDICES.includes(i) ? '#FF5721' : '#1F2129',
+              // Accent color play — 3rd & 6th letters use warm gold, others use primary orange
+              color: ACCENT_INDICES.includes(i) ? ACCENT_COLOR : PRIMARY_COLOR,
             }}
           >
             {char}

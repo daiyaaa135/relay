@@ -1,7 +1,18 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import type mapboxgl from 'mapbox-gl';
 import { distanceMiles } from '@/lib/geo';
+
+type MapboxMap = InstanceType<typeof mapboxgl.Map>;
+/** Type for dynamically imported mapbox-gl default; matches what we use from the ref. */
+type MapboxGLLoaded = {
+  accessToken: string;
+  Map: new (options: mapboxgl.MapOptions) => MapboxMap;
+  Marker: typeof mapboxgl.Marker;
+  LngLat: typeof mapboxgl.LngLat;
+  LngLatBounds: typeof mapboxgl.LngLatBounds;
+};
 
 const LIGHT_STYLE = 'mapbox://styles/mapbox/light-v11';
 const DARK_STYLE = 'mapbox://styles/mapbox/dark-v11';
@@ -154,7 +165,7 @@ export function LivePickupMap({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<unknown>(null);
-  const mapboxglRef = useRef<typeof import('mapbox-gl') | null>(null);
+  const mapboxglRef = useRef<MapboxGLLoaded | null>(null);
   const meetingMarkerRef = useRef<unknown>(null);
   const buyerMarkerRef = useRef<unknown>(null);
   const sellerMarkerRef = useRef<unknown>(null);
@@ -163,7 +174,7 @@ export function LivePickupMap({
   const [loaded, setLoaded] = useState(false);
 
   // Compute bounds that fit all available points
-  function computeBounds(mbgl: typeof import('mapbox-gl'), map: unknown) {
+  function computeBounds(mbgl: MapboxGLLoaded, map: unknown) {
     const pts: Array<{ lat: number; lon: number }> = [
       { lat: meetingLat, lon: meetingLon },
       ...(buyerPoint ? [buyerPoint] : []),
@@ -184,12 +195,12 @@ export function LivePickupMap({
   // Initialize map once
   useEffect(() => {
     if (!containerRef.current) return;
-    let map: ReturnType<typeof import('mapbox-gl')['Map']['prototype']['constructor']> | undefined;
+    let map: MapboxMap | undefined;
     let observer: MutationObserver;
     let mounted = true;
 
     const init = async () => {
-      const mbgl = (await import('mapbox-gl')).default as typeof import('mapbox-gl');
+      const mbgl = (await import('mapbox-gl')).default as MapboxGLLoaded;
       if (!mounted || !containerRef.current) return;
 
       mbgl.accessToken = TOKEN;
@@ -202,7 +213,7 @@ export function LivePickupMap({
         zoom: 14,
         attributionControl: false,
         logoPosition: 'bottom-left' as const,
-      }) as unknown as typeof map;
+      }) as MapboxMap;
 
       // Allow pan + zoom only; disable rotation, box-zoom, keyboard nav
       (map as unknown as { dragRotate: { disable: () => void } }).dragRotate.disable();

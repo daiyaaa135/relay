@@ -25,6 +25,67 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="light dark" />
+        <meta name="theme-color" content="#FF5721" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function () {
+  var logEndpoint = '/api/debug-log';
+
+  function send(payload) {
+    try {
+      fetch(logEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(function () {});
+    } catch (e) {
+      // swallow
+    }
+  }
+
+  window.addEventListener('error', function (event) {
+    send({
+      id: 'log_' + Date.now() + '_preinit_error',
+      runId: 'pre-fix',
+      hypothesisId: 'H-preinit-js-error',
+      location: 'app/layout.tsx:beforeInteractive',
+      message: 'global_error_before_app_init',
+      data: {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      },
+      timestamp: Date.now(),
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function (event) {
+    var reason = event.reason;
+    send({
+      id: 'log_' + Date.now() + '_preinit_rejection',
+      runId: 'pre-fix',
+      hypothesisId: 'H-preinit-js-error',
+      location: 'app/layout.tsx:beforeInteractive',
+      message: 'unhandledrejection_before_app_init',
+      data: {
+        reason:
+          reason && typeof reason === 'object'
+            ? {
+                name: reason.name,
+                message: reason.message,
+                stack: reason.stack,
+              }
+            : String(reason),
+      },
+      timestamp: Date.now(),
+    });
+  });
+})();`,
+          }}
+        />
         <link
           rel="preconnect"
           href="https://fonts.googleapis.com"

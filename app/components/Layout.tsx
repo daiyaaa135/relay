@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { createClient } from '@/lib/supabase';
 import { ListingProvider, useListing } from '@/app/list/ListingContext';
 import { HomeIcon } from '@/app/components/HomeIcon';
@@ -11,7 +12,7 @@ import { MessagesNavIcon } from '@/app/components/MessagesNavIcon';
 import { MoreNavIcon } from '@/app/components/MoreNavIcon';
 import { WishlistNavIcon } from '@/app/components/WishlistNavIcon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import SplashScreen from '@/app/components/SplashScreen';
+// import SplashScreen from '@/app/components/SplashScreen';
 
 const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -150,7 +151,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const hideNavPaths = ['/login', '/signup'];
   const mainRef = React.useRef<HTMLElement>(null);
   const router = useRouter();
-  const [showSplash, setShowSplash] = useState(false);
+  // const [showSplash, setShowSplash] = useState(false); // splash disabled
 
   useEffect(() => {
     const cleanup = usePushNotifications(router);
@@ -160,23 +161,153 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // One-time per-session splash screen on home route
+  // Hide native Capacitor splash when app is ready (first paint)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !Capacitor.isNativePlatform()) return;
+    const hide = async () => {
+      try {
+        await SplashScreen.hide();
+      } catch {
+        // ignore if plugin not available
+      }
+    };
+    // Small delay so first frame has painted
+    const t = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        hide();
+      });
+    });
+    return () => cancelAnimationFrame(t);
+  }, []);
+
+  // Global error + unhandled rejection logging (debug instrumentation)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (pathname !== '/') return;
-    try {
-      if (sessionStorage.getItem('splashShown')) return;
-      sessionStorage.setItem('splashShown', 'true');
-      setShowSplash(true);
-    } catch {
-      // ignore
-    }
-  }, [pathname]);
+
+    const logEndpoint = 'http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307';
+
+    const handleError = (event: ErrorEvent) => {
+      // #region agent log
+      fetch(logEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: `log_${Date.now()}_global_error`,
+          runId: 'pre-fix',
+          hypothesisId: 'H-global-js-error',
+          location: 'app/components/Layout.tsx:globalError',
+          message: 'window.error',
+          data: {
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            stack: event.error && typeof event.error === 'object' ? (event.error as Error).stack : null,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion agent log
+
+      // #region agent log proxy
+      fetch('/api/debug-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: `log_${Date.now()}_global_error_proxy`,
+          runId: 'pre-fix',
+          hypothesisId: 'H-global-js-error',
+          location: 'app/components/Layout.tsx:globalError',
+          message: 'window.error',
+          data: {
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion agent log proxy
+    };
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      // #region agent log
+      fetch(logEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: `log_${Date.now()}_unhandled_rejection`,
+          runId: 'pre-fix',
+          hypothesisId: 'H-global-js-error',
+          location: 'app/components/Layout.tsx:unhandledRejection',
+          message: 'unhandledrejection',
+          data: {
+            reason:
+              event.reason && typeof event.reason === 'object'
+                ? {
+                    name: (event.reason as Error).name,
+                    message: (event.reason as Error).message,
+                    stack: (event.reason as Error).stack,
+                  }
+                : String(event.reason),
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion agent log
+
+      // #region agent log proxy
+      fetch('/api/debug-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: `log_${Date.now()}_unhandled_rejection_proxy`,
+          runId: 'pre-fix',
+          hypothesisId: 'H-global-js-error',
+          location: 'app/components/Layout.tsx:unhandledRejection',
+          message: 'unhandledrejection',
+          data: {
+            reason:
+              event.reason && typeof event.reason === 'object'
+                ? {
+                    name: (event.reason as Error).name,
+                    message: (event.reason as Error).message,
+                  }
+                : String(event.reason),
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion agent log proxy
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
+
+  // One-time per-session splash screen on home route (disabled)
+  // useEffect(() => {
+  //   if (typeof window === 'undefined') return;
+  //   if (pathname !== '/') return;
+  //   try {
+  //     if (sessionStorage.getItem('splashShown')) return;
+  //     sessionStorage.setItem('splashShown', 'true');
+  //     setShowSplash(true);
+  //   } catch {
+  //     // ignore
+  //   }
+  // }, [pathname]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const saved = localStorage.getItem('theme');
-    const isDark = saved === 'dark';
+    const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -223,10 +354,127 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return;
       }
 
+      const logEndpoint = 'http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307';
+
       try {
+        // #region agent log
+        fetch(logEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: `log_${Date.now()}_pull_to_refresh_start`,
+            runId: 'pre-fix',
+            hypothesisId: 'H-capacitor-swipe-plugin',
+            location: 'app/components/Layout.tsx:enablePullToRefresh',
+            message: 'About to call enablePullToRefresh',
+            data: {
+              hasPlugins: !!capAny.Plugins,
+              hasSwipePlugin: !!plugin,
+              platform: Capacitor.getPlatform(),
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion agent log
+
+        // #region agent log proxy
+        fetch('/api/debug-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: `log_${Date.now()}_pull_to_refresh_start_proxy`,
+            runId: 'pre-fix',
+            hypothesisId: 'H-capacitor-swipe-plugin',
+            location: 'app/components/Layout.tsx:enablePullToRefresh',
+            message: 'About to call enablePullToRefresh',
+            data: {
+              hasPlugins: !!capAny.Plugins,
+              hasSwipePlugin: !!plugin,
+              platform: Capacitor.getPlatform(),
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion agent log proxy
+
         await plugin.enablePullToRefresh();
+
+        // #region agent log
+        fetch(logEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: `log_${Date.now()}_pull_to_refresh_done`,
+            runId: 'pre-fix',
+            hypothesisId: 'H-capacitor-swipe-plugin',
+            location: 'app/components/Layout.tsx:enablePullToRefresh',
+            message: 'enablePullToRefresh completed',
+            data: {},
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion agent log
+
+        // #region agent log proxy
+        fetch('/api/debug-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: `log_${Date.now()}_pull_to_refresh_done_proxy`,
+            runId: 'pre-fix',
+            hypothesisId: 'H-capacitor-swipe-plugin',
+            location: 'app/components/Layout.tsx:enablePullToRefresh',
+            message: 'enablePullToRefresh completed',
+            data: {},
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion agent log proxy
       } catch (err) {
-        console.error('enablePullToRefresh error', err);
+        // #region agent log
+        fetch(logEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: `log_${Date.now()}_pull_to_refresh_error`,
+            runId: 'pre-fix',
+            hypothesisId: 'H-capacitor-swipe-plugin',
+            location: 'app/components/Layout.tsx:enablePullToRefresh',
+            message: 'enablePullToRefresh threw',
+            data: {
+              error:
+                err && typeof err === 'object'
+                  ? { name: (err as Error).name, message: (err as Error).message, stack: (err as Error).stack }
+                  : String(err),
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion agent log
+
+        // #region agent log proxy
+        fetch('/api/debug-log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: `log_${Date.now()}_pull_to_refresh_error_proxy`,
+            runId: 'pre-fix',
+            hypothesisId: 'H-capacitor-swipe-plugin',
+            location: 'app/components/Layout.tsx:enablePullToRefresh',
+            message: 'enablePullToRefresh threw',
+            data: {
+              error:
+                err && typeof err === 'object'
+                  ? { name: (err as Error).name, message: (err as Error).message }
+                  : String(err),
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+        // #endregion agent log proxy
+
+        // Preserve previous behavior: surface the error
+        throw err;
       }
 
       if (cancelled) return;
@@ -255,11 +503,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {children}
             </div>
           </main>
+          {/* Splash disabled
           {showSplash && (
             <div className="absolute inset-0 z-[9998] flex items-center justify-center">
               <SplashScreen onDone={() => setShowSplash(false)} />
             </div>
           )}
+          */}
           {!shouldHideNav && <BottomNav />}
         </div>
       </div>

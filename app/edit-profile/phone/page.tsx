@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { ScreenSkeleton } from '@/app/components/Skeleton';
 
 /** Format 10-digit US number as (XXX) XXX-XXXX for input display */
 function formatPhoneInput(value: string): string {
@@ -79,9 +80,10 @@ export default function EditProfilePhonePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-relay-surface-dark">
-        <div className="size-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-      </div>
+      <ScreenSkeleton
+        className="min-h-screen bg-white dark:bg-relay-surface-dark transition-colors"
+        rows={4}
+      />
     );
   }
 

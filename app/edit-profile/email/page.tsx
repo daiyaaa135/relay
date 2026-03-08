@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { ScreenSkeleton } from '@/app/components/Skeleton';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -93,9 +94,10 @@ export default function EditProfileEmailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-relay-surface-dark transition-colors">
-        <div className="size-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-      </div>
+      <ScreenSkeleton
+        className="min-h-screen bg-white dark:bg-relay-surface-dark transition-colors"
+        rows={4}
+      />
     );
   }
 

@@ -38,11 +38,6 @@ export default function WelcomePage() {
     setShowConfirmModal(false);
   };
 
-  const toggleDark = () => {
-    if (typeof document === 'undefined') return;
-    document.documentElement.classList.toggle('dark');
-  };
-
   useEffect(() => {
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.removeItem('phone_verified');
@@ -130,7 +125,9 @@ export default function WelcomePage() {
           <div className="group relative">
             <div className="flex h-12 items-center bg-relay-bg dark:bg-relay-bg-dark rounded-xl px-4 border border-relay-border dark:border-relay-border-dark group-focus-within:border-primary/80 transition-colors auth-input-card">
               <span className="text-relay-text dark:text-relay-text-dark mr-2 text-xs font-medium">+1</span>
+              <label htmlFor="phone" className="sr-only">Phone number</label>
               <input
+                id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -229,17 +226,6 @@ export default function WelcomePage() {
         </p>
       </div>
 
-      {/* Dark mode toggle */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          type="button"
-          onClick={toggleDark}
-          className="bg-primary text-white p-2.5 rounded-full shadow-lg active-scale flex items-center justify-center"
-          aria-label="Toggle dark mode"
-        >
-          <span className="material-symbols-outlined text-xl">dark_mode</span>
-        </button>
-      </div>
     </div>
   );
 }

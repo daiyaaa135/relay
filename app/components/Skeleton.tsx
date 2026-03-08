@@ -6,7 +6,7 @@ const shimmerStyle: React.CSSProperties = {
   background:
     'linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-highlight) 50%, var(--skeleton-base) 100%)',
   backgroundSize: '200% 100%',
-  animation: 'skeletonShimmer 1.5s ease-in-out infinite',
+  // animation: 'skeletonShimmer 1.5s ease-in-out infinite', // disabled
 };
 
 type SkeletonProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -59,6 +59,49 @@ export function SkeletonText({
       style={{ width, maxWidth: '100%', ...style }}
       {...props}
     />
+  );
+}
+
+type ScreenSkeletonProps = {
+  /** Optional background + layout classes for the outer container */
+  className?: string;
+  /** Number of text bars to show under the header block */
+  rows?: number;
+  /** Whether to include a circular avatar skeleton at the top */
+  showCircle?: boolean;
+};
+
+/**
+ * Generic full-screen skeleton for page-level loading states.
+ * Uses the global skeleton tokens + shimmer so blank spinner screens are avoided.
+ */
+export function ScreenSkeleton({
+  className = 'bg-relay-surface dark:bg-relay-surface-dark',
+  rows = 3,
+  showCircle = false,
+}: ScreenSkeletonProps) {
+  const safeRows = Number.isFinite(rows) && rows > 0 ? Math.min(Math.floor(rows), 6) : 3;
+  const widths = ['80%', '60%', '90%', '70%', '50%', '85%'];
+
+  return (
+    <div className={`flex flex-1 min-h-0 items-center justify-center ${className}`}>
+      <div className="w-full max-w-xs px-6 space-y-4">
+        {showCircle && (
+          <div className="flex justify-center mb-2">
+            <SkeletonCircle className="size-14" />
+          </div>
+        )}
+        <Skeleton className="h-4 w-2/3 mb-2" />
+        {Array.from({ length: safeRows }).map((_, idx) => (
+          <Skeleton
+            // eslint-disable-next-line react/no-array-index-key
+            key={idx}
+            className="h-3 rounded-md"
+            style={{ width: widths[idx] ?? widths[widths.length - 1] }}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
