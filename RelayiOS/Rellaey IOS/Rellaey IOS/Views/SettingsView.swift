@@ -33,6 +33,14 @@ struct SettingsView: View {
                         }
                         .buttonStyle(.plain)
                         Divider().padding(.leading, 52)
+                        // Reset password — spec: Settings navigates to /forgot-password?from=settings
+                        NavigationLink {
+                            ForgotPasswordView()
+                        } label: {
+                            SettingsRow(icon: "key.horizontal", label: "Reset Password")
+                        }
+                        .buttonStyle(.plain)
+                        Divider().padding(.leading, 52)
                         NavigationLink {
                             PlaceholderSettingsPage(title: "Change Phone")
                         } label: {

@@ -17,6 +17,8 @@ final class AppState: ObservableObject {
     @Published var tabBarVisible: Bool = true
     /// Conversation ID to auto-open when switching to Messages tab
     @Published var pendingConversationId: String?
+    /// Deep link destination to present modally (set by onOpenURL in the App entry point)
+    @Published var pendingDeepLink: DeepLink?
 
     enum Tab: String, CaseIterable {
         case home
@@ -24,5 +26,9 @@ final class AppState: ObservableObject {
         case swap
         case messages
         case more
+    }
+
+    enum DeepLink {
+        case resetPassword
     }
 }

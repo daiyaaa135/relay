@@ -11,6 +11,13 @@ struct RootView: View {
     @EnvironmentObject var appState: AppState
     @State private var showLogin = false
 
+    private var showResetPassword: Binding<Bool> {
+        Binding(
+            get: { appState.pendingDeepLink == .resetPassword },
+            set: { if !$0 { appState.pendingDeepLink = nil } }
+        )
+    }
+
     var body: some View {
         Group {
             if auth.isLoading {
@@ -25,6 +32,11 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: auth.isAuthenticated)
         .animation(.easeInOut(duration: 0.2), value: showLogin)
+        // Reset-password deep link: presented as a full-screen sheet regardless of auth state
+        .sheet(isPresented: showResetPassword) {
+            ResetPasswordView(isPresented: showResetPassword)
+                .environmentObject(auth)
+        }
     }
 }
 
