@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Capacitor } from '@capacitor/core';
-import { SplashScreen } from '@capacitor/splash-screen';
+import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
 import { createClient } from '@/lib/supabase';
 import { ListingProvider, useListing } from '@/app/list/ListingContext';
 import { HomeIcon } from '@/app/components/HomeIcon';
@@ -12,7 +12,7 @@ import { MessagesNavIcon } from '@/app/components/MessagesNavIcon';
 import { MoreNavIcon } from '@/app/components/MoreNavIcon';
 import { WishlistNavIcon } from '@/app/components/WishlistNavIcon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-// import SplashScreen from '@/app/components/SplashScreen';
+import SplashScreen from '@/app/components/SplashScreen';
 
 const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -151,7 +151,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const hideNavPaths = ['/login', '/signup'];
   const mainRef = React.useRef<HTMLElement>(null);
   const router = useRouter();
-  // const [showSplash, setShowSplash] = useState(false); // splash disabled
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     const cleanup = usePushNotifications(router);
@@ -166,7 +166,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (typeof window === 'undefined' || !Capacitor.isNativePlatform()) return;
     const hide = async () => {
       try {
-        await SplashScreen.hide();
+        await CapacitorSplashScreen.hide();
       } catch {
         // ignore if plugin not available
       }
@@ -291,18 +291,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
   }, []);
 
-  // One-time per-session splash screen on home route (disabled)
-  // useEffect(() => {
-  //   if (typeof window === 'undefined') return;
-  //   if (pathname !== '/') return;
-  //   try {
-  //     if (sessionStorage.getItem('splashShown')) return;
-  //     sessionStorage.setItem('splashShown', 'true');
-  //     setShowSplash(true);
-  //   } catch {
-  //     // ignore
-  //   }
-  // }, [pathname]);
+  // One-time per-session splash screen on home route
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (pathname !== '/') return;
+    try {
+      if (sessionStorage.getItem('splashShown')) return;
+      sessionStorage.setItem('splashShown', 'true');
+      setShowSplash(true);
+    } catch {
+      // ignore
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -503,13 +503,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {children}
             </div>
           </main>
-          {/* Splash disabled
           {showSplash && (
             <div className="absolute inset-0 z-[9998] flex items-center justify-center">
               <SplashScreen onDone={() => setShowSplash(false)} />
             </div>
           )}
-          */}
           {!shouldHideNav && <BottomNav />}
         </div>
       </div>

@@ -18,12 +18,11 @@ a.mapboxgl-ctrl-logo,
   50% { transform: scale(1.6); opacity: 0.1; }
 }
 
-/* Skeleton loading: shimmer sweep left → right (disabled)
+/* Skeleton loading: shimmer sweep left → right */
 @keyframes skeletonShimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-*/
 
 :root {
   --skeleton-base: #e0e0e0;

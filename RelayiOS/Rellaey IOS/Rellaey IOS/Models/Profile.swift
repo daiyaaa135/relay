@@ -13,6 +13,7 @@ struct Profile: Identifiable, Codable {
     var rating: Double?
     var ratingCount: Int?
     var membershipTier: String?
+    var creditsBalance: Int?
     var createdAt: String?
 
     enum CodingKeys: String, CodingKey {
@@ -23,6 +24,7 @@ struct Profile: Identifiable, Codable {
         case rating
         case ratingCount = "rating_count"
         case membershipTier = "membership_tier"
+        case creditsBalance = "credits_balance"
         case createdAt = "created_at"
     }
 }

@@ -6,7 +6,7 @@ const shimmerStyle: React.CSSProperties = {
   background:
     'linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-highlight) 50%, var(--skeleton-base) 100%)',
   backgroundSize: '200% 100%',
-  // animation: 'skeletonShimmer 1.5s ease-in-out infinite', // disabled
+  animation: 'skeletonShimmer 1.5s ease-in-out infinite',
 };
 
 type SkeletonProps = React.HTMLAttributes<HTMLDivElement> & {

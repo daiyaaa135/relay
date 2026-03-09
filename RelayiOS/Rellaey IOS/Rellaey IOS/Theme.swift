@@ -21,6 +21,27 @@ extension Color {
     static let relayMuted = Color(red: 0.486, green: 0.510, blue: 0.573)
     /// Input background #E3E5EB
     static let relayInput = Color(red: 0.890, green: 0.898, blue: 0.922)
+
+    // Condition badge semantic colors
+    static let conditionNew  = Color(red: 0.0,   green: 0.784, blue: 0.588)   // #00C896
+    static let conditionMint = Color(red: 0.0,   green: 0.761, blue: 0.831)   // #00C2D4
+    static let conditionGood = Color(red: 0.231, green: 0.510, blue: 0.965)   // #3B82F6
+    static let conditionFair = Color(red: 0.961, green: 0.651, blue: 0.137)   // #F5A623
+    static let conditionPoor = Color(red: 0.937, green: 0.267, blue: 0.267)   // #EF4444
+}
+
+// MARK: - Primary gradient
+extension LinearGradient {
+    static var relayPrimary: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 1.0, green: 0.337, blue: 0.129),   // #FF5621
+                Color(red: 1.0, green: 0.537, blue: 0.0)      // #FF8900
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }
 
 // MARK: - Glass Effect
@@ -78,19 +99,19 @@ struct RelayInputField: View {
     }
 }
 
-// MARK: - Primary Button
+// MARK: - Primary Button (gradient)
 struct RelayPrimaryButton: View {
     let title: String
     var isLoading = false
     var isDisabled = false
     let action: () -> Void
+    @State private var isPressed = false
 
     var body: some View {
         Button(action: action) {
             ZStack {
                 if isLoading {
-                    ProgressView()
-                        .tint(.white)
+                    ProgressView().tint(.white)
                 } else {
                     Text(title)
                         .font(.system(size: 15, weight: .semibold))
@@ -99,23 +120,75 @@ struct RelayPrimaryButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 52)
-            .background(isDisabled ? Color.relayMuted.opacity(0.4) : Color.relayPrimary)
+            .background(
+                isDisabled
+                    ? AnyView(Color.relayMuted.opacity(0.4))
+                    : AnyView(LinearGradient.relayPrimary)
+            )
             .clipShape(RoundedRectangle(cornerRadius: 14))
+            .shadow(color: Color.relayPrimary.opacity(isDisabled ? 0 : 0.3), radius: 8, x: 0, y: 4)
         }
         .disabled(isDisabled || isLoading)
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
+    }
+}
+
+// MARK: - Secondary Button (outline)
+struct RelaySecondaryButton: View {
+    let title: String
+    var icon: String? = nil
+    var isLoading = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                if isLoading {
+                    ProgressView().tint(.relayPrimary).scaleEffect(0.85)
+                } else {
+                    if let icon { Image(systemName: icon).font(.system(size: 14, weight: .semibold)) }
+                    Text(title).font(.system(size: 15, weight: .semibold))
+                }
+            }
+            .foregroundColor(.relayPrimary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color.relayPrimary.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.relayPrimary.opacity(0.25), lineWidth: 1))
+        }
+        .disabled(isLoading)
     }
 }
 
 // MARK: - Condition Badge
 struct ConditionBadge: View {
     let condition: String
+
+    private var badgeColor: Color {
+        switch condition.lowercased() {
+        case "new":                    return .conditionNew
+        case "mint", "like_new":       return .conditionMint
+        case "good", "excellent":      return .conditionGood
+        case "fair":                   return .conditionFair
+        case "poor":                   return .conditionPoor
+        default:                       return .relayMuted
+        }
+    }
+
     var body: some View {
-        Text(condition)
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundColor(.relayText)
+        Text(condition.capitalized)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundColor(.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(.ultraThinMaterial)
+            .background(badgeColor)
             .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
@@ -144,6 +217,44 @@ extension Set {
     mutating func toggle(_ element: Element) {
         if contains(element) { remove(element) } else { insert(element) }
     }
+}
+
+// MARK: - Haptics
+struct Haptics {
+    static func light()   { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
+    static func medium()  { UIImpactFeedbackGenerator(style: .medium).impactOccurred() }
+    static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
+    static func error()   { UINotificationFeedbackGenerator().notificationOccurred(.error) }
+}
+
+// MARK: - Shimmer modifier (skeleton loading)
+struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geo in
+                    LinearGradient(
+                        colors: [.clear, Color.white.opacity(0.45), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geo.size.width * 2)
+                    .offset(x: phase * geo.size.width * 2 - geo.size.width)
+                }
+                .clipped()
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View { modifier(ShimmerModifier()) }
 }
 
 // MARK: - Star Rating

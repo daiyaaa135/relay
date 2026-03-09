@@ -15,25 +15,51 @@ struct MoreView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // ── Profile card ──
+                        // ── Profile card (tappable → ProfileView) ──
                         if let user = auth.currentUser {
-                            ProfileCard(user: user)
+                            NavigationLink {
+                                ProfileView()
+                            } label: {
+                                ProfileCard(user: user)
+                            }
+                            .buttonStyle(.plain)
                         }
 
                         // ── Account section ──
                         MenuSection(title: "Account") {
-                            MenuRow(icon: "person.circle", label: "Profile", destination: AnyView(ProfilePlaceholderView()))
+                            MenuRow(icon: "list.bullet.rectangle", label: "My Listings") {
+                                ProfileView()
+                            }
                             Divider().padding(.leading, 52)
-                            MenuRow(icon: "list.bullet.rectangle", label: "My Listings", destination: AnyView(PlaceholderPage(title: "My Listings")))
+                            MenuRow(icon: "arrow.triangle.2.circlepath", label: "My Swaps") {
+                                SwapsView()
+                            }
                             Divider().padding(.leading, 52)
-                            MenuRow(icon: "creditcard", label: "Wallet", destination: AnyView(PlaceholderPage(title: "Wallet")))
+                            MenuRow(icon: "creditcard", label: "Wallet") {
+                                WalletView()
+                            }
                         }
 
                         // ── Preferences section ──
                         MenuSection(title: "Preferences") {
-                            MenuRow(icon: "gearshape", label: "Settings", destination: AnyView(PlaceholderPage(title: "Settings")))
+                            MenuRow(icon: "gearshape", label: "Settings") {
+                                SettingsView()
+                            }
                             Divider().padding(.leading, 52)
-                            MenuRow(icon: "bell", label: "Notifications", destination: AnyView(PlaceholderPage(title: "Notifications")))
+                            MenuRow(icon: "star.fill", label: "Relay+") {
+                                PlaceholderSettingsPage(title: "Relay+")
+                            }
+                        }
+
+                        // ── Support section ──
+                        MenuSection(title: "Support") {
+                            MenuRow(icon: "questionmark.circle", label: "Help Center") {
+                                PlaceholderSettingsPage(title: "Help Center")
+                            }
+                            Divider().padding(.leading, 52)
+                            MenuRow(icon: "shield.lefthalf.filled", label: "Safety Center") {
+                                PlaceholderSettingsPage(title: "Safety Center")
+                            }
                         }
 
                         // ── Sign out ──
@@ -90,11 +116,11 @@ private struct ProfileCard: View {
                 Text(user.displayName ?? "User")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.relayText)
-                if let rating = user.rating {
+                if let rating = user.rating, rating > 0 {
                     StarRating(rating: rating, count: user.ratingCount)
                 }
-                if let tier = user.membershipTier {
-                    Text(tier.capitalized)
+                if let tier = user.membershipTier, tier != "guest" {
+                    Text(tier == "relay_plus" ? "Relay+" : tier.capitalized)
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.relayPrimary)
                         .padding(.horizontal, 8)
@@ -104,6 +130,9 @@ private struct ProfileCard: View {
                 }
             }
             Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.relayMuted.opacity(0.5))
         }
         .padding(16)
         .background(Color.relaySurface)
@@ -144,15 +173,15 @@ private struct MenuSection<Content: View>: View {
     }
 }
 
-// MARK: - Menu Row
-private struct MenuRow: View {
+// MARK: - Menu Row (generic NavigationLink)
+private struct MenuRow<Destination: View>: View {
     let icon: String
     let label: String
-    let destination: AnyView
+    @ViewBuilder let destination: () -> Destination
 
     var body: some View {
         NavigationLink {
-            destination
+            destination()
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: icon)
@@ -171,33 +200,5 @@ private struct MenuRow: View {
             .padding(.vertical, 14)
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Placeholders
-struct ProfilePlaceholderView: View {
-    var body: some View {
-        ZStack {
-            Color.relayBackground.ignoresSafeArea()
-            Text("Edit Profile")
-                .font(.system(size: 17))
-                .foregroundColor(.relayMuted)
-        }
-        .navigationTitle("Profile")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-private struct PlaceholderPage: View {
-    let title: String
-    var body: some View {
-        ZStack {
-            Color.relayBackground.ignoresSafeArea()
-            Text(title)
-                .font(.system(size: 17))
-                .foregroundColor(.relayMuted)
-        }
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }

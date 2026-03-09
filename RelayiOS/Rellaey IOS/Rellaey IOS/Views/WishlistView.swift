@@ -69,7 +69,9 @@ struct WishlistView: View {
 
     private func loadWishlist() async {
         loading = true
-        gadgets = []
-        loading = false
+        defer { loading = false }
+        let ids = Array(appState.wishlistIds)
+        guard !ids.isEmpty else { gadgets = []; return }
+        gadgets = (try? await APIClient.shared.fetchGadgetsByIds(ids)) ?? []
     }
 }
