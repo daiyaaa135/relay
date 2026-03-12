@@ -15,6 +15,19 @@ import type { Gadget } from '@/lib/types';
 import { getDefaultAvatar } from '@/lib/avatars';
 import { ChevronIcon } from '@/app/components/ChevronIcon';
 import { NextStepButton } from '@/app/components/NextStepButton';
+import {
+  PhoneIcon,
+  LaptopCategoryIcon,
+  TabletIcon,
+  HeadphonesIcon,
+  SpeakerIcon,
+  MP3PlayerIcon,
+  GamingHandheldIcon,
+  VideoGameIcon,
+  GamingConsoleIcon,
+  ExploreIcon,
+  AllIcon,
+} from '@/app/components/CategoryIcons';
 
 type UserLocation = { latitude: number; longitude: number };
 
@@ -322,28 +335,16 @@ export default function LandingPage() {
   const conditions = ['Like New', 'Excellent', 'Good', 'Fair', 'Poor'];
   const STORAGE_OPTIONS = ['64GB', '128GB', '256GB', '512GB', '1TB'];
   const sortOptions = ['Newest First', 'Nearest location', 'Lowest Credits', 'Highest Credits', 'Best Condition'];
-  const CATEGORY_ICONS: Record<string, string> = {
-    Phones: '/icons/phone.png',
-    Laptops: '/icons/laptop.png',
-    Console: '/icons/console.png',
-    Tablets: '/icons/tablet.png',
-    Headphones: '/icons/headphones.png',
-    Speaker: '/icons/speaker.png',
-    MP3: '/icons/relics.png',
-    'Gaming Handhelds': '/icons/gaming-handhelds.png',
-    'Video Games': '/icons/video-games.png',
-  };
-
-  const NAV_ICONS: Record<string, string> = {
-    Phones: '/icons/phone-nav.png',
-    Laptops: '/icons/laptop-nav.png',
-    Console: '/icons/console-nav.png',
-    Tablets: '/icons/tablet-nav.png',
-    Headphones: '/icons/headphones-nav.png',
-    Speaker: '/icons/speaker-nav.png',
-    MP3: '/icons/relics-nav.png',
-    'Gaming Handhelds': '/icons/gaming-handhelds-nav.png',
-    'Video Games': '/icons/video-games-nav.png',
+  const CATEGORY_SVG_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+    Phones: PhoneIcon,
+    Laptops: LaptopCategoryIcon,
+    Tablets: TabletIcon,
+    Headphones: HeadphonesIcon,
+    Speaker: SpeakerIcon,
+    MP3: MP3PlayerIcon,
+    'Gaming Handhelds': GamingHandheldIcon,
+    'Video Games': VideoGameIcon,
+    Console: GamingConsoleIcon,
   };
   // Explore page category cards: place SVGs in public/category-cards/ with these exact filenames.
   // Bump CATEGORY_CARD_VERSION when you replace assets so browsers load the new SVGs (avoids cache).
@@ -360,14 +361,15 @@ export default function LandingPage() {
     'Video Games': `/category-cards/video-games.svg?v=${CATEGORY_CARD_VERSION}`,
   };
   const categories = [
-    { name: 'Explore', icon: 'explore', navIcon: '/icons/nav/explore.png', useMaterialIcon: false, iconScale: 'scale-110', iconClass: 'brightness-0 opacity-80 dark:invert dark:opacity-90' },
-    { name: 'All', icon: 'apps', navIcon: '/icons/nav/all.png', useMaterialIcon: false, iconClass: 'brightness-0 opacity-80 dark:invert dark:opacity-90' },
+    { name: 'Explore', icon: 'explore', navIcon: null, svgIcon: ExploreIcon, useMaterialIcon: false, iconClass: '' },
+    { name: 'All', icon: 'apps', navIcon: null, svgIcon: AllIcon, useMaterialIcon: false, iconClass: '' },
     ...Object.keys(BRANDS_BY_CATEGORY).map((cat) => ({
       name: cat,
-      icon: CATEGORY_ICONS[cat] ?? 'devices',
-      navIcon: NAV_ICONS[cat] ?? null,
-      useMaterialIcon: !CATEGORY_ICONS[cat],
-      iconClass: 'brightness-0 opacity-80 dark:invert dark:opacity-90',
+      icon: 'devices',
+      navIcon: null,
+      svgIcon: CATEGORY_SVG_ICONS[cat] ?? null,
+      useMaterialIcon: !CATEGORY_SVG_ICONS[cat],
+      iconClass: '',
     })),
   ];
   
@@ -471,7 +473,9 @@ export default function LandingPage() {
                     : 'h-6 w-6 rounded-full text-relay-muted dark:text-white hover:text-relay-text dark:hover:text-white/90 hover:bg-gray-200/60 dark:hover:bg-gray-700/40'
                 }`}
               >
-                {cat.useMaterialIcon ? (
+                {cat.svgIcon ? (
+                  (() => { const Icon = cat.svgIcon; return <Icon size={24} className="shrink-0" />; })()
+                ) : cat.useMaterialIcon ? (
                   <span className="material-symbols-outlined !text-[20px]">{cat.icon}</span>
                 ) : cat.navIcon ? (
                   <Image
