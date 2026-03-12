@@ -132,8 +132,12 @@ export async function searchLocations(
       const addr = item.address ?? {};
       const city = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
       const state = addr.state ?? addr.region ?? addr.country ?? '';
-      const placeName = item.namedetails?.name ?? item.display_name ?? [city, state].filter(Boolean).join(', ') ?? '';
-      const displayName = placeName || [city, state].filter(Boolean).join(', ') || 'Unknown';
+      const name = item.namedetails?.name ?? '';
+      const road = addr.road ?? '';
+      // Build a descriptive display name: "Starbucks, 200 Main St, San Francisco, California"
+      const displayName = name
+        ? [name, road, city, state].filter(Boolean).join(', ')
+        : item.display_name ?? [city, state].filter(Boolean).join(', ') ?? 'Unknown';
       const cls = (item.class ?? '').toLowerCase();
       const typ = (item.type ?? '').toLowerCase();
       const preferred = NOMINATIM_PREFERRED_CLASS.has(cls) || NOMINATIM_PREFERRED_TYPE.has(typ);

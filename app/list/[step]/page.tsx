@@ -574,9 +574,16 @@ export default function StepPage() {
     if (!showPickupLocationsModal) return;
     const q1 = location1Query.trim();
     const q2 = location2Query.trim();
-    if (q1.length < 2 && q2.length < 2) {
-      setLocation1Suggestions([]);
-      setLocation2Suggestions([]);
+    // Skip re-searching a field whose confirmed selection already matches the current query text.
+    // This prevents firing two simultaneous Nominatim requests (violates 1 req/sec rate limit)
+    // when the user types in location 2 while location 1 is already confirmed.
+    const loc1Name = pickupLocation1 ? (pickupLocation1.displayName || [pickupLocation1.city, pickupLocation1.state].filter(Boolean).join(', ')) : null;
+    const loc2Name = pickupLocation2 ? (pickupLocation2.displayName || [pickupLocation2.city, pickupLocation2.state].filter(Boolean).join(', ')) : null;
+    const needs1 = q1.length >= 2 && loc1Name !== q1;
+    const needs2 = q2.length >= 2 && loc2Name !== q2;
+    if (!needs1 && !needs2) {
+      if (q1.length < 2) setLocation1Suggestions([]);
+      if (q2.length < 2) setLocation2Suggestions([]);
       setLocationSuggestionsLoading(false);
       return;
     }
@@ -586,21 +593,24 @@ export default function StepPage() {
     const t = setTimeout(async () => {
       setLocationSuggestionsLoading(true);
       // Always use Nominatim (OSM) for pickup location search; Mapbox is used only for the map.
-      const search = searchLocations;
-      if (q1.length < 2) setLocation1Suggestions([]);
-      else {
-        const list = await search(q1, userLoc);
+      // Only search fields that have changed from their confirmed selection to avoid concurrent
+      // Nominatim requests that trigger rate limiting.
+      if (!needs1) {
+        if (q1.length < 2) setLocation1Suggestions([]);
+      } else {
+        const list = await searchLocations(q1, userLoc);
         setLocation1Suggestions(list);
       }
-      if (q2.length < 2) setLocation2Suggestions([]);
-      else {
-        const list = await search(q2, userLoc);
+      if (!needs2) {
+        if (q2.length < 2) setLocation2Suggestions([]);
+      } else {
+        const list = await searchLocations(q2, userLoc);
         setLocation2Suggestions(list);
       }
       setLocationSuggestionsLoading(false);
     }, 300);
     return () => clearTimeout(t);
-  }, [showPickupLocationsModal, location1Query, location2Query, listingLocation]);
+  }, [showPickupLocationsModal, location1Query, location2Query, listingLocation, pickupLocation1, pickupLocation2]);
 
   // Rehydrate valuation from sessionStorage when on Review with no credits (survives navigation/remount)
   const valuationCategories = ['Phones', 'Tablets', 'Laptops', 'MP3', 'Console', 'Video Games', 'Gaming Handhelds', 'Headphones', 'Speaker'];
