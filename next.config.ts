@@ -36,9 +36,6 @@ const nextConfig: NextConfig = {
     // TODO: fix remaining TS errors and remove this flag
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   serverExternalPackages: ['tesseract.js'],
   // Expose env to API routes and client (Next/Turbopack may not pass .env.local to all workers)
   env: {
