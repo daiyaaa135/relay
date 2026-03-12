@@ -16,9 +16,20 @@ import { hasAvailability } from '@/lib/availability';
 import { fetchProfile } from '@/lib/profiles';
 import { reverseGeocode, searchLocations, type LocationSuggestion } from '@/lib/geo';
 import { Capacitor } from '@capacitor/core';
-import { DeviceCaptureFlow } from '@/app/components/DeviceCaptureFlow';
-import { LocationMapWithAvatar } from '@/app/components/LocationMapWithAvatar';
-import { SearchableGameDropdown } from '@/app/components/SearchableGameDropdown';
+import dynamic from 'next/dynamic';
+
+const DeviceCaptureFlow = dynamic(
+  () => import('@/app/components/DeviceCaptureFlow').then(m => ({ default: m.DeviceCaptureFlow })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const LocationMapWithAvatar = dynamic(
+  () => import('@/app/components/LocationMapWithAvatar').then(m => ({ default: m.LocationMapWithAvatar })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const SearchableGameDropdown = dynamic(
+  () => import('@/app/components/SearchableGameDropdown').then(m => ({ default: m.SearchableGameDropdown })),
+  { ssr: false, loading: () => <div className="w-full h-12 rounded-xl bg-relay-bg animate-pulse" /> }
+);
 import { NextStepButton } from '@/app/components/NextStepButton';
 import { useListing, VALUATION_STORAGE_KEY } from '../ListingContext';
 import { ConditionStepPart, getWorstCondition } from '../ConditionStepPart';
