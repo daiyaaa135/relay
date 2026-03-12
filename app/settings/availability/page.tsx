@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense }, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchAvailability, saveAvailability, type AvailabilitySlot, EARLIEST_MINUTES, LATEST_MINUTES, MIN_AVAILABLE_MINUTES, computeTotalMinutes, isSlotWithinBounds } from '@/lib/availability';
@@ -59,7 +59,7 @@ function minutesLabel(totalMinutes: number): string {
   return `${hours} hr ${mins} min`;
 }
 
-export default function AvailabilityPage() {
+function AvailabilityPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -454,3 +454,10 @@ export default function AvailabilityPage() {
   );
 }
 
+export default function AvailabilityPage() {
+  return (
+    <Suspense>
+      <AvailabilityPageContent />
+    </Suspense>
+  );
+}

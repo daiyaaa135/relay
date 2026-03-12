@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { Suspense }, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
@@ -35,7 +35,7 @@ const RELAY_USER_LOCATION_KEY = 'relay_user_location';
 /** Metal Glass utility for filter panel */
 const FILTER_PANEL_BG = 'glass-card';
 
-export default function LandingPage() {
+function LandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -1043,5 +1043,13 @@ export default function LandingPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <Suspense>
+      <LandingPageContent />
+    </Suspense>
   );
 }

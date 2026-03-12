@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { Suspense }, { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const featuredArticles = [
@@ -155,7 +155,7 @@ const sections: { id: SectionId; title: string; articles: { id: ArticleLinkId; t
   },
 ];
 
-export default function HelpPage() {
+function HelpPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get('from'); // 'login' | 'signup' when arrived from auth or from article after "Back to help home"
@@ -382,3 +382,10 @@ export default function HelpPage() {
   );
 }
 
+export default function HelpPage() {
+  return (
+    <Suspense>
+      <HelpPageContent />
+    </Suspense>
+  );
+}

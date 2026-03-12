@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useRef, useState } from 'react';
+import React, { Suspense }, { useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { ChevronIcon } from '@/app/components/ChevronIcon';
@@ -11,7 +11,7 @@ function sanitizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
-export default function EditProfileEmailVerifyPage() {
+function EditProfileEmailVerifyPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email') ?? '';
@@ -204,3 +204,10 @@ export default function EditProfileEmailVerifyPage() {
   );
 }
 
+export default function EditProfileEmailVerifyPage() {
+  return (
+    <Suspense>
+      <EditProfileEmailVerifyPageContent />
+    </Suspense>
+  );
+}

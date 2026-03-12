@@ -2,12 +2,12 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { Suspense }, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function EmailPage() {
+function EmailPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phoneParam = searchParams.get('phone') ?? '';
@@ -134,5 +134,13 @@ export default function EmailPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function EmailPage() {
+  return (
+    <Suspense>
+      <EmailPageContent />
+    </Suspense>
   );
 }

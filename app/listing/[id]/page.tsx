@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { Suspense }, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { fetchGadgetById, cancelListing } from '@/lib/gadgets';
@@ -153,7 +153,7 @@ function getColumnValue(
   }
 }
 
-export default function ListingDetailPage() {
+function ListingDetailPageContent() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
@@ -1247,5 +1247,13 @@ export default function ListingDetailPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ListingDetailPage() {
+  return (
+    <Suspense>
+      <ListingDetailPageContent />
+    </Suspense>
   );
 }

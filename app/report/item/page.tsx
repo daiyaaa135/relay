@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense }, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { createReport } from '@/lib/reports';
@@ -104,7 +104,7 @@ const REPORT_REASONS: ReportReason[] = [
 
 const ESCALATED_REASON_IDS = ['prohibited', 'wrong_brand', 'stolen', 'other'] as const;
 
-export default function ReportItemPage() {
+function ReportItemPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const listingId = searchParams.get('listingId') ?? '';
@@ -356,5 +356,13 @@ export default function ReportItemPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ReportItemPage() {
+  return (
+    <Suspense>
+      <ReportItemPageContent />
+    </Suspense>
   );
 }

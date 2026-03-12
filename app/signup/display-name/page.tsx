@@ -2,10 +2,10 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState } from 'react';
+import React, { Suspense }, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function DisplayNamePage() {
+function DisplayNamePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email') ?? '';
@@ -83,5 +83,13 @@ export default function DisplayNamePage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function DisplayNamePage() {
+  return (
+    <Suspense>
+      <DisplayNamePageContent />
+    </Suspense>
   );
 }

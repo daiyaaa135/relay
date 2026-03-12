@@ -2,13 +2,13 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState } from 'react';
+import React, { Suspense }, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 
 const MIN_PASSWORD_LENGTH = 8;
 
-export default function PasswordPage() {
+function PasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email') ?? '';
@@ -149,5 +149,13 @@ export default function PasswordPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function PasswordPage() {
+  return (
+    <Suspense>
+      <PasswordPageContent />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 type ArticleId =
@@ -394,7 +394,7 @@ const ARTICLES: Record<ArticleId, Article> = {
   },
 };
 
-export default function HelpArticlePage() {
+function HelpArticlePageContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -579,3 +579,10 @@ export default function HelpArticlePage() {
   );
 }
 
+export default function HelpArticlePage() {
+  return (
+    <Suspense>
+      <HelpArticlePageContent />
+    </Suspense>
+  );
+}

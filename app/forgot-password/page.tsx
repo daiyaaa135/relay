@@ -2,12 +2,12 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState } from 'react';
+import React, { Suspense }, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { EmailIcon } from '@/app/components/EmailIcon';
 import styles from '../login/login.module.css';
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -130,3 +130,10 @@ export default function ForgotPasswordPage() {
   );
 }
 
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense>
+      <ForgotPasswordPageContent />
+    </Suspense>
+  );
+}

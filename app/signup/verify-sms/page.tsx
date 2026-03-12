@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { Suspense }, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -13,7 +13,7 @@ function formatPhoneDisplay(digits: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-export default function VerifySmsPage() {
+function VerifySmsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phoneParam = searchParams.get('phone') ?? '';
@@ -242,5 +242,13 @@ export default function VerifySmsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function VerifySmsPage() {
+  return (
+    <Suspense>
+      <VerifySmsPageContent />
+    </Suspense>
   );
 }

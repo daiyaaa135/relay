@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useRef } from 'react';
+import React, { Suspense }, { useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
@@ -15,7 +15,7 @@ function formatPhoneDisplay(digits: string): string {
   return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-export default function EditProfilePhoneVerifyPage() {
+function EditProfilePhoneVerifyPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phoneParam = searchParams.get('phone') ?? '';
@@ -206,5 +206,13 @@ export default function EditProfilePhoneVerifyPage() {
         </button>
       </main>
     </div>
+  );
+}
+
+export default function EditProfilePhoneVerifyPage() {
+  return (
+    <Suspense>
+      <EditProfilePhoneVerifyPageContent />
+    </Suspense>
   );
 }

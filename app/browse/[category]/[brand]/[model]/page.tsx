@@ -416,7 +416,7 @@ function DeviceDetailContent() {
   );
 }
 
-export default function DeviceDetailPage() {
+function DeviceDetailPageContent() {
   return (
     <Suspense
       fallback={
@@ -426,6 +426,14 @@ export default function DeviceDetailPage() {
       }
     >
       <DeviceDetailContent />
+    </Suspense>
+  );
+}
+
+export default function DeviceDetailPage() {
+  return (
+    <Suspense>
+      <DeviceDetailPageContent />
     </Suspense>
   );
 }

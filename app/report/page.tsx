@@ -2,14 +2,14 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense }, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { createReport } from '@/lib/reports';
 import { blockUser } from '@/lib/blocks';
 import { PageHeader } from '@/app/components/PageHeader';
 
-export default function ReportPage() {
+function ReportPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reportedUserId = searchParams.get('userId');
@@ -329,5 +329,13 @@ export default function ReportPage() {
       </div>
       </div>
     </div>
+  );
+}
+
+export default function ReportPage() {
+  return (
+    <Suspense>
+      <ReportPageContent />
+    </Suspense>
   );
 }
