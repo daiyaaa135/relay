@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { LaptopIcon } from '@/app/components/LaptopIcon';
+import { PageHeader } from '@/app/components/PageHeader';
 import type { BrowseResponse } from '@/app/api/browse/[category]/route';
 import { type } from '@/lib/typography';
 import { ChevronIcon } from '@/app/components/ChevronIcon';
@@ -54,6 +55,22 @@ export default function BrowseCategoryPage() {
   const params = useParams();
   const rawParam = (params?.category as string) || '';
   const category = rawParam ? decodeURIComponent(rawParam).trim() : '';
+
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      runId: 'verify',
+      hypothesisId: 'H1',
+      location: 'app/browse/[category]/page.tsx:56',
+      message: 'BrowseCategoryPage rendered',
+      data: { hasPageHeaderImport: true },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+
   const [data, setData] = useState<BrowseResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
