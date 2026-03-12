@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { Suspense }, { useState, useRef, useEffect } from 'react';
+import React, { Suspense, useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 

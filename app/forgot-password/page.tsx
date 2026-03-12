@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { Suspense }, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { EmailIcon } from '@/app/components/EmailIcon';
 import styles from '../login/login.module.css';

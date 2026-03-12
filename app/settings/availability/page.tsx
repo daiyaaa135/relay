@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { Suspense }, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchAvailability, saveAvailability, type AvailabilitySlot, EARLIEST_MINUTES, LATEST_MINUTES, MIN_AVAILABLE_MINUTES, computeTotalMinutes, isSlotWithinBounds } from '@/lib/availability';

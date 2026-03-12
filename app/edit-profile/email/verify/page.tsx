@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { Suspense }, { useRef, useState } from 'react';
+import React, { Suspense, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { ChevronIcon } from '@/app/components/ChevronIcon';

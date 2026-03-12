@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import React, { Suspense }, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { Suspense, useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const featuredArticles = [
