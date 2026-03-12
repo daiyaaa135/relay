@@ -4,7 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
-import { LivePickupMap } from '@/app/components/LivePickupMap';
+import dynamic from 'next/dynamic';
+
+const LivePickupMap = dynamic(
+  () => import('@/app/components/LivePickupMap').then(m => ({ default: m.LivePickupMap })),
+  { ssr: false, loading: () => <div className="w-full h-64 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

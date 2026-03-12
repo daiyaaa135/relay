@@ -4,8 +4,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { LivePickupMap } from '@/app/components/LivePickupMap';
-import { PickupCalendarModal, type PickupSlot } from '@/app/components/PickupCalendarModal';
+import dynamic from 'next/dynamic';
+import type { PickupSlot } from '@/app/components/PickupCalendarModal';
+
+const LivePickupMap = dynamic(
+  () => import('@/app/components/LivePickupMap').then(m => ({ default: m.LivePickupMap })),
+  { ssr: false, loading: () => <div className="w-full h-64 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const PickupCalendarModal = dynamic(
+  () => import('@/app/components/PickupCalendarModal').then(m => ({ default: m.PickupCalendarModal })),
+  { ssr: false, loading: () => null }
+);
 import { getDefaultAvatar } from '@/lib/avatars';
 import { formatJoinedDate } from '@/lib/dateFormatters';
 import { ChevronIcon } from '@/app/components/ChevronIcon';

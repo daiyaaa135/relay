@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { fetchGadgetById } from '@/lib/gadgets';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
@@ -134,7 +135,7 @@ export default function WishlistPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <img src="/wishlist-empty-icon.png" alt="" className="w-24 h-24 object-contain mb-8" aria-hidden />
+            <Image src="/wishlist-empty-icon.png" alt="" width={96} height={96} className="object-contain mb-8" aria-hidden />
             <h2 className="text-relay-text dark:text-relay-text-dark font-serif text-lg font-semibold mb-2">Nothing saved yet</h2>
             <p className="text-relay-muted dark:text-relay-muted-light text-[11px] font-normal max-w-[240px] leading-relaxed mb-6">
               Explore the marketplace and heart items you want to keep an eye on.

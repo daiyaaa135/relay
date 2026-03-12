@@ -10,9 +10,21 @@ import { fetchExchangeCount, fetchProfile } from '@/lib/profiles';
 import { fetchTransactions } from '@/lib/transactions';
 import { createClient } from '@/lib/supabase';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
-import { PickupCalendarModal, type PickupSlot } from '@/app/components/PickupCalendarModal';
-import { LocationMapWithAvatar } from '@/app/components/LocationMapWithAvatar';
-import { PickupLocationsMap } from '@/app/components/PickupLocationsMap';
+import dynamic from 'next/dynamic';
+import type { PickupSlot } from '@/app/components/PickupCalendarModal';
+
+const PickupCalendarModal = dynamic(
+  () => import('@/app/components/PickupCalendarModal').then(m => ({ default: m.PickupCalendarModal })),
+  { ssr: false, loading: () => null }
+);
+const LocationMapWithAvatar = dynamic(
+  () => import('@/app/components/LocationMapWithAvatar').then(m => ({ default: m.LocationMapWithAvatar })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const PickupLocationsMap = dynamic(
+  () => import('@/app/components/PickupLocationsMap').then(m => ({ default: m.PickupLocationsMap })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
 import { RatingDisplay } from '@/app/components/RatingDisplay';
 import { WishlistHeartIcon } from '@/app/components/WishlistHeartIcon';
 import type { Gadget } from '@/lib/types';
