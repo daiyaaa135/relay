@@ -96,12 +96,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 items-center justify-center px-8 bg-relay-bg dark:bg-relay-bg-dark relative transition-colors overflow-hidden">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-primary rounded-full blur-[140px] opacity-10 dark:opacity-20"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-primary rounded-full blur-[120px] opacity-5 dark:opacity-10"></div>
-      </div>
-
+    <div className="flex flex-col flex-1 min-h-0 items-center justify-center px-8 bg-relay-surface dark:bg-relay-surface-dark relative transition-colors overflow-hidden">
       <div className="absolute top-8 left-6 z-20">
         <button
           onClick={() => router.push('/login')}

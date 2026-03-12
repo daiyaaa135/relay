@@ -94,7 +94,7 @@ export function DeviceSearchBar({
         onChange={handleInputChange}
         onFocus={handleFocus}
         placeholder={placeholder}
-        className="w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-12 pr-4 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+        className="w-full h-10 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-12 pr-4 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
         autoComplete="off"
         role="combobox"
         aria-expanded={showDropdown}
