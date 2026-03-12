@@ -1,0 +1,6 @@
+/* Match global input selector specificity so our override wins (global uses many :not() attribute selectors). */
+.loginInputCard input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
+.loginInputCard textarea {
+  background-color: transparent !important;
+}
+
