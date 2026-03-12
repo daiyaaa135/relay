@@ -450,6 +450,7 @@ export default function StepPage() {
     userId, authChecked, setUserId, setAuthChecked,
     category, setCategory, brand, setBrand, modelName, setModelName, condition, setCondition,
     frontCondition, setFrontCondition, backCondition, setBackCondition,
+    batteryHealth, setBatteryHealth,
     sideTop, setSideTop, sideBottom, setSideBottom, sideLeft, setSideLeft, sideRight, setSideRight,
     conditionPercentage, setConditionPercentage, conditionAnalyzing, setConditionAnalyzing, conditionError, setConditionError,
     swappaCredits, setSwappaCredits, swappaPrice, setSwappaPrice, swappaLookupError, setSwappaLookupError,
@@ -1499,7 +1500,14 @@ export default function StepPage() {
       category,
       condition: cond,
       specs,
-      description: [accessories.length ? `Accessories: ${accessories.join(', ')}` : '', functionalityOptions.length ? `Functional: ${functionalityOptions.join('. ')}` : '', isConsoleLikeFlow && consoleFunctional !== null ? `Device functional: ${consoleFunctional ? 'Yes' : 'No'}` : '', description.trim()].filter(Boolean).join('\n') || undefined,
+      description: [
+        accessories.length ? `Accessories: ${accessories.join(', ')}` : '',
+        functionalityOptions.length ? `Functional: ${functionalityOptions.join('. ')}` : '',
+        isConsoleLikeFlow && consoleFunctional !== null ? `Device functional: ${consoleFunctional ? 'Yes' : 'No'}` : '',
+        ['Phones', 'Tablets', 'Laptops', 'Gaming Handhelds', 'MP3'].includes(category) && batteryHealth.trim() ? `Battery health: ${batteryHealth.trim()}%` : '',
+        frontCondition ? `Condition details: Front: ${frontCondition}${backCondition ? `, Back: ${backCondition}` : ''}` : '',
+        description.trim(),
+      ].filter(Boolean).join('\n') || undefined,
       ...(color.trim() && { color: color.trim() }),
       ...(carrier && !['Laptops', 'Headphones', 'Speaker', 'Console', 'Video Games', 'MP3', 'Gaming Handhelds'].includes(category) && { carrier }),
       verification_code: verificationCode,
@@ -1519,7 +1527,7 @@ export default function StepPage() {
     setPickupDropdownVisible(null);
     setPickupLocationsError(null);
     setShowPickupLocationsModal(true);
-  }, [userId, condition, frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight, storage, effectiveStorage, imei, category, size, year, brand, modelName, accessories, functionalityOptions, consoleFunctional, description, color, carrier, verificationCode, estimatedCredits, estimatedCreditsReason, listingLocation, listingPhotoUrls, router, setIsSubmitting, setSubmitError, isConsoleLikeFlow, isVideoGamesFlow, videoGameName, videoGameCondition]);
+  }, [userId, condition, frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight, storage, effectiveStorage, imei, category, size, year, brand, modelName, accessories, functionalityOptions, consoleFunctional, description, color, carrier, verificationCode, estimatedCredits, estimatedCreditsReason, listingLocation, listingPhotoUrls, router, setIsSubmitting, setSubmitError, isConsoleLikeFlow, isVideoGamesFlow, videoGameName, videoGameCondition, batteryHealth]);
 
   const handlePickupLocationsConfirm = useCallback(async () => {
     if (!userId || !newGadgetId || !pickupLocation1 || !pickupLocation2) return;
@@ -1848,8 +1856,10 @@ export default function StepPage() {
   const isVerificationStep = (isPhoneFlow && currentStep === 2) || (isLaptopFlow && currentStep === 2) || (isTabletFlow && currentStep === 2);
   const isConditionPartStep = (isPhoneFlow && [3, 4].includes(currentStep)) || (isLaptopFlow && [3, 4].includes(currentStep)) || (isTabletFlow && [3, 4].includes(currentStep)) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && ((isConsoleLikeFlow && currentStep === 2 && !isVideoGamesFlow) || (!isConsoleLikeFlow && !isVideoGamesFlow && [2, 3].includes(currentStep))));
   const isFunctionalityStep = (isPhoneFlow && currentStep === 5) || (isLaptopFlow && currentStep === 5) || (isTabletFlow && currentStep === 5) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (((isConsoleLikeFlow && !isVideoGamesFlow) && currentStep === 3) || (isVideoGamesFlow && currentStep === 2) || (!isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 4)));
+  const BATTERY_HEALTH_CATEGORIES = ['Phones', 'Tablets', 'Laptops', 'Gaming Handhelds', 'MP3'] as const;
+  const hasBatteryHealth = (BATTERY_HEALTH_CATEGORIES as readonly string[]).includes(category);
   const conditionPartBlocked = isConditionPartStep && (
-    ((isPhoneFlow && currentStep === 3) || (isLaptopFlow && currentStep === 3) || (isTabletFlow && currentStep === 3) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && currentStep === 2)) ? !frontCondition :
+    ((isPhoneFlow && currentStep === 3) || (isLaptopFlow && currentStep === 3) || (isTabletFlow && currentStep === 3) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && currentStep === 2)) ? !frontCondition || (hasBatteryHealth && batteryHealth.trim() === '') :
     ((isPhoneFlow && currentStep === 4) || (isLaptopFlow && currentStep === 4) || (isTabletFlow && currentStep === 4) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && !isConsoleLikeFlow && currentStep === 3)) ? !backCondition :
     false
   );
@@ -2344,7 +2354,11 @@ export default function StepPage() {
               question={isConsoleLikeFlow ? 'How does the device look?' : 'How does the front look?'}
               value={frontCondition}
               onChange={(v) => setFrontCondition(v)}
+              onClear={() => { setFrontCondition(null); setBatteryHealth(''); }}
               category={isConsoleLikeFlow ? category : undefined}
+              showBatteryHealth={hasBatteryHealth}
+              batteryHealth={batteryHealth}
+              onBatteryHealthChange={(v) => setBatteryHealth(v)}
             />
           </div>
         )}
