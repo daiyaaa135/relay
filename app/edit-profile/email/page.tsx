@@ -65,8 +65,6 @@ export default function EditProfileEmailPage() {
     isValid &&
     hasChanged &&
     (checkStatus === 'available' || checkStatus === 'idle') &&
-    checkStatus !== 'taken' &&
-    checkStatus !== 'checking' &&
     !updating;
 
   const handleUpdate = async () => {
