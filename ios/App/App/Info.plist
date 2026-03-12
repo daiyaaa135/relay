@@ -47,34 +47,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneConfigurationName</key>
-					<string>Default Configuration</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
-		</dict>
-	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>Rellaey needs camera access to capture device photos for your listing.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Rellaey needs photo library access to save device photos for your listing.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Rellaey uses photo library for saving device photos for your listing.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Rellay needs your location to set a meetup spot for your listing.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Rellay needs your location to set a meetup spot for your listing.</string>
 </dict>
 </plist>

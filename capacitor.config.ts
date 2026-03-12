@@ -9,15 +9,22 @@ import type { CapacitorConfig } from '@capacitor/cli';
  *   npm run cap:sync:ios:device   # then open Xcode and Run
  * Or full flow: npm run cap:ios:device (sync + launch on device).
  */
-const serverUrl = process.env.CAPACITOR_SERVER_URL ?? 'http://localhost:3000';
+const isDev = process.env.NODE_ENV === 'development';
+
+// Dev: live-reload from local Next.js server (set CAPACITOR_SERVER_URL for physical device)
+// Prod: load from deployed Vercel URL (set CAPACITOR_PROD_URL to your https://... domain)
+const devServerUrl = process.env.CAPACITOR_SERVER_URL ?? 'http://localhost:3000';
+const prodServerUrl = process.env.CAPACITOR_PROD_URL ?? '';
 
 const config: CapacitorConfig = {
   appId: 'com.rellay.app',
   appName: 'Rellay',
   webDir: 'public',
-  server: {
-    url: serverUrl,
-  },
+  server: isDev
+    ? { url: devServerUrl, cleartext: true }
+    : prodServerUrl
+      ? { url: prodServerUrl }   // Option B: load from hosted URL (supports API routes)
+      : undefined,               // Fallback: bundled assets (no API routes)
 };
 
 export default config;

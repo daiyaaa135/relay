@@ -165,7 +165,7 @@ export default function LoginPage() {
             aria-hidden
           />
         </div>
-        <div className="absolute top-0 left-0 p-4 z-10" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+        <div className="absolute top-0 left-0 p-4 z-10 pt-safe-1">
           <button
             onClick={() => router.push('/')}
             className="flex size-12 items-center justify-center rounded-full bg-relay-surface/80 dark:bg-relay-surface-dark/80 backdrop-blur border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark transition-all hover:scale-105 active:scale-95 shadow-sm"

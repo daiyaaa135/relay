@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { getDefaultAvatar } from '@/lib/avatars';
+import { PageHeader } from '@/app/components/PageHeader';
 
 interface UserRow {
   id: string;
@@ -44,15 +45,12 @@ export default function FollowersPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <header className="shrink-0 z-40 glass-card border-b border-relay-border dark:border-relay-border-dark px-4 pb-3"
-        style={{ paddingTop: 'max(2.5rem, env(safe-area-inset-top))', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="size-9 flex items-center justify-center rounded-full text-relay-muted active:opacity-60">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className="font-semibold text-relay-text dark:text-relay-text-dark text-base">Followers</h1>
-        </div>
-      </header>
+      <PageHeader
+        className="z-40 glass-card !px-4 !pb-3 !bg-transparent !border-0 border-b border-relay-border dark:border-relay-border-dark"
+        style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+      >
+        <h1 className="font-semibold text-relay-text dark:text-relay-text-dark text-base">Followers</h1>
+      </PageHeader>
 
       <div className="page-scroll">
         <div className="pb-8">

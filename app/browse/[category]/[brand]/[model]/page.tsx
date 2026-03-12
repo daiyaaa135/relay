@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { ChevronLeft, ChevronDown, Smartphone, MapPin, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, Smartphone, MapPin, SlidersHorizontal } from 'lucide-react';
+import { PageHeader } from '@/app/components/PageHeader';
 
 /** Subscribe (notifications) icon: bell with diagonal line + dot. Use className for size/color. */
 function SubscribeIcon({ className }: { className?: string }) {
@@ -83,7 +84,7 @@ function ListingCard({ listing, onPress }: { listing: DeviceListing; onPress: ()
       <div className="flex flex-col gap-1.5 w-[76px] flex-shrink-0">
         <div className="size-[76px] rounded-xl overflow-hidden bg-[#FBFBFB] dark:bg-relay-surface-dark">
           {listing.image_url ? (
-            <img src={listing.image_url} alt="" className="w-full h-full object-cover" />
+            <img src={listing.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Smartphone className="size-8 text-relay-muted" />
@@ -252,22 +253,14 @@ function DeviceDetailContent() {
       )}
 
       {/* Fixed header — matches Settings/Wallet/Listings (z-30, bg-relay-surface/95) */}
-      <header
-        className="sticky top-0 z-30 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md"
-        style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}
+      <PageHeader
+        onBack={() => router.push(`/browse/${encodeURIComponent(category)}`)}
+        className="sticky top-0 z-30"
       >
-        <button
-          type="button"
-          onClick={() => router.push(`/browse/${encodeURIComponent(category)}`)}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale shrink-0"
-          aria-label={`Back to ${category}`}
-        >
-          <ChevronLeft className="size-6" />
-        </button>
         <h1 className="text-lg font-semibold text-relay-text dark:text-relay-text-dark truncate min-w-0">
           {model}
         </h1>
-      </header>
+      </PageHeader>
 
       {/* Scrollable content — top padding so content is not under fixed header */}
       <main

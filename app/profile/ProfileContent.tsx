@@ -7,11 +7,11 @@ import { fetchProfile, fetchExchangeCount, fetchFollowerCount, isFollowing, foll
 import { fetchGadgetsByProfileId } from '@/lib/gadgets';
 import { getOrCreateConversation } from '@/lib/conversations';
 import type { Gadget } from '@/lib/types';
-import { RatingDisplay } from '@/app/components/RatingDisplay';
 import { getDefaultAvatar } from '@/lib/avatars';
 import type { ProfileReviewRow } from '@/app/api/profiles/[profileId]/reviews/route';
 import { formatJoinedDate } from '@/lib/dateFormatters';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
+import { CONDITION_BG, CONDITION_TEXT } from '@/lib/constants';
 
 interface ProfileContentProps {
   /** Display name (for /profile/[username]) or pass profileId when known */
@@ -115,7 +115,11 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
       if (!currentUserId) router.push('/login');
       return;
     }
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     setFollowLoading(true);
@@ -185,123 +189,154 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-10 flex flex-col items-center text-center" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <div className="flex w-full justify-between items-center mb-10">
+      <header className="shrink-0 px-6 pb-8 pt-safe-3">
+        {/* Back / Settings row */}
+        <div className="flex w-full justify-between items-center mb-8">
           <button
             onClick={() => router.push('/')}
-            className="text-relay-muted hover:text-relay-text dark:hover:text-relay-text-dark transition-colors size-10 flex items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark active-scale"
+            className="size-10 flex items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale"
           >
-            <span className="material-symbols-outlined">arrow_back</span>
+            <ChevronIcon direction="left" className="size-6" />
           </button>
           {isSelf ? (
             <button
               onClick={() => router.push('/settings')}
-              className="text-relay-muted hover:text-relay-text dark:hover:text-relay-text-dark transition-colors size-10 flex items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark active-scale"
+              className="size-10 flex items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale"
             >
               <span className="material-symbols-outlined">settings</span>
             </button>
           ) : (
-            <button
-              onClick={handleMessageClick}
-              disabled={messageLoading}
-              className="size-10 flex items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale disabled:opacity-60"
-            >
-              {messageLoading ? <span className="size-5 border-2 border-relay-border border-t-relay-text dark:border-t-relay-text-dark rounded-full animate-spin" /> : <span className="material-symbols-outlined !text-[22px]">chat_bubble</span>}
-            </button>
+            <div className="size-10" />
           )}
         </div>
 
-        <div className="relative mb-8">
-          <div className="size-32 bg-relay-bg dark:bg-relay-bg-dark rounded-full overflow-hidden border-2 border-primary/20 p-1.5 shadow-2xl">
-            <img
-              src={avatarUrl}
-              alt="Profile"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          {profile?.membership_tier === 'relay_plus' && (
-            <div className="absolute bottom-1 right-1 w-8 h-8 bg-primary text-white flex items-center justify-center rounded-full border-4 border-relay-surface dark:border-relay-surface-dark shadow-xl shadow-primary/20">
-              <span className="material-symbols-outlined !text-[18px] font-bold">check</span>
+        {/* Two-column profile layout */}
+        <div className="flex items-center gap-5">
+          {/* Left: avatar + bio */}
+          <div className="flex flex-col items-center gap-3 shrink-0">
+            <div className="relative">
+              <div className="size-32 bg-relay-bg dark:bg-relay-bg-dark rounded-full overflow-hidden border-2 border-primary/20 p-1.5 shadow-2xl">
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              </div>
+              {profile?.membership_tier === 'relay_plus' && (
+                <div className="absolute bottom-1 right-1 w-8 h-8 bg-primary text-white flex items-center justify-center rounded-full border-4 border-relay-surface dark:border-relay-surface-dark shadow-xl shadow-primary/20">
+                  <span className="material-symbols-outlined !text-[18px] font-bold">check</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+            {displayBio && (
+              <p className="text-[10px] font-light text-relay-muted dark:text-relay-muted-light text-center max-w-[120px] leading-relaxed">
+                &quot;{displayBio}&quot;
+              </p>
+            )}
+          </div>
 
-        <h1 className="font-serif text-4xl font-bold text-relay-text dark:text-relay-text-dark tracking-tighter">{displayName}</h1>
-        {profile?.created_at && (
-          <p className="text-[10px] font-normal text-relay-muted dark:text-relay-muted-light mb-4">
-            {formatJoinedDate(profile.created_at)}
-          </p>
-        )}
-        <div className="flex items-center gap-8 mb-8">
-          <RatingDisplay rating={rating} count={ratingCount} size="md" />
-          <div className="h-4 w-px bg-relay-border dark:border-relay-border-dark" />
-          <div className="text-[10px] tracking-tight text-relay-muted">
-            <span className="font-bold text-relay-text dark:text-relay-text-dark">{followerCount}</span> Followers
-          </div>
-          <div className="h-4 w-px bg-relay-border dark:border-relay-border-dark" />
-          <div className="text-[10px] tracking-tight text-relay-muted">
-            <span className="font-bold text-relay-text dark:text-relay-text-dark">{exchangeCount}</span> Exchanges
+          {/* Right: name + joined + action buttons */}
+          <div className="flex flex-col flex-1 min-w-0">
+            <h1 className="font-serif text-4xl font-bold text-relay-text dark:text-relay-text-dark tracking-tighter leading-none">{displayName}</h1>
+            {profile?.created_at && (
+              <p className="text-[10px] font-light text-relay-muted dark:text-relay-muted-light mt-2">
+                {formatJoinedDate(profile.created_at)}
+              </p>
+            )}
+
+            {!isSelf ? (
+              <div className="flex items-center gap-3 mt-5">
+                {/* Message button (styled like back button) */}
+                <button
+                  onClick={handleMessageClick}
+                  disabled={messageLoading}
+                  className="px-6 h-8 flex items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm disabled:opacity-60 active-scale"
+                >
+                  {messageLoading ? (
+                    <span className="size-4 border-2 border-relay-border border-t-primary rounded-full animate-spin" />
+                  ) : (
+                    <span className="text-[10px] font-semibold leading-none">Message</span>
+                  )}
+                </button>
+
+                {/* Follow icon button */}
+                <button
+                  type="button"
+                  onClick={handleFollowClick}
+                  disabled={followLoading}
+                  className="flex flex-col items-center gap-px disabled:opacity-60 active-scale"
+                >
+                  <span className={`material-symbols-outlined !text-[20px] transition-colors ${following ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                    {following ? 'person_remove' : 'person_add'}
+                  </span>
+                  <span className="text-[9px] font-light text-relay-muted dark:text-relay-muted-light">
+                    {followLoading ? '…' : `${followerCount} Followers`}
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4 mt-4">
+                <div className="text-[10px] tracking-tight text-relay-muted">
+                  <span className="font-bold text-relay-text dark:text-relay-text-dark">{followerCount}</span> Followers
+                </div>
+                <div className="h-3 w-px bg-relay-border dark:bg-relay-border-dark" />
+                <div className="text-[10px] tracking-tight text-relay-muted">
+                  <span className="font-bold text-relay-text dark:text-relay-text-dark">{exchangeCount}</span> Exchanges
+                </div>
+              </div>
+            )}
           </div>
         </div>
-        {displayBio && (
-          <p className="text-sm font-light text-relay-muted dark:text-relay-muted-light max-w-[300px] leading-relaxed ">
-            &quot;{displayBio}&quot;
-          </p>
-        )}
-
-        {!isSelf && (
-          <div className="mt-8 flex gap-6 w-full">
-            <button
-              onClick={handleMessageClick}
-              disabled={messageLoading}
-              className="flex-1 h-8 bg-primary text-white text-[10px] font-bold tracking-tight rounded-xl shadow-xl shadow-primary/20 active-scale transition-all disabled:opacity-60"
-            >
-              {messageLoading ? 'Opening…' : 'Message'}
-            </button>
-            <button
-              type="button"
-              onClick={handleFollowClick}
-              disabled={followLoading}
-              className={`flex-1 h-8 border text-[10px] font-bold tracking-tight rounded-xl active-scale transition-all disabled:opacity-60 ${
-                following
-                  ? 'border-transparent bg-primary/10 text-primary'
-                  : 'border-transparent text-relay-text dark:text-relay-text-dark'
-              }`}
-            >
-              {followLoading ? '…' : following ? 'Following' : 'Follow'}
-            </button>
-          </div>
-        )}
       </header>
 
       <div className="w-full mb-10 bg-transparent z-20 transition-colors">
-        <div className="flex px-6">
+        <div className="flex px-6 border-b border-relay-border dark:border-relay-border-dark">
           <button
             onClick={() => setTab('active')}
-            className={`flex-1 pb-4 text-[10px] font-bold tracking-tight transition-all border-b-2 ${
+            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-[0.25em] uppercase transition-all border-b-2 ${
               tab === 'active' ? 'text-primary' : 'border-transparent text-relay-muted dark:text-relay-muted-light'
             }`}
             style={{ borderBottomColor: tab === 'active' ? '#FF5721' : 'transparent', borderBottomWidth: 2 }}
           >
-            Active Listings
+            <span>Active Listings</span>
+            {tab !== 'active' && activeGadgets.length > 0 && (
+              <span className="text-[9px] font-medium">{activeGadgets.length}</span>
+            )}
           </button>
           <button
             onClick={() => setTab('swapped')}
-            className={`flex-1 pb-4 text-[10px] font-bold tracking-tight transition-all border-b-2 ${
+            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-[0.25em] uppercase transition-all border-b-2 ${
               tab === 'swapped' ? 'text-primary' : 'border-transparent text-relay-muted dark:text-relay-muted-light'
             }`}
             style={{ borderBottomColor: tab === 'swapped' ? '#FF5721' : 'transparent', borderBottomWidth: 2 }}
           >
-            Swapped
+            <span>Swapped</span>
+            {tab !== 'swapped' && (
+              <span className="text-[9px] font-medium">{swappedGadgets.length}</span>
+            )}
           </button>
           <button
             onClick={() => setTab('reviews')}
-            className={`flex-1 pb-4 text-[10px] font-bold tracking-tight transition-all border-b-2 ${
+            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-[0.25em] uppercase transition-all border-b-2 ${
               tab === 'reviews' ? 'text-primary' : 'border-transparent text-relay-muted dark:text-relay-muted-light'
             }`}
             style={{ borderBottomColor: tab === 'reviews' ? '#FF5721' : 'transparent', borderBottomWidth: 2 }}
           >
-            Reviews
+            <span>Reviews</span>
+            {tab !== 'reviews' && ratingCount > 0 && (
+              <div className="flex items-center gap-0.5">
+                <span className="text-[9px] font-medium mr-0.5">{rating.toFixed(1)}</span>
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <span
+                    key={s}
+                    className={`material-symbols-outlined !text-[8px] ${s <= Math.round(rating) ? 'text-primary' : 'text-relay-muted opacity-30'}`}
+                    style={s <= Math.round(rating) ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                  >
+                    star
+                  </span>
+                ))}
+              </div>
+            )}
           </button>
         </div>
       </div>
@@ -357,7 +392,7 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
                     <div className="mt-4 flex items-center gap-3">
                       <div className="size-10 shrink-0 rounded-lg overflow-hidden border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark">
                         {rev.gadget_image ? (
-                          <img src={rev.gadget_image} alt="" className="w-full h-full object-cover" />
+                          <img src={rev.gadget_image} alt="" className="w-full h-full object-cover" loading="lazy" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="material-symbols-outlined !text-lg text-relay-muted dark:text-relay-muted-light">inventory_2</span>
@@ -389,10 +424,19 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
               className="group cursor-pointer flex flex-col gap-4 active-scale transition-all duration-300"
             >
               <div className="relative aspect-[3/4] bg-relay-bg dark:bg-relay-bg-dark overflow-hidden rounded-[32px] border border-relay-border dark:border-relay-border-dark shadow-sm">
-                <img src={item.image} alt={item.name} className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" />
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110"
+                />
                 {tab === 'active' && (
-                  <div className="absolute top-4 right-4 bg-primary text-white px-3 py-1.5 text-[8px] font-bold tracking-[0.3em] rounded-full shadow-lg shadow-primary/20">
-                    Active
+                  <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-[8px] font-semibold tracking-[0.2em] border shadow-lg ${
+                    item.status === 'pending_swap'
+                      ? 'bg-amber-500 text-white border-white/40 shadow-amber-400/40'
+                      : 'bg-primary text-white border-white/40 shadow-primary/30'
+                  }`}>
+                    {item.status === 'pending_swap' ? 'Pending' : 'Active'}
                   </div>
                 )}
               </div>

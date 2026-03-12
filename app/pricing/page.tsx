@@ -1,29 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { PRICING_PLANS } from '@/lib/constants';
 import { type } from '@/lib/typography';
+import { PageHeader } from '@/app/components/PageHeader';
 
 const STRIPE_MEMBERSHIP_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_MEMBERSHIP_PAYMENT_LINK ?? '';
 
 export default function PricingPage() {
-  const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <div className="page-scroll">
-      <header className="sticky top-0 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <button
-          onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-          aria-label="Go back"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
+      <PageHeader className="sticky top-0">
         <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Membership</h1>
-      </header>
+      </PageHeader>
       <div className="pb-20">
       <div className="px-6 text-center mb-10 pt-8">
         <p className="text-relay-muted dark:text-relay-muted-light text-sm font-light leading-relaxed max-w-[280px] mx-auto">

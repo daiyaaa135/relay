@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchAvailability, saveAvailability, type AvailabilitySlot, EARLIEST_MINUTES, LATEST_MINUTES, MIN_AVAILABLE_MINUTES, computeTotalMinutes, isSlotWithinBounds } from '@/lib/availability';
+import { PageHeader } from '@/app/components/PageHeader';
 
 type DayConfig = {
   label: string;
@@ -302,22 +303,13 @@ export default function AvailabilityPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header
-        className="shrink-0 px-6 pb-6 flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30"
-        style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}
-      >
-        <button
-          onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
+      <PageHeader>
         <h1 className="text-2xl font-serif text-relay-text dark:text-relay-text-dark tracking-tighter">
           Availability
         </h1>
-      </header>
+      </PageHeader>
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20 space-y-8 max-w-md mx-auto w-full">
+      <div className="px-6 pt-0 pb-20 space-y-8 max-w-md mx-auto w-full">
         <div className="space-y-2">
           <p className="text-sm text-relay-muted dark:text-relay-muted-light">
             Select time slots when you&apos;re available for meet ups. Buyers will only be able to propose

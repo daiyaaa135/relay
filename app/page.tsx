@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { BRANDS_BY_CATEGORY, CONDITION_BG, CONDITION_TEXT, conditionForColor } from '@/lib/constants';
@@ -12,7 +13,8 @@ import { distanceMiles } from '@/lib/geo';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
 import type { Gadget } from '@/lib/types';
 import { getDefaultAvatar } from '@/lib/avatars';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
+import { NextStepButton } from '@/app/components/NextStepButton';
 
 type UserLocation = { latitude: number; longitude: number };
 
@@ -227,7 +229,11 @@ export default function LandingPage() {
       if (clamped >= PULL_THRESHOLD && !hapticFiredRef.current) {
         hapticFiredRef.current = true;
         // Capacitor Haptics on iOS/Android, vibrate fallback on web
-        Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+          });
+        }).catch(() => {
           if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
         });
       }
@@ -303,7 +309,11 @@ export default function LandingPage() {
 
   const toggleWishlist = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     toggleWishlistItem(wishlistProfileId, id, wishlist).then((newIds) => setWishlist(newIds));
@@ -416,8 +426,8 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <header
-        className="shrink-0 z-40 glass-card no-blur border-b border-relay-border dark:border-relay-border-dark px-6 pb-2 space-y-2"
-        style={{ paddingTop: 'max(2.5rem, env(safe-area-inset-top))', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+        className="shrink-0 z-40 glass-card no-blur border-b border-relay-border dark:border-relay-border-dark px-6 pb-2 space-y-2 pt-safe-2_5"
+        style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
       >
         <div className="flex items-center gap-3">
           <DeviceSearchBar
@@ -457,23 +467,27 @@ export default function LandingPage() {
                 }}
                 className={`flex-shrink-0 flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
                   isActive
-                    ? 'h-8 px-5 rounded-full bg-gray-200/80 dark:bg-gray-700/60 text-relay-text dark:text-gray-200'
-                    : 'size-10 rounded-full text-relay-muted dark:text-white hover:text-relay-text dark:hover:text-white/90 hover:bg-gray-200/60 dark:hover:bg-gray-700/40'
+                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-8px_-8px_16px_#ffffff,_8px_8px_16px_#c9d9e8] dark:bg-gray-700 dark:shadow-none'
+                    : 'h-6 w-6 rounded-full text-relay-muted dark:text-white hover:text-relay-text dark:hover:text-white/90 hover:bg-gray-200/60 dark:hover:bg-gray-700/40'
                 }`}
               >
                 {cat.useMaterialIcon ? (
-                  <span className="material-symbols-outlined !text-[28px]">{cat.icon}</span>
+                  <span className="material-symbols-outlined !text-[20px]">{cat.icon}</span>
                 ) : cat.navIcon ? (
-                  <img
+                  <Image
                     src={cat.navIcon}
                     alt=""
-                    className={`size-[28px] object-contain shrink-0 ${'iconScale' in cat && cat.iconScale ? cat.iconScale : ''} ${'iconClass' in cat && cat.iconClass ? cat.iconClass : ''}`}
+                    width={24}
+                    height={24}
+                    className={`size-6 object-contain shrink-0 ${'iconScale' in cat && cat.iconScale ? cat.iconScale : ''} ${'iconClass' in cat && cat.iconClass ? cat.iconClass : ''}`}
                   />
                 ) : (
-                  <img
+                  <Image
                     src={cat.icon}
                     alt=""
-                    className="size-[28px] object-contain shrink-0 dark:invert"
+                    width={24}
+                    height={24}
+                    className="size-6 object-contain shrink-0 dark:invert"
                   />
                 )}
                 {isActive && <span className="text-[10px] font-medium tracking-tighter whitespace-nowrap">{cat.name}</span>}
@@ -483,7 +497,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Pull-to-refresh indicator */}
+      {/* Pull-to-refresh indicator — collapses when idle */}
       <div
         className="flex items-center justify-center overflow-hidden shrink-0"
         style={{
@@ -491,21 +505,29 @@ export default function LandingPage() {
           transition: pullDistance === 0 && !isRefreshing ? 'height 0.25s ease' : 'none',
         }}
       >
-        {isRefreshing ? (
-          <div className="size-5 border-2 border-gray-300 border-t-gray-400 rounded-full animate-spin" />
-        ) : (
-          <span
-            className="material-symbols-outlined text-gray-400"
-            style={{
-              fontSize: '20px',
-              opacity: Math.min(pullDistance / PULL_THRESHOLD, 1),
-              transform: `rotate(${Math.min(pullDistance / PULL_THRESHOLD, 1) * 180}deg)`,
-              transition: 'transform 0.08s linear',
-            }}
-          >
-            arrow_downward
-          </span>
-        )}
+        <div
+          style={{
+            transform: `translateY(${isRefreshing ? '0px' : `${Math.max(0, pullDistance - 52)}px`})`,
+            transition: pullDistance === 0 && !isRefreshing ? 'transform 0.25s ease' : 'none',
+            willChange: 'transform',
+          }}
+        >
+          {isRefreshing ? (
+            <div className="size-5 border-2 border-gray-300 border-t-gray-400 rounded-full animate-spin" />
+          ) : (
+            <span
+              className="material-symbols-outlined text-gray-400"
+              style={{
+                fontSize: '20px',
+                opacity: Math.min(pullDistance / PULL_THRESHOLD, 1),
+                transform: `rotate(${Math.min(pullDistance / PULL_THRESHOLD, 1) * 180}deg)`,
+                transition: 'transform 0.08s linear',
+              }}
+            >
+              arrow_downward
+            </span>
+          )}
+        </div>
       </div>
 
       <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain pb-20" style={{ marginTop: '-1px' }}>
@@ -516,7 +538,7 @@ export default function LandingPage() {
           tabIndex={0}
           onClick={() => router.push(`/meetup/${upcomingMeetup.swapId}`)}
           onKeyDown={(e) => e.key === 'Enter' && router.push(`/meetup/${upcomingMeetup.swapId}`)}
-          className="mx-6 mt-6 p-5 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
+          className="mx-6 mt-0 p-5 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
         >
           <p className="text-relay-text dark:text-relay-text-dark font-semibold text-base mb-1">
             {upcomingMeetup.stage === 1 && 'Preparing for your meetup...'}
@@ -586,7 +608,7 @@ export default function LandingPage() {
         </div>
       )}
 
-      <div className="px-6 py-10 pb-32">
+      <div className="px-6 pt-0 pb-32">
         {selectedCategory === 'Explore' ? (
           <>
             <div className="grid grid-cols-2 gap-4">
@@ -598,7 +620,13 @@ export default function LandingPage() {
                   className="group relative overflow-hidden rounded-2xl aspect-[4/3] border border-relay-border dark:border-relay-border-dark transition-all active:scale-[0.98]"
                 >
                   {CATEGORY_CARD_IMAGES[cat] ? (
-                    <img src={CATEGORY_CARD_IMAGES[cat]} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <Image
+                      src={CATEGORY_CARD_IMAGES[cat]}
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 50vw, 33vw"
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
                   ) : (
                     <div className="absolute inset-0 bg-relay-surface dark:bg-relay-surface-dark flex items-center justify-center">
                       <span className="material-symbols-outlined !text-[48px] text-relay-muted">devices</span>
@@ -614,7 +642,7 @@ export default function LandingPage() {
         <>
         <div className="flex items-end justify-between mb-10">
            <div>
-             <h1 className="text-relay-text dark:text-relay-text-dark text-[24px] font-serif tracking-tighter leading-none mb-1">
+             <h1 className="text-relay-text dark:text-relay-text-dark text-[24px] font-display tracking-tighter leading-none mb-1">
                Nearby Picks
              </h1>
             <p className="text-[10px] font-semibold text-relay-muted tracking-tight">{filteredItems.length} Listings</p>
@@ -653,10 +681,12 @@ export default function LandingPage() {
               className="group cursor-pointer active-scale transition-all duration-500"
             >
               <div className="relative aspect-[1/1.618] overflow-hidden rounded-[64px] bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-2xl">
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000 grayscale-[10%] group-hover:grayscale-0" 
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 60vw"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000 grayscale-[10%] group-hover:grayscale-0"
                 />
                 <div className="absolute top-8 left-8 flex flex-col gap-2">
                     {(() => {
@@ -699,7 +729,7 @@ export default function LandingPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90 transition-opacity pointer-events-none" aria-hidden />
                 <div className="absolute bottom-12 left-10 right-10">
                   <p className="text-primary text-[10px] font-bold tracking-tight mb-2">{item.category}</p>
-                  <h3 className="text-white text-4xl font-serif  leading-tight tracking-tighter mb-3">{item.name}</h3>
+                  <h3 className="text-white text-4xl font-display leading-tight tracking-tighter mb-3">{item.name}</h3>
                   <div className="flex items-center gap-2 mb-8 opacity-60">
                     <span className="material-symbols-outlined !text-[14px] text-primary">location_on</span>
                     <span className="text-white text-[9px] font-bold tracking-[0.2em]">
@@ -711,7 +741,13 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between border-t border-white/10 pt-8">
                     <div className="flex items-center gap-3">
                       <div className="size-10 rounded-full overflow-hidden border-2 border-relay-border dark:border-relay-border-dark">
-                        <img src={item.sellerAvatarUrl || getDefaultAvatar(item.sellerId || item.seller)} alt="" className="w-full h-full object-cover" />
+                        <Image
+                          src={item.sellerAvatarUrl || getDefaultAvatar(item.sellerId || item.seller)}
+                          alt=""
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <span className="text-white text-[11px] tracking-tight">{item.seller}</span>
                     </div>
@@ -729,7 +765,14 @@ export default function LandingPage() {
           ))}
           {filteredItems.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center py-24 text-center">
-              <img src="/no-gear-found.png" alt="" className="w-24 h-24 object-contain mb-8" aria-hidden />
+              <Image
+                src="/no-gear-found.png"
+                alt=""
+                width={96}
+                height={96}
+                className="w-24 h-24 object-contain mb-8"
+                aria-hidden
+              />
               <h2 className="text-relay-text dark:text-relay-text-dark font-serif text-lg font-semibold mb-2">No gear found</h2>
               <p className="text-relay-muted dark:text-relay-muted-light text-[11px] font-normal max-w-[240px] leading-relaxed mb-6">
                 {selectedCategory !== 'Explore' ? `No ${selectedCategory} listings` : 'Nothing'}
@@ -769,7 +812,7 @@ export default function LandingPage() {
       {showFilters && (
         <div className="fixed inset-0 z-[60]">
           <div
-            className="absolute inset-0 bg-relay-bg/70 dark:bg-relay-bg-dark/70 backdrop-blur-md"
+            className="absolute inset-0 bg-relay-bg/70 dark:bg-relay-bg-dark/70 backdrop-blur-[10px]"
             onClick={() => {
               setShowFilters(false);
               setFilterSubPanel(null);
@@ -804,32 +847,65 @@ export default function LandingPage() {
                   </button>
                   <div className="py-4">
                     <p className="text-[10px] font-bold tracking-tight text-relay-muted dark:text-relay-muted-light">Proximity</p>
-                    <p className="text-xs font-medium text-relay-text dark:text-relay-text-dark mt-0.5">
-                      {userLocation ? `${distanceRange} miles` : 'Location not set'}
-                    </p>
+                    {userLocation && (
+                      <p className="text-xs font-medium text-relay-text dark:text-relay-text-dark mt-0.5">
+                        {`${distanceRange} miles`}
+                      </p>
+                    )}
                     {!userLocation ? (
                       <div className="mt-3 p-4 rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
-                        <p className="text-xs text-relay-muted dark:text-relay-muted-light mb-3">Share your location to filter by distance (HTTPS required).</p>
                         {locationError && (
                           <p className="text-[10px] text-relay-text dark:text-relay-text-dark/80 mb-2" role="alert">
                             {locationError}
                           </p>
                         )}
-                        <button
-                          type="button"
-                          onClick={requestLocation}
-                          disabled={locationLoading}
-                          className="mx-auto block text-primary text-xs font-normal tracking-tight hover:text-primary/80 transition-colors disabled:opacity-60"
+                        <div
+                          onClick={locationLoading ? undefined : requestLocation}
+                          role="button"
+                          aria-label="Share my location to see nearby swap"
+                          className="inline-flex cursor-pointer"
                         >
-                          Use my location
-                        </button>
+                          <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M14.7808 19.7005L14.1906 19.2377V19.2377L14.7808 19.7005ZM9.21921 19.7005L8.62903 20.1633L9.21921 19.7005ZM12 22.0055V21.2555V22.0055ZM9 9.25C8.58579 9.25 8.25 9.58579 8.25 10C8.25 10.4142 8.58579 10.75 9 10.75V9.25ZM15 10.75C15.4142 10.75 15.75 10.4142 15.75 10C15.75 9.58579 15.4142 9.25 15 9.25V10.75ZM11.25 13C11.25 13.4142 11.5858 13.75 12 13.75C12.4142 13.75 12.75 13.4142 12.75 13H11.25ZM12.75 7C12.75 6.58579 12.4142 6.25 12 6.25C11.5858 6.25 11.25 6.58579 11.25 7H12.75ZM19.25 9.6087C19.25 10.8352 18.6104 12.4764 17.6037 14.256C16.6137 16.0063 15.3342 17.7794 14.1906 19.2377L15.371 20.1633C16.5371 18.6762 17.8672 16.837 18.9094 14.9945C19.9349 13.1814 20.75 11.2494 20.75 9.6087H19.25ZM9.80938 19.2377C8.66578 17.7794 7.38628 16.0063 6.39625 14.256C5.38962 12.4764 4.75 10.8352 4.75 9.6087H3.25C3.25 11.2494 4.06511 13.1814 5.09064 14.9945C6.13277 16.837 7.46288 18.6762 8.62903 20.1633L9.80938 19.2377ZM4.75 9.6087C4.75 5.21571 8.04678 1.75 12 1.75V0.25C7.11666 0.25 3.25 4.49277 3.25 9.6087H4.75ZM12 1.75C15.9532 1.75 19.25 5.21571 19.25 9.6087H20.75C20.75 4.49277 16.8833 0.25 12 0.25V1.75ZM14.1906 19.2377C13.5717 20.027 13.1641 20.5426 12.7992 20.8741C12.4664 21.1764 12.2442 21.2555 12 21.2555V22.7555C12.7291 22.7555 13.2948 22.4504 13.8078 21.9844C14.2886 21.5476 14.7849 20.9107 15.371 20.1633L14.1906 19.2377ZM8.62903 20.1633C9.21511 20.9107 9.71136 21.5476 10.1922 21.9844C10.7052 22.4504 11.2709 22.7555 12 22.7555V21.2555C11.7558 21.2555 11.5336 21.1764 11.2008 20.8741C10.8359 20.5426 10.4283 20.027 9.80938 19.2377L8.62903 20.1633ZM9 10.75H15V9.25H9V10.75ZM12.75 13L12.75 7H11.25L11.25 13H12.75Z"
+                              fill="#2D264B"
+                            />
+                            <path
+                              d="M12 8.5L14.5 12L12 15.5L9.5 12Z"
+                              fill="#FF6B59"
+                            />
+                          </svg>
+                        </div>
                       </div>
                     ) : (
                       <div className="mt-3">
-                        <div className="relative h-1.5 bg-relay-border dark:bg-relay-border-dark rounded-full flex items-center group">
-                          <div className="absolute left-0 h-full bg-primary rounded-l-full transition-all" style={{ width: `${(distanceRange / 100) * 100}%` }} />
-                          <input type="range" min="1" max="100" step="1" value={distanceRange} onChange={(e) => setDistanceRange(parseInt(e.target.value, 10))} className="w-full absolute inset-0 opacity-0 cursor-pointer z-10" />
-                          <div className="absolute size-4 bg-primary rounded-full shadow-sm pointer-events-none" style={{ left: `calc(${(distanceRange / 100) * 100}% - 8px)` }} />
+                        <div className="relative h-6 flex items-center">
+                          <div className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,#E8F0F8,#FFFFFF)] border border-[#E3EDF7] shadow-[0_2px_22px_rgba(200,212,225,1)_inset,0_9px_18px_rgba(201,211,225,1)_inset,-12px_-10px_12px_rgba(255,255,255,0.75)_inset]" />
+                          <div
+                            className="absolute inset-y-1.5 left-2 rounded-full bg-[linear-gradient(to-b,#9BB9D3,#97B4CF)]"
+                            style={{ width: `${(distanceRange / 100) * 100}%` }}
+                          />
+                          <input
+                            type="range"
+                            min="1"
+                            max="100"
+                            step="1"
+                            value={distanceRange}
+                            onChange={(e) => setDistanceRange(parseInt(e.target.value, 10))}
+                            className="relative z-10 w-full h-4 opacity-0 cursor-pointer"
+                          />
+                          <div
+                            className="pointer-events-none absolute w-9 h-9 rounded-full bg-[#E4F0FA] border border-[#E5EFFA] shadow-[25px_28px_66px_rgba(176,195,211,0.73)] flex items-center justify-center"
+                            style={{ left: `calc(${(distanceRange / 100) * 100}% - 18px)` }}
+                          >
+                            <div className="w-3 h-3 rounded-full bg-[linear-gradient(135deg,#FF6B59,#D35646)] shadow-[0_9px_20px_rgba(255,104,81,1)]" />
+                          </div>
                         </div>
                         <div className="flex justify-between text-[8px] font-bold text-relay-muted tracking-tight mt-1">
                           <span>1 mi</span>
@@ -839,13 +915,17 @@ export default function LandingPage() {
                       </div>
                     )}
                   </div>
-                  <div className="pt-6 pb-4">
+                    <div className="pt-6 pb-4">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-bold tracking-tight text-relay-muted dark:text-relay-muted-light">Valuation Ceiling</p>
                       <span className="text-base font-bold text-primary">{priceRange.toLocaleString()} Cr</span>
                     </div>
-                    <div className="relative h-1.5 bg-relay-border dark:bg-relay-border-dark rounded-full mt-3 flex items-center group">
-                      <div className="absolute left-0 h-full bg-primary rounded-l-full transition-all" style={{ width: `${(priceRange / 2000) * 100}%` }} />
+                    <div className="relative h-6 mt-3 flex items-center">
+                      <div className="absolute inset-0 rounded-full bg-[linear-gradient(135deg,#E8F0F8,#FFFFFF)] border border-[#E3EDF7] shadow-[0_2px_22px_rgba(200,212,225,1)_inset,0_9px_18px_rgba(201,211,225,1)_inset,-12px_-10px_12px_rgba(255,255,255,0.75)_inset]" />
+                      <div
+                        className="absolute inset-y-1.5 left-2 rounded-full bg-[linear-gradient(to-b,#9BB9D3,#97B4CF)]"
+                        style={{ width: `${(priceRange / 2000) * 100}%` }}
+                      />
                       <input
                         type="range"
                         min="0"
@@ -853,9 +933,14 @@ export default function LandingPage() {
                         step="50"
                         value={priceRange}
                         onChange={(e) => setPriceRange(parseInt(e.target.value, 10))}
-                        className="w-full absolute inset-0 opacity-0 cursor-pointer z-10"
+                        className="relative z-10 w-full h-6 opacity-0 cursor-pointer"
                       />
-                      <div className="absolute size-4 bg-primary rounded-full shadow-sm pointer-events-none" style={{ left: `calc(${(priceRange / 2000) * 100}% - 8px)` }} />
+                      <div
+                        className="pointer-events-none absolute w-9 h-9 rounded-full bg-[#E4F0FA] border border-[#E5EFFA] shadow-[25px_28px_66px_rgba(176,195,211,0.73)] flex items-center justify-center"
+                        style={{ left: `calc(${(priceRange / 2000) * 100}% - 18px)` }}
+                      >
+                        <div className="w-3 h-3 rounded-full bg-[linear-gradient(135deg,#FF6B59,#D35646)] shadow-[0_9px_20px_rgba(255,104,81,1)]" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -874,20 +959,20 @@ export default function LandingPage() {
                   >
                     Reset
                   </button>
-                  <button
+                  <NextStepButton
                     type="button"
                     onClick={() => setShowFilters(false)}
-                    className="next-step-button flex-[1.5] h-8 rounded-2xl text-white text-xs font-semibold tracking-tight active-scale"
+                    className="flex-[1.5] h-8 rounded-2xl tracking-tight active-scale"
                   >
                     Apply Selection
-                  </button>
+                  </NextStepButton>
                 </div>
               </>
             ) : (
               <>
                 <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-relay-border dark:border-relay-border-dark">
                   <button type="button" onClick={() => setFilterSubPanel(null)} className="size-10 flex items-center justify-center text-relay-text dark:text-relay-text-dark">
-                    <span className="material-symbols-outlined">arrow_back</span>
+                    <ChevronIcon direction="left" className="size-6" />
                   </button>
                   <h2 className="text-[10px] font-bold tracking-[0.4em] text-relay-muted dark:text-relay-muted-light">
                     {filterSubPanel === 'brand' ? 'Brand' : filterSubPanel === 'condition' ? 'Condition' : 'Storage'}

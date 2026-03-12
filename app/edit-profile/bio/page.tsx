@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchProfile, updateProfile } from '@/lib/profiles';
 import { ScreenSkeleton } from '@/app/components/Skeleton';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
 
 const BIO_MAX = 200;
 
@@ -78,16 +79,15 @@ export default function EditProfileBioPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-relay-surface-dark transition-colors">
       <header
-        className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-relay-border dark:border-relay-border-dark"
-        style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
+        className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-relay-border dark:border-relay-border-dark pt-safe-1"
       >
         <button
           type="button"
           onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full text-relay-muted hover:bg-relay-bg dark:hover:bg-relay-bg-dark transition-colors"
+          className="flex size-10 items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale"
           aria-label="Back"
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <ChevronIcon direction="left" className="size-6" />
         </button>
         <h1 className="text-lg font-semibold text-relay-text dark:text-relay-text-dark">Account</h1>
         <button

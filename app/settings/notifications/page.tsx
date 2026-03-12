@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchProfile, updateNotificationPrefs } from '@/lib/profiles';
+import { PageHeader } from '@/app/components/PageHeader';
 
 type PrefKey = 'notify_messages' | 'notify_swaps' | 'notify_pickup_30_min' | 'notify_pickup_15_min';
 
@@ -68,17 +69,11 @@ export default function NotificationsPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-6 flex items-center gap-4 bg-transparent z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <button
-          onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h1 className="text-2xl font-serif  text-relay-text dark:text-relay-text-dark tracking-tighter">Notifications</h1>
-      </header>
+      <PageHeader className="bg-transparent border-b-0">
+        <h1 className="text-2xl font-serif text-relay-text dark:text-relay-text-dark tracking-tighter">Notifications</h1>
+      </PageHeader>
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20 space-y-8">
+      <div className="px-6 pt-0 pb-20 space-y-8">
         <p className="text-relay-muted dark:text-relay-muted-light text-sm">
           Choose what you want to be notified about.
         </p>

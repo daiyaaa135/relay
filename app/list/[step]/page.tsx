@@ -16,36 +16,16 @@ import { hasAvailability } from '@/lib/availability';
 import { fetchProfile } from '@/lib/profiles';
 import { reverseGeocode, searchLocations, type LocationSuggestion } from '@/lib/geo';
 import { Capacitor } from '@capacitor/core';
-import { Geolocation } from '@capacitor/geolocation';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { DeviceCaptureFlow } from '@/app/components/DeviceCaptureFlow';
 import { LocationMapWithAvatar } from '@/app/components/LocationMapWithAvatar';
 import { SearchableGameDropdown } from '@/app/components/SearchableGameDropdown';
+import { NextStepButton } from '@/app/components/NextStepButton';
 import { useListing, VALUATION_STORAGE_KEY } from '../ListingContext';
 import { ConditionStepPart, getWorstCondition } from '../ConditionStepPart';
+import { ListingStepFooter, type ListingStepFooterProps } from '../components/ListingStepFooter';
 import type { DeviceType } from '@/lib/DeviceCaptureConfig';
 
 const MIN_LISTING_PHOTOS = 6;
-
-function NextStepIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <path
-        d="M10 7L11.763 8.74731C13.1689 10.1408 13.8719 10.8375 13.9801 11.6867C14.0066 11.8947 14.0066 12.1053 13.9801 12.3133C13.8719 13.1625 13.1689 13.8592 11.763 15.2527L10 17"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 const CONSOLE_ACCESSORY_OPTIONS = [
   { id: 'Power cord', required: true },
@@ -297,6 +277,17 @@ const FUNCTIONALITY_CHECKS: { text: string; weight: number }[] = [
   { text: 'The speakers and microphones work perfectly.', weight: 0.15 },
   { text: 'Touch ID and Face ID are functional (if present).', weight: 0.1 },
   { text: 'All other features including Wi-Fi, Bluetooth, buttons, etc. work perfectly.', weight: 0.15 },
+];
+
+/** Handheld-specific functionality checklist used on the Gaming Handhelds flow. */
+const HANDHELD_FUNCTIONALITY_CHECKS: string[] = [
+  'Powers on and off with no issues, and charges properly.',
+  'Reads cartridges properly.',
+  'The hinge is not damaged.',
+  'LCD screen has no issues (for example, no cracks, dead pixels, or discoloration).',
+  'Touchscreen functions correctly.',
+  'Sound works properly (no distorted sound or missing audio).',
+  'All buttons function normally.',
 ];
 
 function CoinCelebration({ credits }: { credits: number }) {
@@ -648,10 +639,20 @@ export default function StepPage() {
     } catch {}
   }, [category, currentStep, totalSteps, swappaCredits, setSwappaCredits, setSwappaPrice]);
 
+  const prevLaptopBrandRef = useRef<string | null>(null);
   useEffect(() => {
     if (category !== 'Laptops') return;
+    const prevBrand = prevLaptopBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevLaptopBrandRef.current = brand;
     setLaptopModelsLoading(true);
-    if (!hasResumedDraftRef.current) setModelName('');
+    // Only clear model when the brand changes (not on mount / navigation back to step 1)
+    if (!hasResumedDraftRef.current && brandChanged) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'list/[step]/page.tsx:effect-Laptops', message: 'Clearing modelName (Laptops)', data: { currentStep }, timestamp: Date.now(), hypothesisId: 'H1-H5' }) }).catch(() => {});
+      // #endregion
+      setModelName('');
+    }
     fetch(`/api/devices/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setLaptopModels(Array.isArray(d.models) ? d.models : [])).catch(() => setLaptopModels([])).finally(() => setLaptopModelsLoading(false));
   }, [category, brand, setModelName, setLaptopModels, setLaptopModelsLoading]);
 
@@ -668,17 +669,25 @@ export default function StepPage() {
   const prevPhoneBrandRef = useRef<string | null>(null);
   useEffect(() => {
     if (category !== 'Phones') return;
-    const brandChanged = prevPhoneBrandRef.current !== null && prevPhoneBrandRef.current !== brand;
+    const prevBrand = prevPhoneBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
     prevPhoneBrandRef.current = brand;
-    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) {
+      setModelName('');
+    }
     setPhoneModelsLoading(true);
     fetch(`/api/phones/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setPhoneModels(Array.isArray(d.models) ? d.models : [])).catch(() => setPhoneModels([])).finally(() => setPhoneModelsLoading(false));
   }, [category, brand, setModelName, setPhoneModels, setPhoneModelsLoading]);
 
+  const prevAccessoryBrandRef = useRef<string | null>(null);
   useEffect(() => {
     if (!accessoryType) return;
+    const prevBrand = prevAccessoryBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevAccessoryBrandRef.current = brand;
     setAccessoryBrandsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    // Clear only when user actually changes brand/type (not on step-1 remount)
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch(`/api/accessories/brands?type=${accessoryType}`).then((r) => r.json()).then((d: { brands?: string[] }) => {
       const b = Array.isArray(d.brands) ? d.brands : [];
       setAccessoryBrands(b);
@@ -688,15 +697,22 @@ export default function StepPage() {
 
   useEffect(() => {
     if (!accessoryType) return;
+    const prevBrand = prevAccessoryBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevAccessoryBrandRef.current = brand;
     setAccessoryModelsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch(`/api/accessories/models?${new URLSearchParams({ type: accessoryType, brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setAccessoryModels(Array.isArray(d.models) ? d.models : [])).catch(() => setAccessoryModels([])).finally(() => setAccessoryModelsLoading(false));
   }, [accessoryType, brand, currentStep, setModelName, setAccessoryModels, setAccessoryModelsLoading]);
 
+  const prevRelicBrandRef = useRef<string | null>(null);
   useEffect(() => {
     if (category !== 'MP3') return;
+    const prevBrand = prevRelicBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevRelicBrandRef.current = brand;
     setRelicBrandsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch('/api/relics/brands').then((r) => r.json()).then((d: { brands?: string[] }) => {
       const b = Array.isArray(d.brands) ? d.brands : [];
       setRelicBrands(b);
@@ -706,15 +722,22 @@ export default function StepPage() {
 
   useEffect(() => {
     if (category !== 'MP3') return;
+    const prevBrand = prevRelicBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevRelicBrandRef.current = brand;
     setRelicModelsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch(`/api/relics/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setRelicModels(Array.isArray(d.models) ? d.models : [])).catch(() => setRelicModels([])).finally(() => setRelicModelsLoading(false));
   }, [category, brand, currentStep, setModelName, setRelicModels, setRelicModelsLoading]);
 
+  const prevHandheldBrandRef = useRef<string | null>(null);
   useEffect(() => {
     if (category !== 'Gaming Handhelds') return;
+    const prevBrand = prevHandheldBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevHandheldBrandRef.current = brand;
     setHandheldBrandsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch('/api/gaming-handhelds/brands').then((r) => r.json()).then((d: { brands?: string[] }) => {
       const b = Array.isArray(d.brands) ? d.brands : [];
       setHandheldBrands(b);
@@ -724,15 +747,24 @@ export default function StepPage() {
 
   useEffect(() => {
     if (category !== 'Gaming Handhelds') return;
+    const prevBrand = prevHandheldBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevHandheldBrandRef.current = brand;
     setHandheldModelsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch(`/api/gaming-handhelds/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setHandheldModels(Array.isArray(d.models) ? d.models : [])).catch(() => setHandheldModels([])).finally(() => setHandheldModelsLoading(false));
   }, [category, brand, currentStep, setModelName, setHandheldModels, setHandheldModelsLoading]);
 
+  const prevTabletBrandRef = useRef<string | null>(null);
   useEffect(() => {
     if (category !== 'Tablets') return;
+    const prevBrand = prevTabletBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevTabletBrandRef.current = brand;
     setTabletBrandsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) {
+      setModelName('');
+    }
     fetch('/api/tablets/brands').then((r) => r.json()).then((d: { brands?: string[] }) => {
       const b = Array.isArray(d.brands) ? d.brands : [];
       setTabletBrands(b);
@@ -742,20 +774,27 @@ export default function StepPage() {
 
   useEffect(() => {
     if (category !== 'Tablets') return;
+    const prevBrand = prevTabletBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevTabletBrandRef.current = brand;
     setTabletModelsLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch(`/api/tablets/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setTabletModels(Array.isArray(d.models) ? d.models : [])).catch(() => setTabletModels([])).finally(() => setTabletModelsLoading(false));
   }, [category, brand, currentStep, setModelName, setTabletModels, setTabletModelsLoading]);
 
+  const prevVideoGamesBrandRef = useRef<string | null>(null);
   useEffect(() => {
     if (category !== 'Video Games') return;
+    const prevBrand = prevVideoGamesBrandRef.current;
+    const brandChanged = prevBrand !== null && prevBrand !== brand;
+    prevVideoGamesBrandRef.current = brand;
     if (!brand.trim()) {
       setVideoGameConsoles([]);
-      if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+      if (!hasResumedDraftRef.current && brandChanged) setModelName('');
       return;
     }
     setVideoGameConsolesLoading(true);
-    if (currentStep === 1 && !hasResumedDraftRef.current) setModelName('');
+    if (!hasResumedDraftRef.current && brandChanged) setModelName('');
     fetch(`/api/video-games/consoles?${new URLSearchParams({ brand: brand.trim() })}`).then((r) => r.json()).then((d: { consoles?: string[] }) => setVideoGameConsoles(Array.isArray(d.consoles) ? d.consoles : [])).catch(() => setVideoGameConsoles([])).finally(() => setVideoGameConsolesLoading(false));
   }, [category, brand, currentStep, setModelName, setVideoGameConsoles, setVideoGameConsolesLoading]);
 
@@ -1253,9 +1292,46 @@ export default function StepPage() {
     const swappaCategories = ['Phones', 'Tablets', 'Laptops', 'Console'];
     const ebayCategories = ['MP3'];
     const valuationCategories = [...swappaCategories, ...ebayCategories];
+
+    // Gaming Handhelds: apply bespoke functional rules
+    if (category === 'Gaming Handhelds' && swappaCredits !== null && swappaCredits > 0) {
+      const has = (text: string) => functionalityOptions.includes(text);
+      const powersOk = has(HANDHELD_FUNCTIONALITY_CHECKS[0]); // powers on/off + charges
+      const cartridgesOk = has(HANDHELD_FUNCTIONALITY_CHECKS[1]);
+      const hingeOk = has(HANDHELD_FUNCTIONALITY_CHECKS[2]);
+      const screenOk = has(HANDHELD_FUNCTIONALITY_CHECKS[3]);
+      const touchOk = has(HANDHELD_FUNCTIONALITY_CHECKS[4]);
+      const soundOk = has(HANDHELD_FUNCTIONALITY_CHECKS[5]);
+      const buttonsOk = has(HANDHELD_FUNCTIONALITY_CHECKS[6]);
+
+      const reject =
+        !powersOk ||
+        !cartridgesOk ||
+        !hingeOk ||
+        !screenOk ||
+        !touchOk;
+
+      if (reject) {
+        return {
+          estimatedCredits: 0,
+          estimatedCreditsReason: 'This handheld cannot be listed because one or more critical functions do not work.',
+        };
+      }
+
+      let credits = swappaCredits;
+      if (!soundOk) {
+        credits = Math.round(credits * 0.7); // 30% deduction
+      }
+      if (!buttonsOk) {
+        credits = Math.round(credits * 0.75); // 25% deduction
+      }
+
+      return { estimatedCredits: Math.max(0, credits), estimatedCreditsReason: null as string | null };
+    }
+
     if (swappaCategories.includes(category) && swappaCredits !== null && swappaCredits > 0) {
-      // Console, Video Games, Headphones, Gaming Handhelds, Speaker: Yes/No functional → if No, 0.4 × average
-      if (category === 'Console' || category === 'Video Games' || category === 'Headphones' || category === 'Gaming Handhelds' || category === 'Speaker') {
+      // Console, Video Games, Headphones, Speaker: Yes/No functional → if No, 0.4 × average
+      if (category === 'Console' || category === 'Video Games' || category === 'Headphones' || category === 'Speaker') {
         const credits = consoleFunctional === false ? Math.round(swappaCredits * 0.4) : swappaCredits;
         return { estimatedCredits: credits, estimatedCreditsReason: null as string | null };
       }
@@ -1266,8 +1342,8 @@ export default function StepPage() {
     if (valuationCategories.includes(category) && swappaLookupError) {
       return { estimatedCredits: null as number | null, estimatedCreditsReason: swappaLookupError };
     }
-    // Video Games, Headphones, Gaming Handhelds, Speaker: use swappaCredits when available (not in swappaCategories so missed above)
-    if ((category === 'Video Games' || category === 'Headphones' || category === 'Gaming Handhelds' || category === 'Speaker') && swappaCredits !== null && swappaCredits > 0) {
+    // Video Games, Headphones, Speaker: use swappaCredits when available (not in swappaCategories so missed above)
+    if ((category === 'Video Games' || category === 'Headphones' || category === 'Speaker') && swappaCredits !== null && swappaCredits > 0) {
       const credits = consoleFunctional === false ? (category === 'Video Games' ? 0 : Math.round(swappaCredits * 0.4)) : swappaCredits;
       return { estimatedCredits: credits, estimatedCreditsReason: null as string | null };
     }
@@ -1277,9 +1353,9 @@ export default function StepPage() {
     if (category === 'MP3') {
       return { estimatedCredits: null as number | null, estimatedCreditsReason: 'Tap Get Valuation on the Photos step (after adding 6+ photos) to see eBay-based credits.' };
     }
-    // Other categories (Headphones, Speaker, Gaming Handhelds, etc.): eBay-only valuation; Console uses PriceCharting above. Video Games non-functional already returns 0 above.
+    // Other categories (Headphones, Speaker, etc.): eBay-only valuation; Console uses PriceCharting above. Video Games non-functional already returns 0 above.
     if (swappaCredits !== null && swappaCredits > 0) {
-      const credits = (category === 'Headphones' || category === 'Gaming Handhelds' || category === 'Speaker' || category === 'Video Games') && consoleFunctional === false
+      const credits = (category === 'Headphones' || category === 'Speaker' || category === 'Video Games') && consoleFunctional === false
         ? (category === 'Video Games' ? 0 : Math.round(swappaCredits * 0.4))
         : swappaCredits;
       return { estimatedCredits: credits, estimatedCreditsReason: null as string | null };
@@ -1343,6 +1419,7 @@ export default function StepPage() {
 
     if (isNative) {
       try {
+        const { Geolocation } = await import('@capacitor/geolocation');
         const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: false, timeout: 15000, maximumAge: 0 });
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
@@ -1380,7 +1457,11 @@ export default function StepPage() {
 
   const handleSubmitListing = useCallback(async () => {
     if (!userId) { setSubmitError('Please sign in.'); router.push('/login'); return; }
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     const cond = isVideoGamesFlow ? 'Good' : (condition ?? getWorstCondition(frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight));
@@ -1492,13 +1573,33 @@ export default function StepPage() {
 
   const handleNext = useCallback(() => {
     if (currentStep >= totalSteps) return;
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     if (isPhoneFlow && currentStep === 1 && !imei.trim()) return;
     if (isPhoneFlow && currentStep === 2 && verificationStatus !== 'passed') return;
     if (currentStep === 2 && isTabletFlow && isTabletUnlocked && verificationStatus !== 'passed') return;
     if (currentStep === 2 && (isLaptopFlow || (isTabletFlow && !isTabletUnlocked)) && laptopVerificationStatus !== 'passed') return;
+    // Gaming Handhelds: if any critical checks fail, block progression with a message
+    if (
+      !isPhoneFlow &&
+      !isLaptopFlow &&
+      !isTabletFlow &&
+      isConsoleLikeFlow &&
+      !isVideoGamesFlow &&
+      category === 'Gaming Handhelds' &&
+      currentStep === 3 &&
+      consoleFunctional === false
+    ) {
+      if (typeof window !== 'undefined') {
+        window.alert("Sorry, we don't accept gaming handhelds with power, cartridge, hinge, screen, or touchscreen issues. Please try listing a different device.");
+      }
+      return;
+    }
     // Video Games: when user selects No (not functional), skip Photos step and go to Review (step 4) with valuation 0
     if (isVideoGamesFlow && currentStep === 2 && consoleFunctional === false) {
       router.push('/list/4');
@@ -1513,6 +1614,38 @@ export default function StepPage() {
     else setBrand(BRANDS_BY_CATEGORY[cat]?.[0] ?? '');
     if (cat !== 'Video Games') { setVideoGameName(''); setVideoGameCondition(''); }
   }, [setCategory, setBrand, setVideoGameName, setVideoGameCondition]);
+
+  const handleToggleHandheldCheck = useCallback(
+    (text: string) => {
+      const isSelected = functionalityOptions.includes(text);
+      const nextOptions = isSelected
+        ? functionalityOptions.filter((t) => t !== text)
+        : [...functionalityOptions, text];
+
+      toggleFunctionality(text);
+
+      if (nextOptions.length === 0) {
+        setConsoleFunctional(null);
+      } else {
+        const has = (val: string) => nextOptions.includes(val);
+        const powersOk = has(HANDHELD_FUNCTIONALITY_CHECKS[0]); // powers on/off + charges
+        const cartridgesOk = has(HANDHELD_FUNCTIONALITY_CHECKS[1]);
+        const hingeOk = has(HANDHELD_FUNCTIONALITY_CHECKS[2]);
+        const screenOk = has(HANDHELD_FUNCTIONALITY_CHECKS[3]);
+        const touchOk = has(HANDHELD_FUNCTIONALITY_CHECKS[4]);
+
+        const reject =
+          !powersOk ||
+          !cartridgesOk ||
+          !hingeOk ||
+          !screenOk ||
+          !touchOk;
+
+        setConsoleFunctional(!reject);
+      }
+    },
+    [functionalityOptions, toggleFunctionality, setConsoleFunctional]
+  );
 
   const handleLeaveSaveDraft = useCallback(() => {
     saveDraft(currentStep);
@@ -1699,19 +1832,56 @@ export default function StepPage() {
     );
   }
 
-  return (
-    <div className="flex flex-col flex-1 min-h-0 pb-72">
-      <div className="px-6 py-6 space-y-6 max-w-md mx-auto w-full">
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={handleLeaveSaveDraft}
-            className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light hover:text-relay-text dark:hover:text-relay-text-dark uppercase"
-          >
-            SAVE AS DRAFT
-          </button>
-        </div>
+  const isReviewStep = (isPhoneFlow && currentStep === 7) || (isLaptopFlow && currentStep === 7) || (isTabletFlow && currentStep === 7) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (isVideoGamesFlow ? currentStep === 4 : isConsoleLikeFlow ? currentStep === 5 : currentStep === 6));
+  const isPhotosStep = (isPhoneFlow && currentStep === 6) || (isLaptopFlow && currentStep === 6) || (isTabletFlow && currentStep === 6) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (((isConsoleLikeFlow && !isVideoGamesFlow) && currentStep === 4) || (isVideoGamesFlow && currentStep === 3) || (!isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 5)));
+  const isVerificationStep = (isPhoneFlow && currentStep === 2) || (isLaptopFlow && currentStep === 2) || (isTabletFlow && currentStep === 2);
+  const isConditionPartStep = (isPhoneFlow && [3, 4].includes(currentStep)) || (isLaptopFlow && [3, 4].includes(currentStep)) || (isTabletFlow && [3, 4].includes(currentStep)) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && ((isConsoleLikeFlow && currentStep === 2 && !isVideoGamesFlow) || (!isConsoleLikeFlow && !isVideoGamesFlow && [2, 3].includes(currentStep))));
+  const isFunctionalityStep = (isPhoneFlow && currentStep === 5) || (isLaptopFlow && currentStep === 5) || (isTabletFlow && currentStep === 5) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (((isConsoleLikeFlow && !isVideoGamesFlow) && currentStep === 3) || (isVideoGamesFlow && currentStep === 2) || (!isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 4)));
+  const conditionPartBlocked = isConditionPartStep && (
+    ((isPhoneFlow && currentStep === 3) || (isLaptopFlow && currentStep === 3) || (isTabletFlow && currentStep === 3) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && currentStep === 2)) ? !frontCondition :
+    ((isPhoneFlow && currentStep === 4) || (isLaptopFlow && currentStep === 4) || (isTabletFlow && currentStep === 4) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && !isConsoleLikeFlow && currentStep === 3)) ? !backCondition :
+    false
+  );
+  const functionalityBlocked = isFunctionalityStep && isConsoleLikeFlow && consoleFunctional === null;
+  const videoGamesNonFunctionalReview = isVideoGamesFlow && consoleFunctional === false;
+  const step1NextDisabled = (isVideoGamesFlow && (!modelName.trim() || !videoGameName.trim() || !videoGameCondition)) || ((isPhoneFlow || isLaptopFlow || category === 'Tablets') && ((category === 'Tablets' && carrier === 'Unlocked' ? imei.trim().replace(/\D/g, '').length !== 15 : !imei.trim()) || !brand?.trim() || !modelName?.trim())) || (['MP3', 'Gaming Handhelds', 'Console', 'Headphones', 'Speaker'].includes(category) && (!brand?.trim() || !modelName?.trim()));
+  const needLocation = isReviewStep && !listingLocation;
+  const needValuation = videoGamesNonFunctionalReview ? false : (estimatedCredits == null || estimatedCredits <= 0);
+  const reviewPrimaryLabel = isSubmitting ? 'Listing...' : needLocation ? 'USE MY LOCATION TO FINALIZE' : needValuation ? (estimatedCreditsReason?.includes('not available') ? 'VALUATION NOT AVAILABLE' : 'GET VALUATION ON PHOTOS STEP FIRST') : 'FINALIZE LISTING';
+  const reviewPrimaryDisabled = isSubmitting || !userId || !listingLocation || (!videoGamesNonFunctionalReview && (!hasEnoughPhotos || estimatedCredits == null || estimatedCredits <= 0));
+  const photosPrimaryLabel = isValuating ? 'Processing...' : !hasEnoughPhotos ? 'CAPTURE PHOTOS' : 'COMPLETE EVALUATION';
+  const photosPrimaryDisabled = isValuating || !hasEnoughPhotos;
 
+  let footerProps: ListingStepFooterProps;
+  if (currentStep === 1) {
+    footerProps = { variant: 'step1', nextDisabled: step1NextDisabled, onNext: handleNext };
+  } else if (isVerificationStep) {
+    if (isPhoneFlow) {
+      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunVerification || verificationStatus === 'verifying', verifying: verificationStatus === 'verifying', nextDisabled: verificationStatus !== 'passed', onVerify: runVerification, onNext: handleNext };
+    } else if (isTabletFlow && isTabletUnlocked) {
+      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunTabletImeiVerification || verificationStatus === 'verifying', verifying: verificationStatus === 'verifying', nextDisabled: verificationStatus !== 'passed', onVerify: runTabletImeiVerification, onNext: handleNext };
+    } else {
+      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunSerialVerification || laptopVerificationStatus === 'verifying', verifying: laptopVerificationStatus === 'verifying', nextDisabled: laptopVerificationStatus !== 'passed', onVerify: runSerialVerification, onNext: handleNext };
+    }
+  } else if (isConditionPartStep || isFunctionalityStep) {
+    footerProps = { variant: 'condition-or-functionality', nextDisabled: conditionPartBlocked || functionalityBlocked, onNext: handleNext };
+  } else if (isPhotosStep) {
+    footerProps = { variant: 'photos', primaryLabel: photosPrimaryLabel, primaryDisabled: photosPrimaryDisabled, onPrimary: simulateValuation };
+  } else if (isReviewStep) {
+    footerProps = {
+      variant: 'review',
+      primaryLabel: reviewPrimaryLabel,
+      primaryDisabled: reviewPrimaryDisabled,
+      onPrimary: handleSubmitListing,
+      leftSlot: estimatedCredits != null && estimatedCredits > 0 ? <ValuationCountUp credits={estimatedCredits} /> : undefined,
+    };
+  } else {
+    footerProps = { variant: 'step1', nextDisabled: true, onNext: () => {} };
+  }
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 pb-36">
+      <div className="px-6 py-6 space-y-6 max-w-md mx-auto w-full">
         {/* Leave confirmation modal */}
         {showLeaveModal && (
           <div className="fixed inset-0 z-[9998] flex items-center justify-center p-6 bg-relay-bg/70 dark:bg-relay-bg-dark/70" role="dialog" aria-modal="true" aria-labelledby="leave-modal-title" onClick={() => { setShowLeaveModal(false); setPendingLeaveCallback(null); }}>
@@ -1738,7 +1908,10 @@ export default function StepPage() {
                 </button>
               <button
                 type="button"
-                onClick={() => { setShowLeaveModal(false); setPendingLeaveCallback(null); }}
+                onClick={() => {
+                  setShowLeaveModal(false);
+                  setPendingLeaveCallback(null);
+                }}
                 className="w-full rounded-xl border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-xs font-medium cursor-pointer uppercase"
                 style={{ height: '42px' }}
               >
@@ -2009,87 +2182,91 @@ export default function StepPage() {
             {category === 'Tablets' && carrier === 'Unlocked' && imei.trim().length > 0 && imei.trim().length < 15 && (
               <p className="text-amber-600 dark:text-amber-400 text-xs">IMEI must be 15 digits for Unlocked iPad.</p>
             )}
-            <div className="flex justify-center">
-              <button
-                onClick={handleNext}
-                disabled={
-                  (isVideoGamesFlow && (!modelName.trim() || !videoGameName.trim() || !videoGameCondition))
-                  || ((isPhoneFlow || isLaptopFlow || category === 'Tablets') && ((category === 'Tablets' && carrier === 'Unlocked' ? imei.trim().replace(/\D/g, '').length !== 15 : !imei.trim()) || !brand?.trim() || !modelName?.trim()))
-                  || (['MP3', 'Gaming Handhelds', 'Console', 'Headphones', 'Speaker'].includes(category) && (!brand?.trim() || !modelName?.trim()))
-                }
-                className="next-step-button inline-flex items-center justify-center rounded-full w-12 h-12 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next step"
-              >
-                <NextStepIcon />
-              </button>
-            </div>
           </div>
         )}
 
         {/* Step 2 (Phone): Verification */}
         {isPhoneFlow && currentStep === 2 && (
-          <div className="space-y-6">
-            <p className="text-sm text-relay-muted dark:text-relay-muted-light">
-              {isGooglePhone
-                ? 'Upload a screenshot of your phone\'s About page. For Google Pixel we also need a Storage page screenshot, and if you selected Unlocked, a screenshot of Developer Options with "OEM unlocking" toggled on.'
-                : 'Upload a screenshot of your phone\'s About page. We\'ll verify IMEI, carrier, and storage match.'}
-            </p>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">About page screenshot</label>
-              <label className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90">
-                <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
-                +
-              </label>
-              {aboutScreenshotPreviewUrl && <div className="mt-2 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48"><img src={aboutScreenshotPreviewUrl} alt="About screenshot" className="w-full h-auto object-contain max-h-48" /></div>}
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">Device Verification</h2>
+              <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
+                {isGooglePhone
+                  ? <>Upload a screenshot of your phone&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page. For Google Pixel we also need a Storage page screenshot, and if you selected Unlocked, a screenshot of Developer Options with &quot;OEM unlocking&quot; toggled on.</>
+                  : <>Upload a screenshot of your phone&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page. We&apos;ll verify IMEI, carrier, and storage match.</>}
+              </p>
             </div>
+
+            {/* About page upload */}
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">About Page Screenshot</span>
+              {aboutScreenshotPreviewUrl ? (
+                <label className="cursor-pointer w-full">
+                  <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
+                  <div className="rounded-2xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48">
+                    <img src={aboutScreenshotPreviewUrl} alt="About screenshot" className="w-full h-auto object-contain max-h-48" />
+                  </div>
+                </label>
+              ) : (
+                <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                  <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
+                  +
+                </label>
+              )}
+            </div>
+
             {isGooglePhone && (
               <>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Storage page screenshot</label>
+                <div className="flex flex-col items-center gap-3">
+                  <span className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Storage Page Screenshot</span>
                   <p className="text-xs text-relay-muted dark:text-relay-muted-light">Settings → Storage</p>
-                  <label className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90">
-                    <input type="file" accept="image/*" onChange={handleStorageScreenshotChange} className="sr-only" />
-                    +
-                  </label>
-                  {storageScreenshotPreviewUrl && <div className="mt-2 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48"><img src={storageScreenshotPreviewUrl} alt="Storage screenshot" className="w-full h-auto object-contain max-h-48" /></div>}
+                  {storageScreenshotPreviewUrl ? (
+                    <label className="cursor-pointer w-full">
+                      <input type="file" accept="image/*" onChange={handleStorageScreenshotChange} className="sr-only" />
+                      <div className="rounded-2xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48">
+                        <img src={storageScreenshotPreviewUrl} alt="Storage screenshot" className="w-full h-auto object-contain max-h-48" />
+                      </div>
+                    </label>
+                  ) : (
+                    <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                      <input type="file" accept="image/*" onChange={handleStorageScreenshotChange} className="sr-only" />
+                      +
+                    </label>
+                  )}
                 </div>
                 {requireOemUnlockingScreenshot && (
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">OEM unlocking (Developer Options)</label>
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">OEM Unlocking (Developer Options)</span>
                     <p className="text-xs text-relay-muted dark:text-relay-muted-light">Settings → Developer options → OEM unlocking toggled ON</p>
-                    <label className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90">
-                    <input type="file" accept="image/*" onChange={handleOemUnlockingScreenshotChange} className="sr-only" />
-                    +
-                  </label>
-                    {oemUnlockingScreenshotPreviewUrl && <div className="mt-2 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48"><img src={oemUnlockingScreenshotPreviewUrl} alt="OEM unlocking screenshot" className="w-full h-auto object-contain max-h-48" /></div>}
+                    {oemUnlockingScreenshotPreviewUrl ? (
+                      <label className="cursor-pointer w-full">
+                        <input type="file" accept="image/*" onChange={handleOemUnlockingScreenshotChange} className="sr-only" />
+                        <div className="rounded-2xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48">
+                          <img src={oemUnlockingScreenshotPreviewUrl} alt="OEM unlocking screenshot" className="w-full h-auto object-contain max-h-48" />
+                        </div>
+                      </label>
+                    ) : (
+                      <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                        <input type="file" accept="image/*" onChange={handleOemUnlockingScreenshotChange} className="sr-only" />
+                        +
+                      </label>
+                    )}
                   </div>
                 )}
               </>
             )}
+
             {verificationStatus === 'failed' && (
-              <div className="p-4 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
+              <div className="p-4 rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
                 <p className="text-sm text-relay-text dark:text-relay-text-dark/80">{verificationMessage}</p>
               </div>
             )}
             {verificationStatus === 'passed' && (
-              <div className="p-4 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark flex items-center gap-2">
+              <div className="p-4 rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">check_circle</span>
                 <p className="text-sm text-relay-text dark:text-relay-text-dark">{verificationMessage}</p>
               </div>
             )}
-            <div className="flex gap-3">
-              <button type="button" onClick={runVerification} disabled={!canRunVerification || verificationStatus === 'verifying'} className="flex-1 h-12 bg-primary text-white rounded-lg font-semibold text-xs tracking-[0.1em] disabled:opacity-50 flex items-center justify-center gap-2">
-                {verificationStatus === 'verifying' ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying...</> : 'Verify'}
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={verificationStatus !== 'passed'}
-                className="next-step-button flex-initial rounded-full w-12 h-12 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next step"
-              >
-                <NextStepIcon />
-              </button>
-            </div>
           </div>
         )}
 
@@ -2118,19 +2295,6 @@ export default function StepPage() {
                 <p className="text-sm text-relay-text dark:text-relay-text-dark">{verificationMessage}</p>
               </div>
             )}
-            <div className="flex gap-3">
-              <button type="button" onClick={runTabletImeiVerification} disabled={!canRunTabletImeiVerification || verificationStatus === 'verifying'} className="flex-1 h-12 bg-primary text-white rounded-lg font-semibold text-xs tracking-[0.1em] disabled:opacity-50 flex items-center justify-center gap-2">
-                {verificationStatus === 'verifying' ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying...</> : 'Verify'}
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={verificationStatus !== 'passed'}
-                className="next-step-button flex-initial rounded-full w-12 h-12 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next step"
-              >
-                <NextStepIcon />
-              </button>
-            </div>
           </div>
         )}
 
@@ -2159,19 +2323,6 @@ export default function StepPage() {
                 <p className="text-sm text-relay-text dark:text-relay-text-dark">{laptopVerificationMessage}</p>
               </div>
             )}
-            <div className="flex gap-3">
-              <button type="button" onClick={runSerialVerification} disabled={!canRunSerialVerification || laptopVerificationStatus === 'verifying'} className="flex-1 h-12 bg-primary text-white rounded-lg font-semibold text-xs tracking-[0.1em] disabled:opacity-50 flex items-center justify-center gap-2">
-                {laptopVerificationStatus === 'verifying' ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Verifying...</> : 'Verify'}
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={laptopVerificationStatus !== 'passed'}
-                className="next-step-button flex-initial rounded-full w-12 h-12 text-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next step"
-              >
-                <NextStepIcon />
-              </button>
-            </div>
           </div>
         )}
 
@@ -2184,15 +2335,6 @@ export default function StepPage() {
               onChange={(v) => setFrontCondition(v)}
               category={isConsoleLikeFlow ? category : undefined}
             />
-            <div className="flex justify-center">
-              <button
-                onClick={handleNext}
-                className="next-step-button inline-flex items-center justify-center rounded-full w-12 h-12 text-white"
-                aria-label="Next step"
-              >
-                <NextStepIcon />
-              </button>
-            </div>
           </div>
         )}
 
@@ -2205,15 +2347,6 @@ export default function StepPage() {
               onChange={(v) => setBackCondition(v)}
               variant="back"
             />
-            <div className="flex justify-center">
-              <button
-                onClick={handleNext}
-                className="next-step-button inline-flex items-center justify-center rounded-full w-12 h-12 text-white"
-                aria-label="Next step"
-              >
-                <NextStepIcon />
-              </button>
-            </div>
           </div>
         )}
 
@@ -2230,50 +2363,76 @@ export default function StepPage() {
                   {category === 'MP3' && 'Is your MP3 player functional?'}
                   {category === 'Speaker' && 'Is your speaker functional?'}
                 </h2>
-                <ul className="list-disc list-inside text-sm text-relay-muted dark:text-relay-muted-light space-y-2">
-                  {category === 'Video Games' ? (
-                    <>
-                      <li>The disc/cartridge is free of deep scratches or cracks.</li>
-                      <li>The game loads and plays without freezing or errors.</li>
-                      <li>There is no water damage or corrosion on the contacts.</li>
-                    </>
-                  ) : (
-                    <>
-                      <li>All features work without exception.</li>
-                      <li>The device turns on, turns off, and charges.</li>
-                      <li>There are no bugs.</li>
-                    </>
-                  )}
-                </ul>
+                {category !== 'Gaming Handhelds' && (
+                  <ul className="list-disc list-inside text-sm text-relay-muted dark:text-relay-muted-light space-y-2">
+                    {category === 'Video Games' ? (
+                      <>
+                        <li>The disc/cartridge is free of deep scratches or cracks.</li>
+                        <li>The game loads and plays without freezing or errors.</li>
+                        <li>There is no water damage or corrosion on the contacts.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>All features work without exception.</li>
+                        <li>The device turns on, turns off, and charges.</li>
+                        <li>There are no bugs.</li>
+                      </>
+                    )}
+                  </ul>
+                )}
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
                   <p className="text-sm text-amber-800 dark:text-amber-200">
                     <strong>Important:</strong> {category === 'Video Games' ? "We don't accept bent and/or oxidized items." : "Accessories must be provided if they're necessary to use the item, like a charger or HDMI cable. We don't accept bent and/or oxidized items."}
                   </p>
                 </div>
-                <div className="space-y-3">
-                  {(['Yes', 'No'] as const).map((option) => (
-                    <label
-                      key={option}
-                      className="flex items-center gap-3 p-4 rounded-xl border-2 border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark cursor-pointer hover:border-relay-muted transition-colors"
-                      onClick={() => setConsoleFunctional(option === 'Yes')}
-                    >
-                      <span className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border-2 ${consoleFunctional === (option === 'Yes') ? 'border-transparent bg-primary' : 'border-relay-muted'}`}>
-            {consoleFunctional === (option === 'Yes') && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
-                      </span>
-                      <span className="text-sm font-medium text-relay-text dark:text-relay-text-dark">{option}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="flex justify-center">
-                  <button
-                    onClick={handleNext}
-                    disabled={consoleFunctional === null}
-                    className="next-step-button inline-flex items-center justify-center rounded-full w-12 h-12 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Next step"
-                  >
-                    <NextStepIcon />
-                  </button>
-                </div>
+                {category === 'Gaming Handhelds' ? (
+                  <>
+                    <p className="text-sm text-relay-muted dark:text-relay-muted-light">Select all that apply.</p>
+                    <div className="space-y-1.5">
+                      {HANDHELD_FUNCTIONALITY_CHECKS.map((text) => (
+                        <label
+                          key={text}
+                          className="flex items-start gap-2.5 p-2.5 rounded-lg border-2 border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark cursor-pointer hover:border-relay-muted transition-colors"
+                          onClick={() => handleToggleHandheldCheck(text)}
+                        >
+                          <span
+                            className={`w-4 h-4 rounded-full mt-0.5 flex-shrink-0 flex items-center justify-center border-2 ${
+                              functionalityOptions.includes(text)
+                                ? 'border-transparent bg-primary'
+                                : 'bg-white border-[#C2C2C2] opacity-60'
+                            }`}
+                          >
+                            {functionalityOptions.includes(text) && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                            )}
+                          </span>
+                          <span className="text-sm text-relay-text dark:text-relay-text-dark">{text}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    {(['Yes', 'No'] as const).map((option) => (
+                      <label
+                        key={option}
+                        className="flex items-center gap-3 p-4 rounded-xl border-2 border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark cursor-pointer hover:border-relay-muted transition-colors"
+                        onClick={() => setConsoleFunctional(option === 'Yes')}
+                      >
+                        <span
+                          className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border-2 ${
+                            consoleFunctional === (option === 'Yes')
+                              ? 'border-transparent bg-primary'
+                              : 'bg-white border-[#C2C2C2] opacity-60'
+                          }`}
+                        >
+                          {consoleFunctional === (option === 'Yes') && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
+                        </span>
+                        <span className="text-sm font-medium text-relay-text dark:text-relay-text-dark">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -2286,7 +2445,13 @@ export default function StepPage() {
                       className="flex items-start gap-3 p-4 rounded-xl border-2 border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark cursor-pointer hover:border-relay-muted transition-colors"
                       onClick={() => toggleFunctionality(text)}
                     >
-                      <span className={`w-5 h-5 rounded mt-0.5 flex-shrink-0 flex items-center justify-center border-2 ${functionalityOptions.includes(text) ? 'border-transparent bg-primary' : 'border-relay-muted'}`}>
+                      <span
+                        className={`w-5 h-5 rounded mt-0.5 flex-shrink-0 flex items-center justify-center border-2 ${
+                          functionalityOptions.includes(text)
+                            ? 'border-transparent bg-primary'
+                            : 'bg-white border-[#C2C2C2] opacity-60'
+                        }`}
+                      >
                         {functionalityOptions.includes(text) && <span className="material-symbols-outlined !text-xs text-white">check</span>}
                       </span>
                       <span className="text-sm text-relay-text dark:text-relay-text-dark">{text}</span>
@@ -2297,15 +2462,6 @@ export default function StepPage() {
                   <p className="text-sm text-amber-800 dark:text-amber-200">
                     <strong>Important:</strong> iCloud, Google, or any other accounts must be disconnected whether your item is functional or not. We don&apos;t accept bent and/or oxidized items.
                   </p>
-                </div>
-                <div className="flex justify-center">
-                  <button
-                    onClick={handleNext}
-                    className="next-step-button inline-flex items-center justify-center rounded-full w-12 h-12 text-white"
-                    aria-label="See price estimate"
-                  >
-                    <NextStepIcon />
-                  </button>
                 </div>
               </>
             )}
@@ -2396,9 +2552,6 @@ export default function StepPage() {
               <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Description</label>
               <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Any additional details..." className="w-full bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark p-4 text-base min-h-20" />
             </div>
-            <button onClick={simulateValuation} disabled={isValuating || !hasEnoughPhotos || (['Phones', 'Tablets', 'Laptops', 'MP3', 'Gaming Handhelds', 'Console', 'Headphones', 'Speaker'].includes(category) && (!brand?.trim() || !modelName?.trim())) || (category === 'Video Games' && (!brand?.trim() || !modelName?.trim() || !videoGameName?.trim() || !videoGameCondition?.trim()))} className="w-full max-w-[50%] mx-auto h-12 bg-primary text-white rounded-lg font-bold text-xs tracking-[0.1em] uppercase flex items-center justify-center gap-2 disabled:opacity-50">
-              {isValuating ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processing...</> : !hasEnoughPhotos ? 'CAPTURE PHOTOS' : (['Phones', 'Tablets', 'Laptops', 'MP3', 'Gaming Handhelds', 'Console', 'Headphones', 'Speaker'].includes(category) && (!brand?.trim() || !modelName?.trim())) || (category === 'Video Games' && (!brand?.trim() || !modelName?.trim() || !videoGameName?.trim() || !videoGameCondition?.trim())) ? 'SELECT BRAND & MODEL IN STEP 1' : 'GET VALUATION'}
-            </button>
           </div>
         )}
 
@@ -2444,9 +2597,9 @@ export default function StepPage() {
             {authChecked && !userId && (
               <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-4 text-center">
                 <p className="text-amber-700 dark:text-amber-400 text-sm">Sign in to list.</p>
-                <button type="button" onClick={() => router.push('/login')} className="next-step-button mt-3 px-8 py-3 rounded-xl text-white text-xs font-semibold tracking-widest">
-                GO TO LOG IN
-              </button>
+                <NextStepButton type="button" onClick={() => router.push('/login')} className="mt-3 px-8 py-3 rounded-xl tracking-widest">
+                  GO TO LOG IN
+                </NextStepButton>
               </div>
             )}
             {!hasEnoughPhotos && !(isVideoGamesFlow && consoleFunctional === false) && <p className="text-[10px] text-amber-600 font-medium">Complete the camera flow before listing.</p>}
@@ -2454,64 +2607,7 @@ export default function StepPage() {
         )}
       </div>
 
-      {/* Bottom bar - only on Review step */}
-      {((isPhoneFlow && currentStep === 7) || (isLaptopFlow && currentStep === 7) || (isTabletFlow && currentStep === 7) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && ((isConsoleLikeFlow && currentStep === 5) || (isVideoGamesFlow && currentStep === 4) || (!isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 6)))) && (
-      <div className="fixed bottom-0 left-0 right-0 pt-4 px-4 pb-20 glass-card border-0 border-t border-relay-border dark:border-relay-border-dark backdrop-blur-[12px] z-40 max-w-md mx-auto rounded-t-3xl" style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
-        {(() => {
-          const isReviewStep = (isPhoneFlow && currentStep === 7) || (isLaptopFlow && currentStep === 7) || (isTabletFlow && currentStep === 7) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (isVideoGamesFlow ? currentStep === 4 : isConsoleLikeFlow ? currentStep === 5 : currentStep === 6));
-          const isPhotosStep = (isPhoneFlow && currentStep === 6) || (isLaptopFlow && currentStep === 6) || (isTabletFlow && currentStep === 6) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (((isConsoleLikeFlow && !isVideoGamesFlow) && currentStep === 4) || (isVideoGamesFlow && currentStep === 3) || (!isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 5)));
-          const isVerificationStep = (isPhoneFlow && currentStep === 2) || (isLaptopFlow && currentStep === 2);
-          const isConditionPartStep = (isPhoneFlow && [3, 4].includes(currentStep)) || (isLaptopFlow && [3, 4].includes(currentStep)) || (isTabletFlow && [3, 4].includes(currentStep)) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && ((isConsoleLikeFlow && currentStep === 2 && !isVideoGamesFlow) || (!isConsoleLikeFlow && !isVideoGamesFlow && [2, 3].includes(currentStep))));
-          const isFunctionalityStep = (isPhoneFlow && currentStep === 5) || (isLaptopFlow && currentStep === 5) || (isTabletFlow && currentStep === 5) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (((isConsoleLikeFlow && !isVideoGamesFlow) && currentStep === 3) || (isVideoGamesFlow && currentStep === 2) || (!isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 4)));
-          const showNextInBar = isVerificationStep || isConditionPartStep || isFunctionalityStep;
-          const conditionPartBlocked = isConditionPartStep && (
-            ((isPhoneFlow && currentStep === 3) || (isLaptopFlow && currentStep === 3) || (isTabletFlow && currentStep === 3) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && currentStep === 2)) ? !frontCondition :
-            ((isPhoneFlow && currentStep === 4) || (isLaptopFlow && currentStep === 4) || (isTabletFlow && currentStep === 4) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && !isConsoleLikeFlow && currentStep === 3)) ? !backCondition :
-            false
-          );
-          const needLocation = isReviewStep && !listingLocation;
-          const functionalityBlocked = isFunctionalityStep && isConsoleLikeFlow && consoleFunctional === null;
-          const videoGamesNonFunctionalReview = isVideoGamesFlow && consoleFunctional === false;
-          const disabled = showNextInBar
-            ? (isVerificationStep && ((isPhoneFlow && verificationStatus !== 'passed') || ((isLaptopFlow || isTabletFlow) && laptopVerificationStatus !== 'passed'))) || conditionPartBlocked || functionalityBlocked
-            : isReviewStep
-              ? isSubmitting || !userId || !listingLocation || (!videoGamesNonFunctionalReview && (!hasEnoughPhotos || estimatedCredits == null || estimatedCredits <= 0))
-              : !isPhotosStep || isValuating || !hasEnoughPhotos;
-          const onClick = showNextInBar ? handleNext : isReviewStep ? handleSubmitListing : simulateValuation;
-          const needValuation = videoGamesNonFunctionalReview ? false : (estimatedCredits == null || estimatedCredits <= 0);
-          const label = isReviewStep
-            ? (isSubmitting ? 'Listing...' : needLocation ? 'USE MY LOCATION TO FINALIZE' : needValuation ? (estimatedCreditsReason?.includes('not available') ? 'VALUATION NOT AVAILABLE' : 'GET VALUATION ON PHOTOS STEP FIRST') : 'FINALIZE LISTING')
-            : isValuating
-              ? 'Processing...'
-              : isPhotosStep && !hasEnoughPhotos
-                ? 'CAPTURE PHOTOS'
-                : showNextInBar
-                  ? 'NEXT STEP'
-                  : 'COMPLETE EVALUATION';
-          return (
-            <div className="flex items-center justify-between gap-4">
-              {isReviewStep && estimatedCredits != null && estimatedCredits > 0 && (
-                <ValuationCountUp credits={estimatedCredits} />
-              )}
-              <button
-                disabled={disabled}
-                onClick={onClick}
-                className={`ml-auto h-14 px-8 rounded-xl font-semibold text-xs tracking-widest uppercase ${!disabled ? 'next-step-button text-white' : 'bg-relay-bg dark:bg-relay-bg-dark text-relay-muted border border-relay-border cursor-not-allowed opacity-50'}`}
-              >
-                {showNextInBar ? (
-                  <span className="inline-flex items-center justify-center rounded-full w-10 h-10 mx-auto">
-                    <NextStepIcon />
-                    <span className="sr-only">{label}</span>
-                  </span>
-                ) : (
-                  label
-                )}
-              </button>
-            </div>
-          );
-        })()}
-      </div>
-      )}
+      <ListingStepFooter {...footerProps} />
     </div>
   );
 }

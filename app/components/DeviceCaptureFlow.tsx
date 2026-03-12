@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Camera, CameraSource, CameraResultType } from '@capacitor/camera';
 import {
   getDeviceCaptureConfig,
   getCaptureStepLabelForOverlay,
@@ -127,13 +126,14 @@ export function DeviceCaptureFlow({
   };
 
   /** Native (Capacitor): open camera or photo library and upload the chosen image */
-  const captureWithNativeCamera = async (source: CameraSource.Camera | CameraSource.Photos) => {
+  const captureWithNativeCamera = async (source: 'CAMERA' | 'PHOTOS') => {
     if (!currentStep || !userId) return;
     setUploading(true);
     setCameraError(null);
     try {
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
       const photo = await Camera.getPhoto({
-        source,
+        source: source === 'CAMERA' ? CameraSource.Camera : CameraSource.Photos,
         quality: 90,
         resultType: CameraResultType.DataUrl,
         allowEditing: false,
@@ -159,7 +159,7 @@ export function DeviceCaptureFlow({
     const video = videoRef.current;
 
     if (isNative()) {
-      await captureWithNativeCamera(CameraSource.Camera);
+      await captureWithNativeCamera('CAMERA');
       return;
     }
 
@@ -281,7 +281,7 @@ export function DeviceCaptureFlow({
             <div className="flex flex-col gap-3 w-full max-w-sm">
               <button
                 type="button"
-                onClick={() => captureWithNativeCamera(CameraSource.Camera)}
+                onClick={() => captureWithNativeCamera('CAMERA')}
                 disabled={uploading}
                 className="w-full rounded-xl bg-primary text-white font-bold text-xs tracking-widest flex items-center justify-center gap-2 disabled:opacity-60"
                 style={{ height: '42px' }}

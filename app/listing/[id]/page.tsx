@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { fetchGadgetById, cancelListing } from '@/lib/gadgets';
 import { getOrCreateSwap, fetchActiveSwapForGadget } from '@/lib/swaps';
@@ -18,7 +19,7 @@ import type { Gadget } from '@/lib/types';
 import { getDefaultAvatar } from '@/lib/avatars';
 import { type as typeStyles } from '@/lib/typography';
 import { CONDITION_BG, conditionForColor } from '@/lib/constants';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
 
 /** Columns to show per category (order preserved). */
 const LISTING_COLUMNS_BY_CATEGORY: Record<string, { key: string; label: string }[]> = {
@@ -359,7 +360,11 @@ export default function ListingDetailPage() {
 
   const toggleWishlist = () => {
     if (!item) return;
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     const isInWishlist = wishlist.includes(item.id);
@@ -419,7 +424,11 @@ export default function ListingDetailPage() {
       setShowBecomeMemberModal(true);
       return;
     }
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     if (credits < item.credits) {
@@ -541,7 +550,7 @@ export default function ListingDetailPage() {
 
   return (
     <div className="bg-relay-surface dark:bg-relay-surface-dark flex-1 min-h-0 flex flex-col transition-colors">
-      <div className="z-40 shrink-0 flex items-center justify-between p-6 bg-transparent" style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}>
+      <div className="z-40 shrink-0 flex items-center justify-between p-6 bg-transparent pt-safe-1_5">
         <button 
           onClick={() => {
             const from = searchParams.get('from');
@@ -555,7 +564,7 @@ export default function ListingDetailPage() {
           }}
           className="flex size-12 items-center justify-center rounded-full glass-card border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark active-scale transition-all"
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <ChevronIcon direction="left" className="size-6" />
         </button>
         <div className="flex gap-3">
           <button
@@ -596,8 +605,15 @@ export default function ListingDetailPage() {
             className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar rounded-[56px] border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark shadow-2xl aspect-[3/4]"
           >
             {itemImages.map((img, i) => (
-              <div key={i} className="min-w-full h-full snap-center">
-                <img src={img} alt={`${item.name} view ${i + 1}`} className="w-full h-full object-cover" />
+              <div key={i} className="relative min-w-full h-full snap-center">
+                <Image
+                  src={img}
+                  alt={`${item.name} view ${i + 1}`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 60vw"
+                  className="w-full h-full object-cover"
+                  priority={i === 0}
+                />
               </div>
             ))}
           </div>
@@ -883,7 +899,26 @@ export default function ListingDetailPage() {
                 className="flex-1 rounded-3xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark flex items-center justify-center gap-3 active-scale hover:bg-relay-surface dark:hover:bg-relay-surface-dark transition-all"
                 style={{ height: '42px' }}
               >
-                <span className="material-symbols-outlined">cancel</span>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="shrink-0"
+                  aria-hidden
+                >
+                  <path
+                    d="M10.409 9.59099C10.1161 9.2981 9.64124 9.2981 9.34835 9.59099C9.05546 9.88388 9.05546 10.3588 9.34835 10.6517L10.9393 12.2426L9.34835 13.8336C9.05546 14.1265 9.05546 14.6014 9.34835 14.8943C9.64124 15.1872 10.1161 15.1872 10.409 14.8943L12 13.3033L13.591 14.8943C13.8839 15.1872 14.3588 15.1872 14.6517 14.8943C14.9445 14.6014 14.9445 14.1265 14.6517 13.8336L13.0607 12.2426L14.6516 10.6517C14.9445 10.3588 14.9445 9.88388 14.6516 9.59099C14.3588 9.2981 13.8839 9.2981 13.591 9.59099L12 11.182L10.409 9.59099Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M16.4635 2.37373C15.3214 2.24999 13.8818 2.24999 12.0452 2.25H11.9548C10.1182 2.24999 8.67861 2.24999 7.53648 2.37373C6.37094 2.50001 5.42656 2.76232 4.62024 3.34815C4.13209 3.70281 3.70281 4.13209 3.34815 4.62024C2.76232 5.42656 2.50001 6.37094 2.37373 7.53648C2.24999 8.67861 2.24999 10.1182 2.25 11.9548V12.0452C2.24999 13.8818 2.24999 15.3214 2.37373 16.4635C2.50001 17.6291 2.76232 18.5734 3.34815 19.3798C3.70281 19.8679 4.13209 20.2972 4.62024 20.6518C5.42656 21.2377 6.37094 21.5 7.53648 21.6263C8.67859 21.75 10.1182 21.75 11.9547 21.75H12.0453C13.8818 21.75 15.3214 21.75 16.4635 21.6263C17.6291 21.5 18.5734 21.2377 19.3798 20.6518C19.8679 20.2972 20.2972 19.8679 20.6518 19.3798C21.2377 18.5734 21.5 17.6291 21.6263 16.4635C21.75 15.3214 21.75 13.8818 21.75 12.0453V11.9547C21.75 10.1182 21.75 8.67859 21.6263 7.53648C21.5 6.37094 21.2377 5.42656 20.6518 4.62024C20.2972 4.13209 19.8679 3.70281 19.3798 3.34815C18.5734 2.76232 17.6291 2.50001 16.4635 2.37373ZM5.50191 4.56168C6.00992 4.19259 6.66013 3.97745 7.69804 3.865C8.74999 3.75103 10.1084 3.75 12 3.75C13.8916 3.75 15.25 3.75103 16.302 3.865C17.3399 3.97745 17.9901 4.19259 18.4981 4.56168C18.8589 4.82382 19.1762 5.14111 19.4383 5.50191C19.8074 6.00992 20.0225 6.66013 20.135 7.69804C20.249 8.74999 20.25 10.1084 20.25 12C20.25 13.8916 20.249 15.25 20.135 16.302C20.0225 17.3399 19.8074 17.9901 19.4383 18.4981C19.1762 18.8589 18.8589 19.1762 18.4981 19.4383C17.9901 19.8074 17.3399 20.0225 16.302 20.135C15.25 20.249 13.8916 20.25 12 20.25C10.1084 20.25 8.74999 20.249 7.69804 20.135C6.66013 20.0225 6.00992 19.8074 5.50191 19.4383C5.14111 19.1762 4.82382 18.8589 4.56168 18.4981C4.19259 17.9901 3.97745 17.3399 3.865 16.302C3.75103 15.25 3.75 13.8916 3.75 12C3.75 10.1084 3.75103 8.74999 3.865 7.69804C3.97745 6.66013 4.19259 6.00992 4.56168 5.50191C4.82382 5.14111 5.14111 4.82382 5.50191 4.56168Z"
+                    fill="currentColor"
+                  />
+                </svg>
                 <span className="text-xs font-semibold tracking-[0.1em]">Cancel Listing</span>
               </button>
             ) : (
@@ -910,7 +945,7 @@ export default function ListingDetailPage() {
             aria-hidden
           />
           <div
-            className="relative rounded-t-3xl bg-relay-surface dark:bg-relay-surface-dark overflow-hidden pb-[env(safe-area-inset-bottom)]"
+            className="relative rounded-t-3xl bg-relay-surface dark:bg-relay-surface-dark overflow-hidden pb-[var(--safe-bottom)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col gap-1 px-4 pt-2 pb-3">
@@ -1086,16 +1121,16 @@ export default function ListingDetailPage() {
               Sign in or create an account to swap with credits on this listing.
             </p>
             <div className="space-y-3">
-              <button
+              <NextStepButton
                 type="button"
                 onClick={() => {
                   setShowBecomeMemberModal(false);
                   router.push('/login');
                 }}
-                className="next-step-button w-full rounded-2xl text-white font-semibold text-xs tracking-widest py-3 active-scale transition-all"
+                className="w-full rounded-2xl tracking-widest py-3 active-scale transition-all"
               >
                 Sign in / Sign up
-              </button>
+              </NextStepButton>
               <button
                 onClick={() => setShowBecomeMemberModal(false)}
                 className="w-full rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark font-semibold text-xs tracking-widest py-3 active-scale"

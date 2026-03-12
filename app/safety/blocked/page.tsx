@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchBlockedProfiles, unblockUser, type BlockedProfile } from '@/lib/blocks';
 import { getDefaultAvatar } from '@/lib/avatars';
+import { PageHeader } from '@/app/components/PageHeader';
 
 export default function BlockedAccountsPage() {
   const router = useRouter();
@@ -44,16 +45,9 @@ export default function BlockedAccountsPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-6 flex items-center gap-4 bg-transparent z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <button
-          onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-          aria-label="Back"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h1 className="text-2xl font-serif  text-relay-text dark:text-relay-text-dark tracking-tighter">Blocked Accounts</h1>
-      </header>
+      <PageHeader className="bg-transparent border-b-0">
+        <h1 className="text-2xl font-serif text-relay-text dark:text-relay-text-dark tracking-tighter">Blocked Accounts</h1>
+      </PageHeader>
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
       <div className="px-6 py-10 pb-20">
         {loading ? (

@@ -33,6 +33,79 @@ function formatTime(createdAt: string): string {
   return d.toLocaleDateString();
 }
 
+const InboxIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    width="66"
+    height="61"
+    viewBox="0 0 66 61"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    aria-hidden
+  >
+    <path
+      d="M46.4838 20.5792C56.9718 20.9172 65.4398 29.5562 65.5448 40.0099C65.5788 43.8369 64.5168 47.4109 62.6508 50.4479C62.3858 50.8749 62.3358 51.3969 62.4958 51.8699L64.3268 57.3369C64.9558 59.2209 63.0798 60.9759 61.2328 60.2299L55.5798 57.9439C55.1408 57.7649 54.6468 57.7699 54.2228 57.9689C51.7028 59.1519 48.8938 59.8229 45.9298 59.8329C35.3067 59.8819 26.4499 51.3679 26.1405 40.7899C25.8062 29.4617 35.1121 20.2114 46.4888 20.5742L46.4838 20.5792Z"
+      fill="url(#paint0_linear_0_1)"
+    />
+    <foreignObject x="-18" y="-18" width="86.9796" height="87.8376">
+      <div
+        style={{
+          backdropFilter: 'blur(9px)',
+          WebkitBackdropFilter: 'blur(9px)',
+          clipPath: 'url(#bgblur_0_0_1_clip_path)',
+          height: '100%',
+          width: '100%',
+        }}
+      />
+    </foreignObject>
+    <path
+      data-figma-bg-blur-radius="18"
+      d="M24.6855 1.01311C38.8208 0.55591 50.3828 12.1173 49.9688 26.2876C49.5838 39.512 38.5758 50.1539 25.3798 50.0969C21.9253 50.0839 18.6424 49.3459 15.6679 48.0369L15.0771 47.7669C14.2514 47.3759 13.3212 47.3849 12.5185 47.7099L12.5166 47.7109L5.20213 50.6819C3.65783 51.3099 2.08103 49.9029 2.48243 48.3179L2.52833 48.1639L4.89354 41.0439L4.89553 41.0399C5.16593 40.2129 5.10784 39.2939 4.68364 38.5049L4.59373 38.3499C2.34673 34.6799 1.03653 30.3713 1.00003 25.7534V25.3051C1.12833 12.2423 11.641 1.44471 24.6582 1.01411H24.6689L24.6855 1.01311Z"
+      fill="url(#paint1_linear_0_1)"
+      stroke="url(#paint2_linear_0_1)"
+      strokeWidth="2"
+    />
+    <defs>
+      <clipPath id="bgblur_0_0_1_clip_path" transform="translate(18 18)">
+        <path d="M24.6855 1.01311C38.8208 0.55591 50.3828 12.1173 49.9688 26.2876C49.5838 39.512 38.5758 50.1539 25.3798 50.0969C21.9253 50.0839 18.6424 49.3459 15.6679 48.0369L15.0771 47.7669C14.2514 47.3759 13.3212 47.3849 12.5185 47.7099L12.5166 47.7109L5.20213 50.6819C3.65783 51.3099 2.08103 49.9029 2.48243 48.3179L2.52833 48.1639L4.89354 41.0439L4.89553 41.0399C5.16593 40.2129 5.10784 39.2939 4.68364 38.5049L4.59373 38.3499C2.34673 34.6799 1.03653 30.3713 1.00003 25.7534V25.3051C1.12833 12.2423 11.641 1.44471 24.6582 1.01411H24.6689L24.6855 1.01311Z" />
+      </clipPath>
+      <linearGradient
+        id="paint0_linear_0_1"
+        x1="41.6838"
+        y1="21.9113"
+        x2="50.4908"
+        y2="61.0249"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop stopColor="#FFF30B" />
+        <stop offset="1" stopColor="#FE4A0E" />
+      </linearGradient>
+      <linearGradient
+        id="paint1_linear_0_1"
+        x1="2.87713"
+        y1="48.9109"
+        x2="48.8548"
+        y2="3.6933"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop stopColor="white" stopOpacity="0.2" />
+        <stop offset="1" stopColor="white" stopOpacity="0.49" />
+      </linearGradient>
+      <linearGradient
+        id="paint2_linear_0_1"
+        x1="3.59763"
+        y1="4.07741"
+        x2="46.9708"
+        y2="49.6869"
+        gradientUnits="userSpaceOnUse"
+      >
+        <stop stopColor="white" />
+        <stop offset="1" stopColor="white" stopOpacity="0" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
 /** Return a short preview for the list; parses JSON system messages so we don't show raw payload. */
 function messagePreview(content: string | null): string {
   if (content == null || content === '') return 'No messages yet';
@@ -156,8 +229,7 @@ export default function MessagesPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <header
-        className="shrink-0 z-30 px-6 pb-3 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md"
-        style={{ paddingTop: 'max(3.5rem, env(safe-area-inset-top))' }}
+        className="shrink-0 z-30 px-6 pb-3 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md pt-safe-2_25"
       >
         <div className="mb-3">
           <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Inbox</h1>
@@ -226,7 +298,7 @@ export default function MessagesPage() {
           </div>
         ) : !userId ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <img src="/inbox-envelope-icon.png" alt="" className="w-24 h-24 object-contain mb-8" aria-hidden />
+            <InboxIcon className="w-24 h-24 mb-8" />
             <h2 className="text-relay-text dark:text-relay-text-dark font-serif text-lg font-semibold mb-2">Log in to see your messages</h2>
             <p className="text-relay-muted dark:text-relay-muted-light text-[11px] font-normal max-w-[240px] leading-relaxed mb-6">
               Conversations appear here once you start a swap.
@@ -260,9 +332,13 @@ export default function MessagesPage() {
               aria-labelledby={activeTab === 'swap' ? 'inbox-tab-swap' : 'inbox-tab-chat'}
               className="flex flex-col items-center justify-center py-20 px-6 text-center"
             >
-              <span className="material-symbols-outlined text-relay-muted !text-5xl mb-4">
-                {activeTab === 'swap' ? 'swap_horiz' : 'chat_bubble_outline'}
-              </span>
+              {activeTab === 'swap' ? (
+                <span className="material-symbols-outlined text-relay-muted !text-5xl mb-4">
+                  swap_horiz
+                </span>
+              ) : (
+                <InboxIcon className="w-16 h-16 mb-4" />
+              )}
               <p className="text-relay-muted text-sm font-medium">
                 {activeTab === 'swap' ? 'No swap threads yet' : 'No chat threads yet'}
               </p>
@@ -286,7 +362,7 @@ export default function MessagesPage() {
                 >
                   <div className="relative">
                     <div className="size-16 rounded-full overflow-hidden border-2 border-relay-border dark:border-relay-border-dark p-0.5">
-                      <img src={msg.avatar} alt={msg.sender} className="w-full h-full object-cover rounded-full" />
+                      <img src={msg.avatar} alt={msg.sender} className="w-full h-full object-cover rounded-full" loading="lazy" />
                     </div>
                     {msg.unread && (
                       <div className="absolute top-0 right-0 size-4 bg-primary rounded-full border-4 border-relay-surface dark:border-relay-surface-dark shadow-lg shadow-primary/20"></div>

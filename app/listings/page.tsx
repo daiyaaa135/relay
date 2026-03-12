@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase';
 import { fetchGadgetsByProfileId } from '@/lib/gadgets';
 import type { Gadget } from '@/lib/types';
 import { type } from '@/lib/typography';
+import { PageHeader } from '@/app/components/PageHeader';
 
 function formatDate(createdAt: string | undefined): string {
   if (!createdAt) return '';
@@ -63,12 +64,9 @@ export default function ListingsPage() {
   if (!authChecked || loading) {
     return (
       <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-        <header className="shrink-0 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-          <button onClick={() => router.back()} className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale" aria-label="Go back">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
+        <PageHeader>
           <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>My Listings</h1>
-        </header>
+        </PageHeader>
         <div className="flex-1 flex items-center justify-center px-6">
           <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
         </div>
@@ -86,14 +84,11 @@ export default function ListingsPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 z-30 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => router.back()} className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale" aria-label="Go back">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>My Listings</h1>
-        </div>
-        <div className="flex gap-8">
+      <PageHeader>
+        <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>My Listings</h1>
+      </PageHeader>
+      <header className="shrink-0 z-30 px-6 pb-0 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95" style={{ marginTop: '-0.5rem' }}>
+        <div className="flex gap-8 px-6 pt-2 pb-4">
           <button
             onClick={() => setActiveTab('listings')}
             className={`pb-4 text-[10px] font-bold tracking-tight transition-all border-b-2 ${
@@ -118,7 +113,7 @@ export default function ListingsPage() {
       </header>
 
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20 space-y-8">
+      <div className="px-6 pt-0 pb-20 space-y-8">
         {list.map((item) => {
           const img = item.images?.[0] ?? item.image ?? 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=400';
           const dateStr = formatDate(item.created_at);
@@ -130,7 +125,12 @@ export default function ListingsPage() {
                 onClick={canNavigate ? () => router.push(`/listing/${item.id}`) : undefined}
                 className={`size-20 bg-relay-bg dark:bg-relay-bg-dark rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark shrink-0 ${canNavigate ? 'cursor-pointer active-scale transition-all' : ''}`}
               >
-                <img src={img} alt={item.name} className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all" />
+                <img
+                  src={img}
+                  alt={item.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all"
+                />
               </div>
               <div className="flex-1 flex flex-col justify-between py-1">
                 <div className="flex justify-between items-start">
@@ -147,10 +147,33 @@ export default function ListingsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className={`size-1.5 rounded-full ${activeTab === 'swapped' ? 'bg-green-500' : 'bg-primary'}`} />
-                  <span className={`text-[9px] font-bold tracking-widest ${activeTab === 'swapped' ? 'text-relay-muted' : 'text-primary'}`}>
-                    {activeTab === 'swapped' ? 'Swapped' : 'Active'}
-                  </span>
+                  {(() => {
+                    const isSwappedTab = activeTab === 'swapped';
+                    const isPending = item.status === 'pending_swap';
+                    const dotColor = isSwappedTab
+                      ? 'bg-green-500'
+                      : isPending
+                        ? 'bg-amber-500'
+                        : 'bg-primary';
+                    const textColor = isSwappedTab
+                      ? 'text-relay-muted'
+                      : isPending
+                        ? 'text-amber-600'
+                        : 'text-primary';
+                    const label = isSwappedTab
+                      ? 'Swapped'
+                      : isPending
+                        ? 'Pending'
+                        : 'Active';
+                    return (
+                      <>
+                        <span className={`size-1.5 rounded-full ${dotColor}`} />
+                        <span className={`text-[9px] font-bold tracking-widest ${textColor}`}>
+                          {label}
+                        </span>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

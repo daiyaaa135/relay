@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchMySwaps, type SwapRow } from '@/lib/swaps';
 import { type } from '@/lib/typography';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
+import { PageHeader } from '@/app/components/PageHeader';
+import { NextStepButton } from '@/app/components/NextStepButton';
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'Pending',
@@ -112,7 +114,11 @@ export default function SwapsPage() {
 
   const handleSubmitRating = async () => {
     if (!ratingModal || ratingStars < 1 || ratingStars > 5 || ratingSubmitting) return;
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     setRatingSubmitting(true);
@@ -145,12 +151,9 @@ export default function SwapsPage() {
   if (!authChecked || loading) {
     return (
       <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-        <header className="shrink-0 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-          <button onClick={() => router.back()} className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale" aria-label="Go back">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
+        <PageHeader>
           <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>My Swaps</h1>
-        </header>
+        </PageHeader>
         <div className="flex-1 flex items-center justify-center px-6">
           <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
         </div>
@@ -161,17 +164,14 @@ export default function SwapsPage() {
   if (!profileId) {
     return (
       <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-        <header className="shrink-0 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-          <button onClick={() => router.back()} className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale" aria-label="Go back">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
+        <PageHeader>
           <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>My Swaps</h1>
-        </header>
+        </PageHeader>
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
           <p className="text-relay-muted text-sm mb-4">Log in to see your swaps.</p>
-          <button type="button" onClick={() => router.push('/login')} className="next-step-button px-10 py-3 rounded-xl text-white text-xs font-semibold tracking-widest">
+          <NextStepButton type="button" onClick={() => router.push('/login')} className="px-10 py-3 rounded-xl tracking-widest">
             Log in
-          </button>
+          </NextStepButton>
         </div>
       </div>
     );
@@ -179,14 +179,11 @@ export default function SwapsPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 z-30 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => router.back()} className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale" aria-label="Go back">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>My Swaps</h1>
-        </div>
-        <div className="flex gap-8">
+      <PageHeader>
+        <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>My Swaps</h1>
+      </PageHeader>
+      <header className="shrink-0 z-30 px-6 pb-0 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95" style={{ marginTop: '-0.5rem' }}>
+        <div className="flex gap-8 px-6 pt-2 pb-4">
           <button
             onClick={() => setActiveTab('incoming')}
             className={`pb-4 text-[10px] font-bold tracking-tight transition-all border-b-2 ${
@@ -211,7 +208,7 @@ export default function SwapsPage() {
       </header>
 
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20 space-y-8">
+      <div className="px-6 pt-0 pb-20 space-y-8">
         {list.map((swap) => {
           const raw = swap.gadget;
           const gadget = Array.isArray(raw) ? raw[0] : raw;
@@ -232,7 +229,12 @@ export default function SwapsPage() {
                 onClick={() => router.push(`/listing/${swap.gadget_id}`)}
                 className="size-20 bg-relay-bg dark:bg-relay-bg-dark rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark shrink-0 cursor-pointer active-scale transition-all"
               >
-                <img src={img} alt={itemName} className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all" />
+                <img
+                  src={img}
+                  alt={itemName}
+                  loading="lazy"
+                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all"
+                />
               </div>
               <div className="flex-1 flex flex-col justify-between py-1">
                 <div className="flex justify-between items-start">

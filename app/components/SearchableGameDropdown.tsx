@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import Fuse from 'fuse.js';
+import type Fuse from 'fuse.js';
 
 export interface GameOption {
   name: string;
@@ -35,7 +35,15 @@ export function SearchableGameDropdown({
   const [games, setGames] = useState<GameOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [FuseClass, setFuseClass] = useState<typeof Fuse | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Lazy-load fuse.js only when the dropdown is first opened
+  useEffect(() => {
+    if (open && !FuseClass) {
+      import('fuse.js').then((m) => setFuseClass(() => m.default));
+    }
+  }, [open, FuseClass]);
 
   useEffect(() => {
     if (!consoleName.trim()) {
@@ -56,9 +64,9 @@ export function SearchableGameDropdown({
     setSearch(value);
   }, [value]);
 
-  const fuse = useMemo(() => new Fuse(games, FUSE_OPTIONS), [games]);
+  const fuse = useMemo(() => FuseClass ? new FuseClass(games, FUSE_OPTIONS) : null, [FuseClass, games]);
   const searchTrim = search.trim();
-  const filtered = searchTrim
+  const filtered = searchTrim && fuse
     ? fuse.search(searchTrim).map((r) => r.item)
     : games;
   const showList = open && (loading ? false : filtered.length > 0 || searchTrim.length > 0);

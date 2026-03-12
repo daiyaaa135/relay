@@ -1,4 +1,3 @@
-import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { createClient } from '@/lib/supabase';
@@ -36,6 +35,8 @@ export function usePushNotifications(router: AppRouterInstance) {
 
   (async () => {
     try {
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+
       const permStatus = await PushNotifications.requestPermissions();
       if (permStatus.receive !== 'granted') {
         console.log('[Push] Permission not granted', permStatus);

@@ -20,8 +20,8 @@ export function RatingDisplay({ rating, count = 0, size = 'md' }: RatingDisplayP
   const rounded = Math.min(5, Math.max(0, Math.round(rating)));
 
   return (
-    <div className="flex flex-col items-start gap-1">
-      <p className={`${textSize} font-normal text-relay-text dark:text-relay-text-dark text-left`}>
+    <div className="flex items-center gap-1">
+      <p className={`${textSize} font-normal text-relay-text dark:text-relay-text-dark`}>
         {rating.toFixed(1)}
         {count > 0 && (
           <span className="text-relay-muted ml-0.5">({count})</span>

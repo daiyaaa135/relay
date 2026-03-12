@@ -28,9 +28,6 @@ export async function searchLocationsMapbox(
   const token =
     typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : undefined;
   if (!token) return [];
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/geo.ts:searchLocationsMapbox:entry',message:'Mapbox searchLocationsMapbox',data:{query:q,hasUserLocation:!!userLocation},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
   try {
     const params = new URLSearchParams({
       access_token: token,
@@ -104,9 +101,6 @@ export async function searchLocations(
 ): Promise<LocationSuggestion[]> {
   const q = query.trim();
   if (q.length < 2) return [];
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/geo.ts:searchLocations:entry',message:'Nominatim searchLocations',data:{query:q,hasUserLocation:!!userLocation,userState:userLocation?.state ?? null},timestamp:Date.now(),hypothesisId:'H2-H3-H5'})}).catch(()=>{});
-  // #endregion
   try {
     const limit = userLocation?.state ? 20 : 5;
     const searchQuery = userLocation?.state?.trim() ? `${q}, ${userLocation.state.trim()}` : q;
@@ -154,10 +148,6 @@ export async function searchLocations(
         _priority: priority,
       };
     });
-    // #region agent log
-    const rawSample = (data || []).slice(0, 3).map((r: { address?: { state?: string; country?: string } }) => ({ state: r.address?.state ?? null, country: r.address?.country ?? null }));
-    fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/geo.ts:searchLocations:afterParse',message:'Nominatim raw results',data:{rawCount:(data||[]).length,userState:userLocation?.state ?? null,rawSample},timestamp:Date.now(),hypothesisId:'H3-H4'})}).catch(()=>{});
-    // #endregion
     if (userLocation?.state?.trim()) {
       const userState = userLocation.state.trim().toLowerCase();
       list = list.filter((s) => (s.state || '').trim().toLowerCase() === userState);
@@ -176,9 +166,6 @@ export async function searchLocations(
       list = [...list].sort((a, b) => b._priority - a._priority).map(({ _priority, ...rest }) => rest);
     }
     const final = list.slice(0, 5);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/geo.ts:searchLocations:exit',message:'Nominatim final',data:{finalCount:final.length,firstDisplayName:final[0]?.displayName ?? null,firstState:final[0]?.state ?? null},timestamp:Date.now(),hypothesisId:'H3-H4'})}).catch(()=>{});
-    // #endregion
     return final;
   } catch {
     return [];

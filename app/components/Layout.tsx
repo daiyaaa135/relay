@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Capacitor } from '@capacitor/core';
-import { SplashScreen as CapacitorSplashScreen } from '@capacitor/splash-screen';
 import { createClient } from '@/lib/supabase';
 import { ListingProvider, useListing } from '@/app/list/ListingContext';
 import { HomeIcon } from '@/app/components/HomeIcon';
@@ -73,8 +72,8 @@ const BottomNav: React.FC = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 glass-card border-t border-relay-border dark:border-relay-border-dark px-6 pt-1"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) * 0.4)', borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+      className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 glass-card border-t border-relay-border dark:border-relay-border-dark px-6 pt-1 pb-[calc(var(--safe-bottom)*0.4)]"
+      style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
     >
       <div className="flex items-center justify-between">
         {navItems.map((item) => {
@@ -166,7 +165,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (typeof window === 'undefined' || !Capacitor.isNativePlatform()) return;
     const hide = async () => {
       try {
-        await CapacitorSplashScreen.hide();
+        const mod = await import('@capacitor/splash-screen');
+        await mod.SplashScreen.hide();
       } catch {
         // ignore if plugin not available
       }
@@ -180,116 +180,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  // Global error + unhandled rejection logging (debug instrumentation)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const logEndpoint = 'http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307';
-
-    const handleError = (event: ErrorEvent) => {
-      // #region agent log
-      fetch(logEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: `log_${Date.now()}_global_error`,
-          runId: 'pre-fix',
-          hypothesisId: 'H-global-js-error',
-          location: 'app/components/Layout.tsx:globalError',
-          message: 'window.error',
-          data: {
-            message: event.message,
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-            stack: event.error && typeof event.error === 'object' ? (event.error as Error).stack : null,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion agent log
-
-      // #region agent log proxy
-      fetch('/api/debug-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: `log_${Date.now()}_global_error_proxy`,
-          runId: 'pre-fix',
-          hypothesisId: 'H-global-js-error',
-          location: 'app/components/Layout.tsx:globalError',
-          message: 'window.error',
-          data: {
-            message: event.message,
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion agent log proxy
-    };
-
-    const handleRejection = (event: PromiseRejectionEvent) => {
-      // #region agent log
-      fetch(logEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: `log_${Date.now()}_unhandled_rejection`,
-          runId: 'pre-fix',
-          hypothesisId: 'H-global-js-error',
-          location: 'app/components/Layout.tsx:unhandledRejection',
-          message: 'unhandledrejection',
-          data: {
-            reason:
-              event.reason && typeof event.reason === 'object'
-                ? {
-                    name: (event.reason as Error).name,
-                    message: (event.reason as Error).message,
-                    stack: (event.reason as Error).stack,
-                  }
-                : String(event.reason),
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion agent log
-
-      // #region agent log proxy
-      fetch('/api/debug-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: `log_${Date.now()}_unhandled_rejection_proxy`,
-          runId: 'pre-fix',
-          hypothesisId: 'H-global-js-error',
-          location: 'app/components/Layout.tsx:unhandledRejection',
-          message: 'unhandledrejection',
-          data: {
-            reason:
-              event.reason && typeof event.reason === 'object'
-                ? {
-                    name: (event.reason as Error).name,
-                    message: (event.reason as Error).message,
-                  }
-                : String(event.reason),
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion agent log proxy
-    };
-
-    window.addEventListener('error', handleError);
-    window.addEventListener('unhandledrejection', handleRejection);
-
-    return () => {
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleRejection);
-    };
-  }, []);
+  // Global error + unhandled rejection debug instrumentation has been removed.
 
   // One-time per-session splash screen on home route
   useEffect(() => {
@@ -354,125 +245,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return;
       }
 
-      const logEndpoint = 'http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307';
-
       try {
-        // #region agent log
-        fetch(logEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: `log_${Date.now()}_pull_to_refresh_start`,
-            runId: 'pre-fix',
-            hypothesisId: 'H-capacitor-swipe-plugin',
-            location: 'app/components/Layout.tsx:enablePullToRefresh',
-            message: 'About to call enablePullToRefresh',
-            data: {
-              hasPlugins: !!capAny.Plugins,
-              hasSwipePlugin: !!plugin,
-              platform: Capacitor.getPlatform(),
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion agent log
-
-        // #region agent log proxy
-        fetch('/api/debug-log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: `log_${Date.now()}_pull_to_refresh_start_proxy`,
-            runId: 'pre-fix',
-            hypothesisId: 'H-capacitor-swipe-plugin',
-            location: 'app/components/Layout.tsx:enablePullToRefresh',
-            message: 'About to call enablePullToRefresh',
-            data: {
-              hasPlugins: !!capAny.Plugins,
-              hasSwipePlugin: !!plugin,
-              platform: Capacitor.getPlatform(),
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion agent log proxy
-
         await plugin.enablePullToRefresh();
-
-        // #region agent log
-        fetch(logEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: `log_${Date.now()}_pull_to_refresh_done`,
-            runId: 'pre-fix',
-            hypothesisId: 'H-capacitor-swipe-plugin',
-            location: 'app/components/Layout.tsx:enablePullToRefresh',
-            message: 'enablePullToRefresh completed',
-            data: {},
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion agent log
-
-        // #region agent log proxy
-        fetch('/api/debug-log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: `log_${Date.now()}_pull_to_refresh_done_proxy`,
-            runId: 'pre-fix',
-            hypothesisId: 'H-capacitor-swipe-plugin',
-            location: 'app/components/Layout.tsx:enablePullToRefresh',
-            message: 'enablePullToRefresh completed',
-            data: {},
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion agent log proxy
       } catch (err) {
-        // #region agent log
-        fetch(logEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: `log_${Date.now()}_pull_to_refresh_error`,
-            runId: 'pre-fix',
-            hypothesisId: 'H-capacitor-swipe-plugin',
-            location: 'app/components/Layout.tsx:enablePullToRefresh',
-            message: 'enablePullToRefresh threw',
-            data: {
-              error:
-                err && typeof err === 'object'
-                  ? { name: (err as Error).name, message: (err as Error).message, stack: (err as Error).stack }
-                  : String(err),
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion agent log
-
-        // #region agent log proxy
-        fetch('/api/debug-log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: `log_${Date.now()}_pull_to_refresh_error_proxy`,
-            runId: 'pre-fix',
-            hypothesisId: 'H-capacitor-swipe-plugin',
-            location: 'app/components/Layout.tsx:enablePullToRefresh',
-            message: 'enablePullToRefresh threw',
-            data: {
-              error:
-                err && typeof err === 'object'
-                  ? { name: (err as Error).name, message: (err as Error).message }
-                  : String(err),
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion agent log proxy
-
         // Preserve previous behavior: surface the error
         throw err;
       }
@@ -489,14 +264,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const isChatThread = pathname.startsWith('/messages/') && pathname !== '/messages';
   const isListingDetail = pathname.startsWith('/listing/');
-  
+  const isListingFlow = pathname.startsWith('/list');
+
   const isSignupFlow = pathname.startsWith('/signup');
   const isWelcome = pathname === '/welcome';
-  const shouldHideNav = hideNavPaths.includes(pathname) || isSignupFlow || isWelcome || isChatThread || isListingDetail;
+  const shouldHideNav = hideNavPaths.includes(pathname) || isSignupFlow || isWelcome || isChatThread || isListingDetail || isListingFlow;
 
   return (
     <ListingProvider>
-      <div className="h-screen bg-relay-bg dark:bg-relay-bg-dark flex justify-center selection:bg-primary selection:text-white transition-colors duration-400">
+      <div className="h-[100dvh] bg-relay-bg dark:bg-relay-bg-dark flex justify-center selection:bg-primary selection:text-white transition-colors duration-400">
         <div className="relative w-full max-w-md flex flex-col h-full shadow-2xl bg-relay-surface dark:bg-relay-surface-dark border-x border-relay-border dark:border-relay-border-dark">
           <main ref={mainRef} className="flex-1 min-h-0 flex flex-col">
             <div className="flex flex-col flex-1 min-h-0">

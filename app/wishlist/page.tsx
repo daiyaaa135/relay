@@ -65,14 +65,13 @@ export default function WishlistPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 transition-colors bg-relay-surface dark:bg-relay-surface-dark">
       <header
-        className="shrink-0 z-30 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md"
-        style={{ paddingTop: 'max(3.5rem, env(safe-area-inset-top))' }}
+        className="shrink-0 z-30 px-6 pb-4 border-b border-relay-border dark:border-relay-border-dark flex items-center bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md pt-safe-2_25"
       >
         <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Wishlist</h1>
       </header>
 
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20">
+      <div className="px-6 pt-0 pb-20">
         <div className="flex items-center justify-between mb-10">
           <p className="text-[10px] font-bold tracking-tight text-relay-muted dark:text-relay-muted-light">
             {loading ? 'Loading…' : `${wishlistedItems.length} Saved Items`}
@@ -100,7 +99,12 @@ export default function WishlistPage() {
                 className="group flex flex-col gap-4 cursor-pointer active-scale transition-all"
               >
                 <div className="aspect-[3/4] rounded-[40px] overflow-hidden relative bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-lg group-hover:-translate-y-2 transition-all duration-500">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110" />
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                  />
                   <div className="absolute top-4 right-4">
                     <button
                       type="button"

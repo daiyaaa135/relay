@@ -14,7 +14,31 @@ import { PrivacyIcon } from '@/app/components/PrivacyIcon';
 import { AvailabilityIcon } from '@/app/components/AvailabilityIcon';
 import { AppearanceIcon } from '@/app/components/AppearanceIcon';
 import { ResetPasswordIcon } from '@/app/components/ResetPasswordIcon';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
+import { PageHeader } from '@/app/components/PageHeader';
+
+function SunIcon({ className }: { className?: string }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      <g clipPath="url(#sun-clip)">
+        <path d="M12.75 1C12.75 0.585786 12.4142 0.25 12 0.25C11.5858 0.25 11.25 0.585786 11.25 1V3C11.25 3.41421 11.5858 3.75 12 3.75C12.4142 3.75 12.75 3.41421 12.75 3V1Z" fill="currentColor"/>
+        <path d="M4.75216 3.69149C4.45926 3.3986 3.98439 3.3986 3.6915 3.69149C3.3986 3.98439 3.3986 4.45926 3.6915 4.75216L5.10571 6.16637C5.3986 6.45926 5.87348 6.45926 6.16637 6.16637C6.45926 5.87348 6.45926 5.3986 6.16637 5.10571L4.75216 3.69149Z" fill="currentColor"/>
+        <path d="M20.3085 4.75216C20.6014 4.45926 20.6014 3.98439 20.3085 3.6915C20.0156 3.3986 19.5407 3.3986 19.2478 3.69149L17.8336 5.10571C17.5407 5.3986 17.5407 5.87348 17.8336 6.16637C18.1265 6.45926 18.6014 6.45926 18.8943 6.16637L20.3085 4.75216Z" fill="currentColor"/>
+        <path fillRule="evenodd" clipRule="evenodd" d="M12 5.25C8.27208 5.25 5.25 8.27208 5.25 12C5.25 15.7279 8.27208 18.75 12 18.75C15.7279 18.75 18.75 15.7279 18.75 12C18.75 8.27208 15.7279 5.25 12 5.25ZM6.75 12C6.75 9.1005 9.1005 6.75 12 6.75C14.8995 6.75 17.25 9.1005 17.25 12C17.25 14.8995 14.8995 17.25 12 17.25C9.1005 17.25 6.75 14.8995 6.75 12Z" fill="currentColor"/>
+        <path d="M1 11.25C0.585786 11.25 0.25 11.5858 0.25 12C0.25 12.4142 0.585786 12.75 1 12.75H3C3.41421 12.75 3.75 12.4142 3.75 12C3.75 11.5858 3.41421 11.25 3 11.25H1Z" fill="currentColor"/>
+        <path d="M21 11.25C20.5858 11.25 20.25 11.5858 20.25 12C20.25 12.4142 20.5858 12.75 21 12.75H23C23.4142 12.75 23.75 12.4142 23.75 12C23.75 11.5858 23.4142 11.25 23 11.25H21Z" fill="currentColor"/>
+        <path d="M6.16637 18.8943C6.45926 18.6014 6.45926 18.1265 6.16637 17.8336C5.87348 17.5407 5.3986 17.5407 5.10571 17.8336L3.6915 19.2478C3.3986 19.5407 3.3986 20.0156 3.6915 20.3085C3.98439 20.6014 4.45926 20.6014 4.75216 20.3085L6.16637 18.8943Z" fill="currentColor"/>
+        <path d="M18.8943 17.8336C18.6014 17.5407 18.1265 17.5407 17.8336 17.8336C17.5407 18.1265 17.5407 18.6014 17.8336 18.8943L19.2478 20.3085C19.5407 20.6014 20.0156 20.6014 20.3085 20.3085C20.6014 20.0156 20.6014 19.5407 20.3085 19.2478L18.8943 17.8336Z" fill="currentColor"/>
+        <path d="M12.75 21C12.75 20.5858 12.4142 20.25 12 20.25C11.5858 20.25 11.25 20.5858 11.25 21V23C11.25 23.4142 11.5858 23.75 12 23.75C12.4142 23.75 12.75 23.4142 12.75 23V21Z" fill="currentColor"/>
+      </g>
+      <defs>
+        <clipPath id="sun-clip">
+          <rect width="24" height="24" fill="white"/>
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
 
 type SectionItem = {
   label: string;
@@ -70,7 +94,11 @@ export default function SettingsPage() {
 
   const toggleTheme = () => {
     if (typeof window === 'undefined') return;
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     setIsDarkMode((prev) => {
@@ -121,17 +149,11 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <button
-          onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
+      <PageHeader>
         <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Settings</h1>
-      </header>
+      </PageHeader>
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20">
+      <div className="px-6 pt-0 pb-20">
         <div className="p-6 rounded-[32px] bg-relay-bg dark:bg-relay-bg-dark mb-10 flex items-center gap-5 shadow-sm">
           {loading ? (
             <div className="size-16 rounded-full bg-relay-surface dark:bg-relay-surface-dark animate-pulse" />
@@ -180,7 +202,11 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-4">
                         <div className={`size-12 rounded-xl flex items-center justify-center border transition-all ${item.highlight ? 'border-transparent bg-primary/5 text-primary shadow-lg shadow-primary/5' : 'border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark text-relay-muted group-hover:text-relay-text dark:group-hover:text-relay-text-dark'}`}>
                           {IconComponent ? (
-                            <IconComponent className="size-6 shrink-0 text-current" />
+                            isToggle
+                              ? isDarkMode
+                                ? <SunIcon className="size-6 shrink-0 text-current" />
+                                : <IconComponent className="size-6 shrink-0 text-current" />
+                              : <IconComponent className="size-6 shrink-0 text-current" />
                           ) : item.type === 'toggle' && item.image ? (
                             <img
                               key={isDarkMode ? 'appearance-on' : 'appearance-off'}

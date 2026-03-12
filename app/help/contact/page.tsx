@@ -370,12 +370,11 @@ export default function ContactHelpPage() {
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <div className="page-scroll">
       <header
-        className="sticky top-0 px-6 pb-4 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30"
-        style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}
+        className="sticky top-0 px-6 pb-4 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30 pt-safe-3"
       >
         <button
           onClick={() => router.push('/help')}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
+          className="flex size-10 items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale"
           aria-label="Close contact form"
         >
           <span className="material-symbols-outlined">close</span>

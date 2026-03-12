@@ -88,7 +88,7 @@ export default function MorePage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 z-30 px-6 pb-0 bg-relay-surface dark:bg-relay-surface-dark" style={{ paddingTop: 'max(5rem, env(safe-area-inset-top))' }}>
+      <header className="shrink-0 z-30 px-6 pb-0 bg-relay-surface dark:bg-relay-surface-dark pt-safe-5">
         <div className="rounded-3xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark px-5 py-5 shadow-sm">
           <div className="flex items-center gap-4">
             {profileLoading ? (
@@ -152,14 +152,17 @@ export default function MorePage() {
                 Followers
               </span>
             </button>
-            <div className="flex flex-col items-center justify-center px-2">
+            <button
+              onClick={() => router.push('/wallet')}
+              className="flex flex-col items-center justify-center px-2 active:opacity-60 transition-opacity"
+            >
               <span className="text-sm font-semibold text-relay-text dark:text-relay-text-dark">
                 {profileLoading ? '—' : `${(profile?.credits_balance ?? 0).toLocaleString()} Cr`}
               </span>
               <span className="mt-1 text-[10px] font-medium text-relay-muted dark:text-relay-muted-light">
                 Credits
               </span>
-            </div>
+            </button>
           </div>
         </div>
       </header>

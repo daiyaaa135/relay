@@ -22,6 +22,15 @@ function readEnvLocal(key: string): string | undefined {
   }
 }
 
+const supabaseUrl = readEnvLocal("NEXT_PUBLIC_SUPABASE_URL") ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseHostname = (() => {
+  try {
+    return supabaseUrl ? new URL(supabaseUrl).hostname : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+
 const nextConfig: NextConfig = {
   serverExternalPackages: ['tesseract.js'],
   // Expose env to API routes and client (Next/Turbopack may not pass .env.local to all workers)
@@ -30,9 +39,53 @@ const nextConfig: NextConfig = {
     GOOGLE_CALENDAR_CLIENT_ID: process.env.GOOGLE_CALENDAR_CLIENT_ID,
     GOOGLE_CALENDAR_CLIENT_SECRET: process.env.GOOGLE_CALENDAR_CLIENT_SECRET,
     GOOGLE_CALENDAR_REDIRECT_URI: process.env.GOOGLE_CALENDAR_REDIRECT_URI,
-    NEXT_PUBLIC_SUPABASE_URL: readEnvLocal("NEXT_PUBLIC_SUPABASE_URL") ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: readEnvLocal("NEXT_PUBLIC_SUPABASE_ANON_KEY") ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
+  images: supabaseHostname
+    ? {
+        remotePatterns: [
+          {
+            protocol: 'https',
+            hostname: supabaseHostname,
+            pathname: '/storage/v1/object/public/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'i.pravatar.cc',
+            pathname: '/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'images.unsplash.com',
+            pathname: '/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'placehold.co',
+            pathname: '/**',
+          },
+        ],
+      }
+    : {
+        remotePatterns: [
+          {
+            protocol: 'https',
+            hostname: 'i.pravatar.cc',
+            pathname: '/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'images.unsplash.com',
+            pathname: '/**',
+          },
+          {
+            protocol: 'https',
+            hostname: 'placehold.co',
+            pathname: '/**',
+          },
+        ],
+      },
 };
 
 export default nextConfig;

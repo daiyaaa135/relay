@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { type } from '@/lib/typography';
+import { PageHeader } from '@/app/components/PageHeader';
 
 const ROTATION_ITEMS = [
   {
@@ -29,7 +29,6 @@ const ROTATION_ITEMS = [
 ] as const;
 
 export default function AboutPage() {
-  const router = useRouter();
   const [openId, setOpenId] = useState<number>(1);
 
   const toggleItem = (id: number) => {
@@ -38,15 +37,9 @@ export default function AboutPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-6 flex items-center gap-4 bg-transparent z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <button
-          onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
+      <PageHeader className="bg-transparent border-b-0">
         <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>About.</h1>
-      </header>
+      </PageHeader>
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
       <div className="px-6 py-12 pb-20 space-y-16">
         <section className="text-center">

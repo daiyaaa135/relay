@@ -1,12 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { GuidelinesIcon } from '@/app/components/GuidelinesIcon';
+import { PageHeader } from '@/app/components/PageHeader';
 
 export default function SafetyPage() {
-  const router = useRouter();
-
   const safetyActions = [
     {
       title: 'Reporting',
@@ -31,17 +29,11 @@ export default function SafetyPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-6 flex items-center gap-4 bg-transparent z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <button 
-          onClick={() => router.back()}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-        >
-          <span className="material-symbols-outlined">arrow_back</span>
-        </button>
-        <h1 className="text-2xl font-serif  text-relay-text dark:text-relay-text-dark tracking-tighter">Safety Center</h1>
-      </header>
+      <PageHeader className="bg-transparent border-b-0">
+        <h1 className="text-2xl font-serif text-relay-text dark:text-relay-text-dark tracking-tighter">Safety Center</h1>
+      </PageHeader>
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20 space-y-12">
+      <div className="px-6 pt-0 pb-20 space-y-12">
         <div className="p-8 rounded-[40px] bg-primary/5 relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-xl font-serif  text-relay-text dark:text-relay-text-dark mb-2">Your Safety is Priority</h2>

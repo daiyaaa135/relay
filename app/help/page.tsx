@@ -204,8 +204,7 @@ export default function HelpPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <header
-        className="shrink-0 px-6 pb-5 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30"
-        style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}
+        className="shrink-0 px-6 pb-5 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30 pt-safe-3"
       >
         <button
           onClick={() => {
@@ -213,7 +212,7 @@ export default function HelpPage() {
             else if (from === 'signup') router.push('/signup');
             else router.back();
           }}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
+          className="flex size-10 items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale"
           aria-label="Close help center"
         >
           <span className="material-symbols-outlined">close</span>
@@ -230,7 +229,7 @@ export default function HelpPage() {
       </header>
 
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
-      <div className="px-6 py-8 pb-20 space-y-10">
+      <div className="px-6 pt-0 pb-20 space-y-10">
         <div ref={searchRef} className="relative group">
           <span className="absolute left-5 top-1/2 -translate-y-1/2 material-symbols-outlined text-relay-muted group-focus-within:text-primary transition-colors pointer-events-none z-10">
             search

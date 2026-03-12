@@ -218,8 +218,7 @@ export default function ReportItemPage() {
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <div className="page-scroll">
       <header
-        className="sticky top-0 flex items-center justify-between px-4 py-3 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark z-30"
-        style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
+        className="sticky top-0 flex items-center justify-between px-4 py-3 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark z-30 pt-safe-1"
       >
         <button
           type="button"

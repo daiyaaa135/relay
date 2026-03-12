@@ -22,23 +22,6 @@ function getSupabaseEnv(): { url: string; anonKey: string } {
 
 export function createClient() {
   const { url: supabaseUrl, anonKey: supabaseAnonKey } = getSupabaseEnv();
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      location: 'lib/supabase.ts:createClient',
-      message: 'createClient env check',
-      data: {
-        hasUrl: Boolean(supabaseUrl?.trim()),
-        hasKey: Boolean(supabaseAnonKey?.trim()),
-        runId: 'post-fix',
-      },
-      timestamp: Date.now(),
-      hypothesisId: 'H1-H5',
-    }),
-  }).catch(() => {});
-  // #endregion
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
       'Missing Supabase env vars. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local (not env.) and restart the dev server.'

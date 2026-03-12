@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ChevronLeft,
   Smartphone,
   Tablet,
   Headphones,
@@ -17,7 +16,7 @@ import {
 import { LaptopIcon } from '@/app/components/LaptopIcon';
 import type { BrowseResponse } from '@/app/api/browse/[category]/route';
 import { type } from '@/lib/typography';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
 
 const VALID_CATEGORIES = [
   'Phones', 'Laptops', 'Tablets', 'Headphones', 'Speaker', 'Console', 'Video Games', 'MP3', 'Gaming Handhelds',
@@ -122,7 +121,11 @@ export default function BrowseCategoryPage() {
       if (clamped >= PULL_THRESHOLD && !hapticFiredRef.current) {
         hapticFiredRef.current = true;
         // Capacitor Haptics on iOS/Android, vibrate fallback on web
-        Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+          });
+        }).catch(() => {
           if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
         });
       }
@@ -174,46 +177,37 @@ export default function BrowseCategoryPage() {
   return (
     <div className="flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark flex flex-col transition-colors">
       {/* Header: back + title (canonical layout) */}
-      <header
-        className="z-20 px-6 pb-6 border-b border-relay-border dark:border-relay-border-dark flex items-center gap-4 bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md shrink-0"
-        style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}
-      >
-        <button
-          type="button"
-          onClick={() => router.push('/')}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-          aria-label="Go back"
-        >
-          <ChevronLeft className="size-6" />
-        </button>
+      <PageHeader onBack={() => router.push('/')} className="z-20">
         <h1 className={`${type.h2} !font-semibold text-relay-text dark:text-relay-text-dark`}>
           {category}
         </h1>
-      </header>
+      </PageHeader>
 
-      {/* Pull-to-refresh indicator — sits between header and scroll area */}
-      <div
-        className="flex items-center justify-center overflow-hidden shrink-0"
-        style={{
-          height: isRefreshing ? 52 : pullDistance,
-          transition: pullDistance === 0 && !isRefreshing ? 'height 0.25s ease' : 'none',
-        }}
-      >
-        {isRefreshing ? (
-          <div className="size-5 border-2 border-gray-300 border-t-gray-400 rounded-full animate-spin" />
-        ) : (
-          <span
-            className="material-symbols-outlined text-gray-400"
-            style={{
-              fontSize: '20px',
-              opacity: pullProgress,
-              transform: `rotate(${pullProgress * 180}deg)`,
-              transition: 'transform 0.08s linear',
-            }}
-          >
-            arrow_downward
-          </span>
-        )}
+      {/* Pull-to-refresh indicator — uses transform (GPU) not height (layout reflow) */}
+      <div className="flex items-center justify-center overflow-hidden shrink-0" style={{ height: 52 }}>
+        <div
+          style={{
+            transform: `translateY(${isRefreshing ? '0px' : `${Math.max(0, pullDistance - 52)}px`})`,
+            transition: pullDistance === 0 && !isRefreshing ? 'transform 0.25s ease' : 'none',
+            willChange: 'transform',
+          }}
+        >
+          {isRefreshing ? (
+            <div className="size-5 border-2 border-gray-300 border-t-gray-400 rounded-full animate-spin" />
+          ) : (
+            <span
+              className="material-symbols-outlined text-gray-400"
+              style={{
+                fontSize: '20px',
+                opacity: pullProgress,
+                transform: `rotate(${pullProgress * 180}deg)`,
+                transition: 'transform 0.08s linear',
+              }}
+            >
+              arrow_downward
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Scrollable content */}
@@ -276,7 +270,7 @@ export default function BrowseCategoryPage() {
                           <div className="flex flex-col">
                             <div className="w-full aspect-[3/4] flex items-center justify-center bg-relay-surface dark:bg-relay-surface-dark p-1 transition-colors">
                               {device.image_url ? (
-                                <img src={device.image_url} alt={device.model} className="w-full h-full object-contain" />
+                                <img src={device.image_url} alt={device.model} className="w-full h-full object-contain" loading="lazy" />
                               ) : (
                                 <Gamepad2 className="size-8 text-relay-muted dark:text-relay-muted-light" />
                               )}
@@ -289,7 +283,7 @@ export default function BrowseCategoryPage() {
                           <div className="flex">
                             <div className="w-2/5 min-h-[100px] flex items-center justify-center bg-relay-surface dark:bg-relay-surface-dark p-2 transition-colors">
                               {device.image_url ? (
-                                <img src={device.image_url} alt="" className="w-full h-full object-contain max-h-24" />
+                                <img src={device.image_url} alt="" className="w-full h-full object-contain max-h-24" loading="lazy" />
                               ) : (
                                 <Smartphone className="size-10 text-relay-muted dark:text-relay-muted-light" />
                               )}

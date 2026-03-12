@@ -3,6 +3,7 @@
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useListing } from '../ListingContext';
+import { ListingStepHeader } from '../components/ListingStepHeader';
 
 const PHONE_STEPS = [
   { step: 1, title: 'Your device' },
@@ -87,45 +88,14 @@ export default function StepLayout({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const handleClose = () => {
-    if (hasProgress(clampedStep)) requestLeave(goHome);
-    else goHome();
-  };
-
-  const progressPercent = (clampedStep / totalSteps) * 100;
-
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <header className="shrink-0 bg-relay-surface dark:bg-relay-surface-dark z-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <div className="flex items-center justify-between h-14 px-4">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="p-2 -ml-2 text-relay-text dark:text-relay-text-dark hover:bg-relay-bg dark:hover:bg-relay-bg-dark rounded-lg transition-colors"
-            aria-label="Back"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className="text-sm font-medium text-relay-text dark:text-relay-text-dark truncate uppercase">
-            {clampedStep} of {totalSteps}: {currentStepInfo?.title ?? 'Step'}
-          </h1>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="p-2 -mr-2 text-relay-text dark:text-relay-text-dark hover:bg-relay-bg dark:hover:bg-relay-bg-dark rounded-lg transition-colors"
-            aria-label="Close"
-          >
-            <span className="material-symbols-outlined">close</span>
-          </button>
-        </div>
-        {/* Progress bar */}
-        <div className="h-1 bg-gray-200 dark:bg-gray-700">
-          <div
-            className="h-full bg-gray-600 dark:bg-gray-500 transition-all duration-300 ease-out"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      </header>
+      <ListingStepHeader
+        currentStep={clampedStep}
+        totalSteps={totalSteps}
+        title={currentStepInfo?.title ?? 'Step'}
+        onBack={handleBack}
+      />
       <div className="flex-1 min-h-0 overflow-y-auto">
         {children}
       </div>

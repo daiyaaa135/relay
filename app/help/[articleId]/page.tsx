@@ -408,12 +408,11 @@ export default function HelpArticlePage() {
     return (
       <div className="flex flex-col h-full bg-relay-surface dark:bg-relay-surface-dark px-6 pb-16 transition-colors">
         <header
-          className="pb-5 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30 -mx-6 px-6"
-          style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}
+          className="pb-5 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30 -mx-6 px-6 pt-safe-3"
         >
           <button
             onClick={() => router.push(exitTo)}
-            className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
+            className="flex size-10 items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -424,13 +423,13 @@ export default function HelpArticlePage() {
         </header>
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <p className="text-sm text-relay-muted mb-4">This help article could not be found.</p>
-          <button
+          <NextStepButton
             type="button"
             onClick={() => router.push(helpHomeHref)}
-            className="next-step-button px-8 py-3 rounded-2xl text-white text-xs font-semibold tracking-widest"
+            className="px-8 py-3 rounded-2xl tracking-widest"
           >
             Back to Help Home
-          </button>
+          </NextStepButton>
         </div>
       </div>
     );
@@ -440,12 +439,11 @@ export default function HelpArticlePage() {
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <div className="page-scroll">
       <header
-        className="sticky top-0 px-6 pb-4 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30"
-        style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}
+        className="sticky top-0 px-6 pb-4 border-b border-relay-border dark:border-relay-border-dark flex items-center justify-between bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md z-30 pt-safe-3"
       >
         <button
           onClick={() => router.push(exitTo)}
-          className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
+          className="flex size-10 items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm active-scale"
           aria-label="Close article"
         >
           <span className="material-symbols-outlined">close</span>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchProfile } from '@/lib/profiles';
 import { getDefaultAvatar } from '@/lib/avatars';
+import { NextStepButton } from '@/app/components/NextStepButton';
+import { PageHeader } from '@/app/components/PageHeader';
 
 /** Format 10-digit US number as +1 (XXX) XXX-XXXX */
 function formatPhoneDisplay(phone: string): string {
@@ -118,13 +120,13 @@ export default function EditProfilePage() {
       <div className="flex h-full items-center justify-center bg-relay-surface dark:bg-relay-surface-dark px-6">
         <div className="text-center">
           <p className="text-relay-muted text-sm mb-4">Sign in to edit your profile.</p>
-          <button
+          <NextStepButton
             type="button"
             onClick={() => router.push('/login')}
-          className="next-step-button h-8 px-10 text-white text-xs font-semibold tracking-widest rounded-2xl"
+            className="h-8 px-10 tracking-widest rounded-2xl"
           >
             Log in
-          </button>
+          </NextStepButton>
         </div>
       </div>
     );
@@ -132,17 +134,9 @@ export default function EditProfilePage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-6 flex items-center justify-between bg-transparent z-30" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="flex size-10 items-center justify-center rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark hover:text-primary transition-colors active-scale"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h1 className="text-2xl font-serif  text-relay-text dark:text-relay-text-dark tracking-tighter">Personal Info</h1>
-        </div>
-      </header>
+      <PageHeader className="bg-transparent border-b-0">
+        <h1 className="text-2xl font-serif text-relay-text dark:text-relay-text-dark tracking-tighter">Personal Info</h1>
+      </PageHeader>
       <div className="page-scroll" style={{ marginTop: '-1px' }}>
       <div className="px-6 py-10 pb-20 flex flex-col items-center">
         {error && (

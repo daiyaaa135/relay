@@ -8,7 +8,7 @@ import { LivePickupMap } from '@/app/components/LivePickupMap';
 import { PickupCalendarModal, type PickupSlot } from '@/app/components/PickupCalendarModal';
 import { getDefaultAvatar } from '@/lib/avatars';
 import { formatJoinedDate } from '@/lib/dateFormatters';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { ChevronIcon } from '@/app/components/ChevronIcon';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -84,13 +84,15 @@ export default function ChatThreadPage() {
         return;
       }
 
-      const { data: myProfile } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
+      // Run myProfile + convById in parallel — neither depends on the other
+      const [{ data: myProfile }, convById] = await Promise.all([
+        supabase.from('profiles').select('avatar_url').eq('id', user.id).single(),
+        supabase.from('conversations').select('id, swap_id, buyer_profile_id, seller_profile_id, gadget_id').eq('id', id).single(),
+      ]);
       if (!cancelled && myProfile?.avatar_url) setMyAvatarUrl(myProfile.avatar_url);
 
       let resolvedConversationId: string;
       let swapIdToLoad: string | null = null;
-
-      const convById = await supabase.from('conversations').select('id, swap_id, buyer_profile_id, seller_profile_id, gadget_id').eq('id', id).single();
       if (convById.data?.id) {
         resolvedConversationId = (convById.data as { id: string }).id;
         swapIdToLoad = (convById.data as { swap_id: string | null }).swap_id;
@@ -108,10 +110,9 @@ export default function ChatThreadPage() {
       if (cancelled) return;
       setConversationId(resolvedConversationId);
 
-      if (swapIdToLoad) {
-        const swapRes = await supabase
-          .from('swaps')
-          .select(`
+      // Run swap/conversation details + messages fetch in parallel
+      const swapOrConvQuery = swapIdToLoad
+        ? supabase.from('swaps').select(`
             id,
             buyer_profile_id,
             seller_profile_id,
@@ -125,11 +126,27 @@ export default function ChatThreadPage() {
             buyer:profiles!buyer_profile_id(display_name, avatar_url, created_at),
             seller:profiles!seller_profile_id(display_name, avatar_url, created_at),
             gadget:gadgets!gadget_id(id, name, image_urls)
-          `)
-          .eq('id', swapIdToLoad)
-          .single();
-        if (!cancelled && swapRes.data) {
-          const s = swapRes.data as unknown as SwapWithProfiles & { gadget?: SwapGadget | SwapGadget[] };
+          `).eq('id', swapIdToLoad).single()
+        : supabase.from('conversations').select(`
+            id,
+            buyer_profile_id,
+            seller_profile_id,
+            buyer:profiles!buyer_profile_id(display_name, avatar_url, created_at),
+            seller:profiles!seller_profile_id(display_name, avatar_url, created_at),
+            gadget:gadgets!gadget_id(id, name, image_urls)
+          `).eq('id', resolvedConversationId).single();
+
+      const [swapOrConvRes, { data: messagesData }] = await Promise.all([
+        swapOrConvQuery,
+        supabase.from('messages')
+          .select('id, content, sender_profile_id, created_at, read_at')
+          .eq('conversation_id', resolvedConversationId)
+          .order('created_at', { ascending: true }),
+      ]);
+
+      if (!cancelled && swapOrConvRes.data) {
+        if (swapIdToLoad) {
+          const s = swapOrConvRes.data as unknown as SwapWithProfiles & { gadget?: SwapGadget | SwapGadget[] };
           const buyerProfile = Array.isArray(s.buyer) ? (s.buyer as unknown[])[0] : s.buyer;
           const sellerProfile = Array.isArray(s.seller) ? (s.seller as unknown[])[0] : s.seller;
           const gadgetNorm = Array.isArray(s.gadget) ? (s.gadget as SwapGadget[])[0] : s.gadget ?? null;
@@ -139,22 +156,8 @@ export default function ChatThreadPage() {
             seller: sellerProfile as SwapWithProfiles['seller'],
             gadget: gadgetNorm as SwapWithProfiles['gadget'],
           });
-        }
-      } else {
-        const convWithProfiles = await supabase
-          .from('conversations')
-          .select(`
-            id,
-            buyer_profile_id,
-            seller_profile_id,
-            buyer:profiles!buyer_profile_id(display_name, avatar_url, created_at),
-            seller:profiles!seller_profile_id(display_name, avatar_url, created_at),
-            gadget:gadgets!gadget_id(id, name, image_urls)
-          `)
-          .eq('id', resolvedConversationId)
-          .single();
-        if (!cancelled && convWithProfiles.data) {
-          const c = convWithProfiles.data as Record<string, unknown>;
+        } else {
+          const c = swapOrConvRes.data as Record<string, unknown>;
           const buyerProfile = Array.isArray(c.buyer) ? (c.buyer as Record<string, unknown>[])[0] : c.buyer;
           const sellerProfile = Array.isArray(c.seller) ? (c.seller as Record<string, unknown>[])[0] : c.seller;
           const gadgetNorm = Array.isArray(c.gadget) ? (c.gadget as SwapGadget[])[0] : (c.gadget as SwapGadget) ?? null;
@@ -169,12 +172,6 @@ export default function ChatThreadPage() {
           });
         }
       }
-
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('id, content, sender_profile_id, created_at, read_at')
-        .eq('conversation_id', resolvedConversationId)
-        .order('created_at', { ascending: true });
 
       if (!cancelled && messagesData) setMessages((messagesData as MessageRow[]));
       if (!cancelled) setLoading(false);
@@ -276,7 +273,11 @@ export default function ChatThreadPage() {
   const handleSend = async () => {
     const text = message.trim();
     if (!text || !userId || !conversationId || sending) return;
-    Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+    import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
+      Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+      });
+    }).catch(() => {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     setSending(true);
@@ -610,12 +611,12 @@ export default function ChatThreadPage() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
-      <header className="shrink-0 px-6 pb-6 flex items-center gap-4 bg-transparent z-[60]" style={{ paddingTop: 'max(3rem, env(safe-area-inset-top))' }}>
+      <header className="shrink-0 px-6 pb-6 flex items-center gap-4 bg-transparent z-[60] pt-safe-3">
         <button
           onClick={() => router.push('/messages')}
           className="text-relay-muted hover:text-relay-text dark:hover:text-relay-text-dark transition-colors"
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <ChevronIcon direction="left" className="size-6" />
         </button>
         <button
           type="button"
