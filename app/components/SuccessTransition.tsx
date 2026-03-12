@@ -251,7 +251,7 @@ export function SuccessTransition({ onComplete }: SuccessTransitionProps) {
           <div
             className="pointer-events-none absolute z-30 rounded-full bg-[var(--orange,rgba(240,78,15,1))]"
             style={{
-              '--orange': ORANGE as unknown as string,
+              ['--orange' as string]: ORANGE,
               width: 1200,
               height: 1200,
               top: '50%',
