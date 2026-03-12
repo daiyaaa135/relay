@@ -447,11 +447,11 @@ export default function LandingPage() {
               aria-label="Filters"
               className={`size-14 rounded-2xl border flex items-center justify-center transition-all active-scale ${showFilters || selectedConditions.length > 0 || selectedBrands.length > 0 || selectedStorages.length > 0 ? 'border-transparent text-primary bg-primary/5' : 'border-relay-border dark:border-relay-border-dark text-relay-muted hover:text-relay-text'}`}
             >
-              <FilterIcon className="size-7 shrink-0 text-current" />
+              <FilterIcon className="size-6 shrink-0 text-current" />
             </button>
           )}
         </div>
-        <div className="flex gap-3 overflow-x-auto hide-scrollbar py-0.5 px-1 items-center">
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar py-0.5 px-1 items-center">
           {categories.map((cat, index) => {
             const isActive = selectedCategory === cat.name;
             return (
@@ -534,7 +534,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain pb-20" style={{ marginTop: '-1px' }}>
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain pb-20 pt-4" style={{ marginTop: '-1px' }}>
 
       {upcomingMeetup && (
         <div
@@ -542,7 +542,7 @@ export default function LandingPage() {
           tabIndex={0}
           onClick={() => router.push(`/meetup/${upcomingMeetup.swapId}`)}
           onKeyDown={(e) => e.key === 'Enter' && router.push(`/meetup/${upcomingMeetup.swapId}`)}
-          className="mx-6 mt-0 p-5 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
+          className="mx-6 mt-0 mb-4 p-5 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
         >
           <p className="text-relay-text dark:text-relay-text-dark font-semibold text-base mb-1">
             {upcomingMeetup.stage === 1 && 'Preparing for your meetup...'}
@@ -612,7 +612,7 @@ export default function LandingPage() {
         </div>
       )}
 
-      <div className="px-6 pt-0 pb-32">
+      <div className="px-6 pt-4 pb-32">
         {selectedCategory === 'Explore' ? (
           <>
             <div className="grid grid-cols-2 gap-4">
