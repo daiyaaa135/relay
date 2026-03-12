@@ -571,28 +571,18 @@ export default function LandingPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
+                className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
               >
                 <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
+                  width="15"
+                  height="15"
+                  viewBox="0 0 64 64"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="size-[18px] shrink-0 text-current"
+                  className="size-[15px] shrink-0 text-current"
                   aria-hidden
                 >
-                  <g clipPath="url(#clip0_403_3286)">
-                    <path
-                      d="M23.1189 0.882014C22.7604 0.519141 22.3144 0.254869 21.8239 0.11473C21.3334 -0.0254085 20.8151 -0.0366769 20.3189 0.0820139L4.31895 3.45201C3.39753 3.57838 2.52968 3.95949 1.81315 4.55243C1.09662 5.14536 0.559862 5.92657 0.263324 6.80808C-0.033214 7.68959 -0.0777536 8.63638 0.134721 9.54183C0.347196 10.4473 0.808246 11.2754 1.46595 11.933L3.18395 13.65C3.27693 13.743 3.35067 13.8534 3.40095 13.9748C3.45123 14.0963 3.47705 14.2265 3.47695 14.358V17.526C3.47916 17.9714 3.5817 18.4107 3.77695 18.811L3.76895 18.818L3.79495 18.844C4.08796 19.4331 4.56653 19.9096 5.15695 20.2L5.18295 20.226L5.18995 20.218C5.59031 20.4133 6.02952 20.5158 6.47495 20.518H9.64295C9.908 20.5178 10.1623 20.6228 10.3499 20.81L12.0669 22.527C12.5275 22.9926 13.0756 23.3625 13.6797 23.6153C14.2839 23.8681 14.9321 23.9989 15.5869 24C16.1327 23.9993 16.6747 23.9102 17.1919 23.736C18.0654 23.4492 18.8413 22.924 19.4322 22.2197C20.023 21.5154 20.4053 20.66 20.5359 19.75L23.9109 3.71501C24.0358 3.21465 24.0284 2.69043 23.8896 2.19378C23.7507 1.69712 23.4852 1.24508 23.1189 0.882014ZM4.59995 12.238L2.88095 10.521C2.48067 10.1304 2.20012 9.63366 2.07224 9.08917C1.94435 8.54468 1.97443 7.97501 2.15895 7.44701C2.33784 6.90534 2.66855 6.42644 3.11175 6.06728C3.55494 5.70811 4.09196 5.4838 4.65895 5.42101L20.4999 2.08601L5.47495 17.113V14.358C5.47646 13.9644 5.39991 13.5743 5.24972 13.2104C5.09953 12.8465 4.87868 12.516 4.59995 12.238ZM18.5709 19.408C18.4942 19.9604 18.265 20.4804 17.909 20.9097C17.5531 21.339 17.0846 21.6606 16.5561 21.8384C16.0275 22.0162 15.4599 22.0431 14.9169 21.9163C14.3739 21.7894 13.877 21.5136 13.4819 21.12L11.7619 19.4C11.4843 19.1209 11.1541 18.8995 10.7904 18.7488C10.4267 18.5981 10.0367 18.521 9.64295 18.522H6.88795L21.9149 3.50001L18.5709 19.408Z"
-                      fill="#374957"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_403_3286">
-                      <rect width="24" height="24" fill="white" />
-                    </clipPath>
-                  </defs>
+                  <path d="M56 8L8 32L28 36L32 56L56 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Get directions
               </a>
@@ -600,11 +590,10 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); router.push(`/messages/${upcomingMeetup.conversationId ?? upcomingMeetup.swapId}`); }}
-              className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
+              className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
             >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="size-[18px] shrink-0 text-current" aria-hidden>
-                  <path d="M11.2885 10.2372C11.0054 9.38779 9.92735 9.13331 9.29426 9.7664L8.53033 10.5303C8.23744 10.8232 7.76256 10.8232 7.46967 10.5303C7.17678 10.2374 7.17678 9.76256 7.46967 9.46967L8.2336 8.70574C9.65517 7.28417 12.0758 7.8556 12.7115 9.76283C12.9946 10.6122 14.0726 10.8667 14.7057 10.2336L15.4697 9.46967C15.7626 9.17678 16.2374 9.17678 16.5303 9.46967C16.8232 9.76256 16.8232 10.2374 16.5303 10.5303L15.7664 11.2943C14.3448 12.7158 11.9242 12.1444 11.2885 10.2372Z" fill="currentColor" />
-                  <path fillRule="evenodd" clipRule="evenodd" d="M9.96644 1.25H14.0336C15.4053 1.25 16.4807 1.24999 17.3451 1.32061C18.2252 1.39252 18.9523 1.54138 19.6104 1.87671C20.6924 2.42798 21.572 3.30762 22.1233 4.38955C22.4586 5.04769 22.6075 5.77479 22.6794 6.65494C22.75 7.51928 22.75 8.59471 22.75 9.96642V11.1842C22.75 11.2338 22.75 11.2828 22.75 11.3311C22.7502 12.8797 22.7504 13.8244 22.5177 14.6179C21.9667 16.4971 20.4971 17.9667 18.6179 18.5177C17.8244 18.7504 16.8797 18.7502 15.3311 18.75C15.2827 18.75 15.2338 18.75 15.1842 18.75H14.6354L14.5751 18.7501C13.7079 18.7556 12.8632 19.0264 12.1543 19.5259L12.1051 19.5609L9.49441 21.4257C7.9899 22.5003 6.01288 20.9484 6.69954 19.2317C6.79183 19.001 6.62191 18.75 6.37341 18.75H5.77166C3.27441 18.75 1.25 16.7256 1.25 14.2283L1.25 9.96644C1.25 8.59472 1.24999 7.51929 1.32061 6.65494C1.39252 5.77479 1.54138 5.04769 1.87671 4.38955C2.42798 3.30762 3.30762 2.42798 4.38955 1.87671C5.04769 1.54138 5.77479 1.39252 6.65494 1.32061C7.51929 1.24999 8.59472 1.25 9.96644 1.25ZM6.77708 2.81563C5.9897 2.87996 5.48197 3.00359 5.07054 3.21322C4.27085 3.62068 3.62068 4.27085 3.21322 5.07054C3.00359 5.48197 2.87996 5.9897 2.81563 6.77708C2.75058 7.57322 2.75 8.58749 2.75 10V14.2283C2.75 15.8972 4.10284 17.25 5.77166 17.25H6.37341C7.68311 17.25 8.57867 18.5728 8.09226 19.7888C7.96197 20.1145 8.33709 20.409 8.62255 20.2051L11.2333 18.3403L11.2902 18.2997C12.2493 17.6239 13.3922 17.2576 14.5655 17.2501L14.6354 17.25H15.1842C16.9261 17.25 17.6363 17.2424 18.1958 17.0783C19.5848 16.671 20.671 15.5848 21.0783 14.1958C21.2424 13.6363 21.25 12.9261 21.25 11.1842V10C21.25 8.58749 21.2494 7.57322 21.1844 6.77708C21.12 5.9897 20.9964 5.48197 20.7868 5.07054C20.3793 4.27085 19.7291 3.62068 18.9295 3.21322C18.518 3.00359 18.0103 2.87996 17.2229 2.81563C16.4268 2.75058 15.4125 2.75 14 2.75H10C8.58749 2.75 7.57322 2.75058 6.77708 2.81563Z" fill="currentColor" />
+                <svg width="18" height="18" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="size-[18px] shrink-0 text-current" aria-hidden>
+                  <path d="M10 8H54C55.1 8 56 8.9 56 10V42C56 43.1 55.1 44 54 44H24L10 56V44C8.9 44 8 43.1 8 42V10C8 8.9 8.9 8 10 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Message
             </button>
