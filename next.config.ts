@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import { loadEnvConfig } from "@next/env";
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
 
 // Ensure .env.local is loaded before reading env (Turbopack/cwd can leave process.env empty)
 loadEnvConfig(process.cwd());
@@ -35,6 +38,9 @@ const nextConfig: NextConfig = {
   typescript: {
     // TODO: fix remaining TS errors and remove this flag
     ignoreBuildErrors: true,
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
   },
   serverExternalPackages: ['tesseract.js'],
   // Expose env to API routes and client (Next/Turbopack may not pass .env.local to all workers)
@@ -92,4 +98,4 @@ const nextConfig: NextConfig = {
       },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);
