@@ -948,7 +948,7 @@ function ListingDetailPageContent() {
             const hasActiveBuyerSwap = !!activeSwap;
             const hasEnoughCredits = credits >= item.credits;
             const fullyLoaded = creditsLoaded && activeSwapLoaded;
-            const canCancel = fullyLoaded && hasEnoughCredits && !hasActiveBuyerSwap;
+            const canCancel = fullyLoaded && hasEnoughCredits && !hasActiveBuyerSwap && item.status === 'available';
             const blockedReason = !fullyLoaded
               ? null
               : hasActiveBuyerSwap
@@ -960,6 +960,15 @@ function ListingDetailPageContent() {
               return (
                 <div className="flex-1 rounded-3xl flex flex-col items-center justify-center gap-0.5 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark px-4" style={{ height: '42px' }}>
                   <span className="text-xs font-semibold tracking-[0.1em] text-relay-muted dark:text-relay-muted-light">Your listing</span>
+                </div>
+              );
+            }
+            if (item.status === 'swapped') {
+              return (
+                <div className="flex-1 rounded-3xl flex items-center justify-center bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark px-4" style={{ height: '42px' }}>
+                  <span className="text-xs font-semibold tracking-[0.1em] text-relay-muted dark:text-relay-muted-light">
+                    Listing completed
+                  </span>
                 </div>
               );
             }

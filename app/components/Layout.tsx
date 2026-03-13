@@ -133,7 +133,7 @@ const BottomNav: React.FC = () => {
                   <span className={`material-symbols-outlined ${isActive ? 'fill-1' : ''}`}>{item.icon}</span>
                 )}
                 {hasBadge && (
-                  <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-relay-text dark:bg-relay-text-dark border-2 border-relay-surface dark:border-relay-surface-dark" />
+                  <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-primary border-2 border-relay-surface dark:border-relay-surface-dark" />
                 )}
               </div>
               <span className={`text-[10px] font-normal tracking-tighter transition-opacity duration-200 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>{item.label}</span>

@@ -2231,9 +2231,6 @@ export default function StepPage() {
         {isPhoneFlow && currentStep === 2 && (
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">
-                Device Verification
-              </h2>
               <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
                 {isGooglePhone
                   ? <>Upload a screenshot of your phone&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page. For Google Pixel we also need a Storage page screenshot, and if you selected Unlocked, a screenshot of Developer Options with &quot;OEM unlocking&quot; toggled on.</>
@@ -2318,11 +2315,8 @@ export default function StepPage() {
         {isTabletFlow && currentStep === 2 && isTabletUnlocked && (
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">
-                Device Verification
-              </h2>
               <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
-                Upload a screenshot of your iPad&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page (Settings → General → About) showing the IMEI. We&apos;ll verify the IMEI and model match.
+                Upload a screenshot of your iPad&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page (Settings → General → About) showing the IMEI.
               </p>
             </div>
             <div className="flex flex-col items-center gap-3">
@@ -2359,11 +2353,8 @@ export default function StepPage() {
         {((isLaptopFlow || (isTabletFlow && !isTabletUnlocked)) && currentStep === 2) && (
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">
-                Device Verification
-              </h2>
               <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
-                Upload a screenshot showing the serial number (e.g. About This Mac, Settings → About, or the serial on the device/label). We’ll verify it matches the serial you entered in Step 1 and confirm the model with SNLookup.
+                Upload a screenshot showing the serial number (e.g. About This Mac, Settings → About, or the serial on the device/label).
               </p>
             </div>
             <div className="flex flex-col items-center gap-3">
