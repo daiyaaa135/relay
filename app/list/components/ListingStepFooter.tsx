@@ -45,7 +45,7 @@ export type ListingStepFooterProps =
   | ReviewFooterProps;
 
 const barClassName =
-  'fixed bottom-0 left-0 right-0 pt-2 px-4 pb-10 glass-card border-0 border-t border-relay-border dark:border-relay-border-dark backdrop-blur-[12px] z-[9999] max-w-md mx-auto rounded-t-2xl';
+  'fixed bottom-0 left-0 right-0 pt-2 px-4 pb-[calc(var(--safe-bottom)*0.4+0.5rem)] glass-card border-0 border-t border-relay-border dark:border-relay-border-dark backdrop-blur-[12px] z-[9999] max-w-md mx-auto rounded-t-2xl';
 const barStyle: React.CSSProperties = { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 };
 
 export function ListingStepFooter(props: ListingStepFooterProps) {

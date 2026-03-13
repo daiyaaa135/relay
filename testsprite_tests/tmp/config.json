@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "daiyachen.work@gmail.com",
+  "loginPassword": "Dach9898!",
+  "executionArgs": {
+    "projectName": "relay",
+    "projectPath": "/Users/serenachan/Documents/dev/relay",
+    "testIds": [],
+    "additionalInstruction": "",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-FyodxGuDliiy5eIwmtMqn2_TgWoMGddY5PW0sqdEdYsbjBv82nlpkI4_NxeO_9hdcKoRrUDZGdSpvnjULcr7bX8hu8NRYJm2ZY_E-c1YFgers8GpyKA5ut15c28i48up9Pk"
+    }
+  },
+  "serverPort": 60618,
+  "proxy": "http://a112460d-2811-4c98-9b31-95bec8d01c34:lQQHFvPUEDzfy4a1QdV2YGjVuab5ZBOB@tun.testsprite.com:8080"
+}

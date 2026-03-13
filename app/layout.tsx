@@ -37,10 +37,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#FF5721" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-        />
+        {/* Google Fonts — Material Symbols */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
@@ -50,6 +48,10 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
+        {/* Adobe Fonts — Orpheus Pro (headings/titles) */}
+        {/* Replace YOUR_KIT_ID with your Typekit kit ID from fonts.adobe.com */}
+        <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://use.typekit.net/YOUR_KIT_ID.css" />
       </head>
       <body
         className="antialiased bg-relay-bg text-relay-text"

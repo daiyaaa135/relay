@@ -47,6 +47,8 @@ export interface ListingDraft {
   /** Video Games only */
   videoGameName: string;
   videoGameCondition: string;
+  /** Battery health percentage string (e.g. "87"). Phones, Tablets, Laptops, Gaming Handhelds, MP3 only. */
+  batteryHealth: string;
 }
 
 function persistValuation(credits: number | null, price: number | null) {
@@ -107,6 +109,8 @@ export interface ListingContextValue {
   setVideoGameName: (v: string) => void;
   videoGameCondition: string;
   setVideoGameCondition: (v: string) => void;
+  batteryHealth: string;
+  setBatteryHealth: (v: string) => void;
   description: string;
   setDescription: (v: string) => void;
   accessories: string[];
@@ -378,6 +382,7 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
   const [imei, setImei] = useState('');
   const [videoGameName, setVideoGameName] = useState('');
   const [videoGameCondition, setVideoGameCondition] = useState('');
+  const [batteryHealth, setBatteryHealth] = useState('');
   const [color, setColor] = useState('');
   const [carrier, setCarrier] = useState('Unlocked');
   const [listingLocation, setListingLocation] = useState<{
@@ -517,13 +522,14 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
         laptopVerificationMessage,
         videoGameName,
         videoGameCondition,
+        batteryHealth,
       };
       window.localStorage.setItem(LISTING_DRAFT_KEY, JSON.stringify(draft));
       if (swappaCredits != null || swappaPrice != null) {
         persistValuation(swappaCredits, swappaPrice);
       }
     } catch {}
-  }, [category, brand, modelName, condition, frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight, conditionPercentage, storage, ram, color, carrier, imei, description, accessories, functionalityOptions, consoleFunctional, verificationCode, listingLocation, listingPhotoUrls, swappaCredits, swappaPrice, chipCpu, year, size, verificationStatus, verificationMessage, laptopSerialNumber, laptopVerificationStatus, laptopVerificationMessage, videoGameName, videoGameCondition]);
+  }, [category, brand, modelName, condition, frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight, conditionPercentage, storage, ram, color, carrier, imei, description, accessories, functionalityOptions, consoleFunctional, verificationCode, listingLocation, listingPhotoUrls, swappaCredits, swappaPrice, chipCpu, year, size, verificationStatus, verificationMessage, laptopSerialNumber, laptopVerificationStatus, laptopVerificationMessage, videoGameName, videoGameCondition, batteryHealth]);
 
   const loadDraft = useCallback((): { step: number } | null => {
     if (typeof window === 'undefined') return null;
@@ -569,6 +575,7 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
       setLaptopVerificationMessage(draft.laptopVerificationMessage ?? '');
       setVideoGameName(draft.videoGameName ?? '');
       setVideoGameCondition(draft.videoGameCondition ?? '');
+      setBatteryHealth(draft.batteryHealth ?? '');
       return { step: draft.step };
     } catch {
       return null;
@@ -636,6 +643,8 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
     setVideoGameName,
     videoGameCondition,
     setVideoGameCondition,
+    batteryHealth,
+    setBatteryHealth,
     description,
     setDescription,
     accessories,

@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Next.js dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "name": "relay",
+      "runtimeExecutable": "node_modules/.bin/next",
+      "runtimeArgs": ["dev", "--no-turbopack"],
       "port": 3000,
       "autoPort": true
     }

@@ -8,6 +8,10 @@ import { LockIcon } from '@/app/components/LockIcon';
 import { createClient, INVALID_API_KEY_MESSAGE } from '@/lib/supabase';
 import styles from './login.module.css';
 
+const HERO_PHONE_IMG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNCcYl4u8O_H-LaOWuaXugtHtEshXJZbQmvNkpbSTIQYBeY_OiM05IBRomz4-Vyg63ZDe_HmBBjKajXKRAKai2rG9H2NfctNqy0bH7ahVy9UVHtcr6-lDOUchDSJtuJpZBLilzeVJQk1wDfAMy7ttqsXP2cG6Hy3rR1KmiFqSsu1EEXhn_ep8_goan1atzGG-XHifO8f7Jiocs246aK-2xED1grUroINALyT-k6627edRZN-p6ryJfJCKTiclwLZsllbQIguBu576S';
+const HERO_LAPTOP_IMG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCWhRZdhR6zFFatwI1WGH_46wTxLtpdXj285TDt3ojsRZdMJAl-DF3VrdzGx-fYLOqjLtFJS2botUm_UhFdN_fzOKZBpg39nJ5kzbKefE-ctqyfqKUZk9qP7WN_YsPxwmLgCEaDZMfbkVt-yoTEBxCFguP68vctzIjGfpf5ho5BiTzjxv5tq97PdxwczSixvhLSLw3oKgLdSLvAdYcjOno5R9LdH-sCWn9txWnaxqiPOcaruHZkoG-29-2hMfCtINxsKLwvG-8HWZL2';
+const HERO_HEADPHONES_IMG = '/hero-headphone.png';
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -138,7 +142,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-relay-bg dark:bg-relay-bg-dark transition-colors">
-      {/* Hero: upper half — illustration only */}
+      {/* Hero: upper half — match signup welcome background */}
       <div className="relative min-h-[50vh] w-full overflow-hidden bg-relay-surface dark:bg-[#1A1A1A] shrink-0">
         <div className="absolute inset-0 flex items-center justify-center opacity-40">
           <svg
@@ -157,13 +161,34 @@ export default function LoginPage() {
             <circle cx="200" cy="200" r="120" stroke="currentColor" strokeDasharray="5 5" strokeWidth="1" />
           </svg>
         </div>
-        <div className="absolute inset-0 flex items-center justify-center p-8">
-          <img
-            src="/auth-hero.svg"
-            alt=""
-            className="w-40 max-w-full h-auto drop-shadow-2xl"
-            aria-hidden
-          />
+        <div className="absolute inset-0 p-8 grid grid-cols-2 gap-4">
+          <div className="gadget-float stagger-1 flex justify-center items-end">
+            <img
+              alt="Smartphone"
+              className="w-24 h-24 object-contain drop-shadow-2xl rounded-xl"
+              src={HERO_PHONE_IMG}
+            />
+          </div>
+          <div
+            className="gadget-float stagger-2 flex justify-center items-center"
+            style={{ animation: 'gadget-float 6s ease-in-out infinite 1.5s' }}
+          >
+            <img
+              alt="Laptop"
+              className="w-32 h-32 object-contain drop-shadow-2xl rounded-xl"
+              src={HERO_LAPTOP_IMG}
+            />
+          </div>
+          <div
+            className="gadget-float stagger-3 flex justify-center items-start col-span-2"
+            style={{ animation: 'gadget-float 6s ease-in-out infinite 3s' }}
+          >
+            <img
+              alt="Headphones"
+              className="w-28 h-28 object-contain drop-shadow-2xl rounded-xl"
+              src={HERO_HEADPHONES_IMG}
+            />
+          </div>
         </div>
         <div className="absolute top-0 left-0 p-4 z-10 pt-safe-1">
           <button

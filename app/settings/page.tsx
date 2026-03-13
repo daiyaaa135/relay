@@ -122,7 +122,7 @@ export default function SettingsPage() {
         { label: 'Notifications', icon: 'notifications', path: '/settings/notifications', iconComponent: NotificationIcon },
         { label: 'Privacy & Safety', icon: 'shield', path: '/safety', iconComponent: PrivacyIcon },
         { label: 'Availability', icon: 'schedule', path: '/settings/availability', iconComponent: AvailabilityIcon },
-        { label: 'Reset password', icon: 'lock_reset', path: '/forgot-password?from=settings', iconComponent: ResetPasswordIcon },
+        { label: 'Reset password', icon: 'lock_reset', path: '/reset-password', iconComponent: ResetPasswordIcon },
         { label: 'Appearance', icon: 'dark_mode', type: 'toggle', iconComponent: AppearanceIcon },
       ]
     },

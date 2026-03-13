@@ -738,18 +738,68 @@ function ListingDetailPageContent() {
 
           {/* Description & Bundled Extras */}
           {(() => {
-            const specsWithoutImei = item.specs
-              ? item.specs.replace(/\b\d{15}\b|\b\d{2}\s+\d{6}\s+\d{6}\s+\d{1}\b/g, '').replace(/\s*•\s*•/g, ' •').replace(/^\s*•\s*|\s*•\s*$/g, '').trim()
-              : '';
+            const rawDescription = item.description ?? '';
+
+            // ── Accessories ──
             let accessories: string[] = [];
-            let descriptionText = item.description ?? '';
-            const accessoryMatch = descriptionText.match(/^Accessories:\s*(.+)/m);
+            const accessoryMatch = rawDescription.match(/^Accessories:\s*(.+)/m);
             if (accessoryMatch) {
-              accessories = accessoryMatch[1].split(',').map((a) => a.trim()).filter(Boolean);
-              descriptionText = descriptionText.replace(/^Accessories:\s*.+\n?/m, '').trim();
+              accessories = accessoryMatch[1].split(',').map((a: string) => a.trim()).filter(Boolean);
             }
-            let displayText = [specsWithoutImei, descriptionText].filter(Boolean).join('. ') || 'No details provided.';
-            displayText = displayText.replace(/\.\s*;\s*/g, '. ').replace(/;\s*\./g, '. ');
+
+            // ── Functionality line ──
+            // Maps long checklist sentences → concise feature labels
+            const FUNC_FEATURE_MAP: [string, string][] = [
+              ['The device turns on, turns off, and charges', 'powers on & charges'],
+              ['The front and rear cameras work perfectly', 'cameras'],
+              ['The speakers and microphones work perfectly', 'speakers & mic'],
+              ['Touch ID and Face ID are functional', 'biometrics'],
+              ['All other features including Wi-Fi, Bluetooth', 'Wi-Fi & Bluetooth'],
+              ['Powers on and off with no issues, and charges properly', 'powers on & charges'],
+              ['Reads cartridges properly', 'cartridges'],
+              ['The hinge is not damaged', 'hinge'],
+              ['LCD screen has no issues', 'screen'],
+              ['Touchscreen functions correctly', 'touchscreen'],
+              ['Sound works properly', 'sound'],
+              ['All buttons function normally', 'buttons'],
+            ];
+            let functionalityLine = '';
+            const funcMatch = rawDescription.match(/^Functional:\s*(.+)/m);
+            if (funcMatch) {
+              const rawFunc = funcMatch[1];
+              const confirmedFeatures: string[] = [];
+              for (const [pattern, label] of FUNC_FEATURE_MAP) {
+                if (rawFunc.includes(pattern)) confirmedFeatures.push(label);
+              }
+              if (confirmedFeatures.length > 0) {
+                functionalityLine = `Confirmed working: ${confirmedFeatures.join(', ')}.`;
+              }
+            }
+            // Console "Device functional: Yes/No" fallback
+            const consoleFuncMatch = rawDescription.match(/^Device functional:\s*(.+)/m);
+            if (!functionalityLine && consoleFuncMatch) {
+              const val = consoleFuncMatch[1].trim();
+              functionalityLine = `Device functional: ${val}.`;
+            }
+
+            // ── Battery health line ──
+            let batteryLine = '';
+            const batteryMatch = rawDescription.match(/^Battery health:\s*(\d+)%/m);
+            if (batteryMatch) {
+              const pct = parseInt(batteryMatch[1], 10);
+              const label = pct >= 90 ? 'excellent' : pct >= 80 ? 'solid' : pct >= 70 ? 'fair' : 'low';
+              batteryLine = `Battery health: ${pct}% — ${label}.`;
+            }
+
+            // ── Cosmetics / condition line ──
+            let conditionLine = '';
+            const condDetailsMatch = rawDescription.match(/^Condition details:\s*(.+)/m);
+            if (condDetailsMatch) {
+              conditionLine = `Cosmetics: ${condDetailsMatch[1].trim()}.`;
+            }
+
+            const structuredLines = [functionalityLine, conditionLine, batteryLine].filter(Boolean);
+
             const accessoryIcons: Record<string, string> = {
               'Charging Cable': 'cable',
               'SIM Ejector Pin': 'sim_card',
@@ -760,9 +810,15 @@ function ListingDetailPageContent() {
               <div className="space-y-4 py-2">
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-semibold tracking-tight text-relay-muted dark:text-relay-muted-light">Description</h4>
-                  <p className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">
-                    {displayText}
-                  </p>
+                  {structuredLines.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {structuredLines.map((line, i) => (
+                        <p key={i} className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">{line}</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">No details provided.</p>
+                  )}
                 </div>
 
                 {accessories.length > 0 && (
@@ -1176,17 +1232,15 @@ function ListingDetailPageContent() {
               </div>
             </div>
             <div className="space-y-3">
-              <button 
+              <NextStepButton 
+                type="button"
                 onClick={confirmSwap}
                 disabled={isSwapping}
-                className="w-full rounded-2xl bg-primary text-white font-semibold text-xs tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active-scale"
+                className="w-full rounded-2xl tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active-scale"
                 style={{ height: '42px' }}
               >
-                <>
-                  <span className="material-symbols-outlined">verified</span>
-                  Confirm Swap
-                </>
-              </button>
+                Finalize
+              </NextStepButton>
               <button 
                 onClick={() => setShowConfirm(false)}
                 className="w-full rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark font-semibold text-xs tracking-widest active-scale"

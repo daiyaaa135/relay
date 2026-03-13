@@ -241,7 +241,7 @@ export function BrowseCategoryClient({ initialData }: { initialData?: BrowseResp
         )}
 
         {!loading && !error && data && (
-          <div className="px-4 pt-6 space-y-8">
+          <div className="px-4 pt-3 space-y-8">
             {data.brands.map(({ brand, devices }) => (
               <section key={brand}>
                 {(() => {

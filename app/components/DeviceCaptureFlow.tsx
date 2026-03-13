@@ -9,6 +9,7 @@ import {
   type CaptureStep,
 } from '@/lib/DeviceCaptureConfig';
 import { CameraOverlay } from './CameraOverlay';
+import { NextStepButton } from '@/app/components/NextStepButton';
 import { createClient } from '@/lib/supabase';
 
 const isNative = () => typeof window !== 'undefined' && Capacitor.isNativePlatform();
@@ -279,12 +280,11 @@ export function DeviceCaptureFlow({
             <p className="text-white/90 text-center text-sm font-medium">All required photos captured. Closing…</p>
           ) : (
             <div className="flex flex-col gap-3 w-full max-w-sm">
-              <button
+              <NextStepButton
                 type="button"
                 onClick={() => captureWithNativeCamera('CAMERA')}
                 disabled={uploading}
-                className="w-full rounded-xl bg-primary text-white font-bold text-xs tracking-widest flex items-center justify-center gap-2 disabled:opacity-60"
-                style={{ height: '42px' }}
+                className="w-full h-[42px] rounded-xl tracking-widest flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {uploading ? (
                   <span className="size-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -294,7 +294,7 @@ export function DeviceCaptureFlow({
                     Take photo
                   </>
                 )}
-              </button>
+              </NextStepButton>
             </div>
           )}
         </div>
@@ -352,12 +352,11 @@ export function DeviceCaptureFlow({
             All required photos captured. Closing…
           </p>
         ) : (
-          <button
+          <NextStepButton
             type="button"
             onClick={capturePhoto}
             disabled={uploading}
-            className="w-full rounded-xl bg-primary text-white font-bold text-xs tracking-widest flex items-center justify-center gap-2 disabled:opacity-60"
-            style={{ height: '42px' }}
+            className="w-full h-[42px] rounded-xl tracking-widest flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {uploading ? (
               <span className="size-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -367,7 +366,7 @@ export function DeviceCaptureFlow({
                 {currentStep ? `Capture ${currentStep}` : 'Capture'}
               </>
             )}
-          </button>
+          </NextStepButton>
         )}
       </div>
     </div>

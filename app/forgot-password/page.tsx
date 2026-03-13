@@ -58,7 +58,7 @@ function ForgotPasswordPageContent() {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 items-center justify-center px-8 bg-relay-surface dark:bg-relay-surface-dark relative transition-colors overflow-hidden">
+    <div className="flex flex-col flex-1 min-h-0 items-center justify-center px-8 bg-relay-surface dark:bg-relay-surface-dark relative transition-colors">
       <div className="absolute top-8 left-6 z-20">
         <button
           onClick={() => {
