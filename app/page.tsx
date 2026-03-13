@@ -439,19 +439,34 @@ function LandingPageContent() {
             onChange={setSearchQuery}
             placeholder="Search marketplace..."
             onSelectDevice={(device) => {
-              router.push(`/browse/${encodeURIComponent(device.category)}/${encodeURIComponent(device.brand)}/${encodeURIComponent(device.model)}${device.image_url ? `?img=${encodeURIComponent(device.image_url)}` : ''}`);
+              router.push(
+                `/browse/${encodeURIComponent(device.category)}/${encodeURIComponent(device.brand)}/${encodeURIComponent(device.model)}${
+                  device.image_url ? `?img=${encodeURIComponent(device.image_url)}` : ''
+                }`,
+              );
             }}
           />
-          {selectedCategory !== 'Explore' && selectedCategory !== 'All' && (
-            <button
-              type="button"
-              onClick={() => setShowFilters(true)}
-              aria-label="Filters"
-              className={`size-14 rounded-sm border flex items-center justify-center transition-all active-scale ${showFilters || selectedConditions.length > 0 || selectedBrands.length > 0 || selectedStorages.length > 0 ? 'border-transparent text-primary bg-primary/5' : 'border-relay-border dark:border-relay-border-dark text-relay-muted hover:text-relay-text'}`}
-            >
-              <FilterIcon className="size-6 shrink-0 text-current" />
-            </button>
-          )}
+          <div className="size-14 flex items-center justify-center">
+            {selectedCategory !== 'Explore' && selectedCategory !== 'All' ? (
+              <button
+                type="button"
+                onClick={() => setShowFilters(true)}
+                aria-label="Filters"
+                className={`size-14 rounded-sm border flex items-center justify-center transition-all active-scale ${
+                  showFilters ||
+                  selectedConditions.length > 0 ||
+                  selectedBrands.length > 0 ||
+                  selectedStorages.length > 0
+                    ? 'border-transparent text-primary bg-primary/5'
+                    : 'border-relay-border dark:border-relay-border-dark text-relay-muted hover:text-relay-text'
+                }`}
+              >
+                <FilterIcon className="size-6 shrink-0 text-current" />
+              </button>
+            ) : (
+              <div className="size-14 rounded-sm border border-transparent invisible" aria-hidden />
+            )}
+          </div>
         </div>
         <div className="flex gap-4 overflow-x-auto hide-scrollbar py-0.5 px-1 items-center">
           {categories.map((cat, index) => {
@@ -841,24 +856,24 @@ function LandingPageContent() {
                     <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light">chevron_right</span>
                   </button>
                   <div className="py-4">
-                    <p className="text-[10px] font-bold tracking-tight text-relay-muted dark:text-relay-muted-light">Proximity</p>
+                    <p className="text-[10px] font-bold tracking-tight text-relay-muted dark:text-relay-muted-light">Distance</p>
                     {userLocation && (
                       <p className="text-xs font-medium text-relay-text dark:text-relay-text-dark mt-0.5">
                         {`${distanceRange} miles`}
                       </p>
                     )}
                     {!userLocation ? (
-                      <div className="mt-3 p-4 rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
+                      <div className="mt-3">
                         {locationError && (
                           <p className="text-[10px] text-relay-text dark:text-relay-text-dark/80 mb-2" role="alert">
                             {locationError}
                           </p>
                         )}
-                        <div
+                        <button
+                          type="button"
                           onClick={locationLoading ? undefined : requestLocation}
-                          role="button"
                           aria-label="Share my location to see nearby swap"
-                          className="inline-flex cursor-pointer"
+                          className="inline-flex items-center justify-center"
                         >
                           <svg
                             width="24"
@@ -876,7 +891,7 @@ function LandingPageContent() {
                               fill="#FF6B59"
                             />
                           </svg>
-                        </div>
+                        </button>
                       </div>
                     ) : (
                       <div className="mt-3">

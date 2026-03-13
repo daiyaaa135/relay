@@ -44,68 +44,36 @@ const CONSOLE_ACCESSORY_OPTIONS = [
   { id: 'HDMI cable', required: false },
 ] as const;
 
-function ConsoleAccessoryField({ accessories, onToggle }: { accessories: string[]; onToggle: (item: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const optionIds = CONSOLE_ACCESSORY_OPTIONS.map((o) => o.id);
-  const selected = accessories.filter((a) => optionIds.includes(a));
-  const displayText = selected.length > 0 ? selected.join(', ') : '';
+const TABLET_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+] as const;
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+const LAPTOP_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+] as const;
 
-  return (
-    <div className="space-y-2" ref={containerRef}>
-      <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
-        Accessory
-      </label>
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-left text-relay-text dark:text-relay-text-dark px-4 text-sm flex items-center justify-between"
-        >
-          <span className={displayText ? '' : 'text-relay-muted dark:text-relay-muted-light'}>
-            {displayText || 'Select accessories'}
-          </span>
-          <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light text-lg shrink-0">
-            {open ? 'expand_less' : 'expand_more'}
-          </span>
-        </button>
-        {open && (
-          <div className="absolute top-full left-0 right-0 mt-1 z-10 rounded-lg border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark shadow-lg py-1">
-            {CONSOLE_ACCESSORY_OPTIONS.map((opt) => {
-              const isSelected = accessories.includes(opt.id);
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => onToggle(opt.id)}
-                  className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-relay-bg dark:hover:bg-relay-bg-dark"
-                >
-                  <span
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-transparent bg-primary' : 'border-relay-border dark:border-relay-border-dark'}`}
-                  >
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
-                  </span>
-                  {opt.id}
-                  {!opt.required && (
-                    <span className="text-relay-muted dark:text-relay-muted-light text-xs">(not required)</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+const HANDHELD_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+] as const;
+
+const HEADPHONES_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+  { id: 'Original box' },
+] as const;
+
+const SPEAKER_ACCESSORY_OPTIONS = [
+  { id: 'Power cable / adapter' },
+  { id: 'Remote control' },
+  { id: 'Original box' },
+] as const;
+
+const MP3_ACCESSORY_OPTIONS = [
+  { id: 'Charging/sync cable' },
+] as const;
 
 const MAPBOX_LIGHT = 'mapbox://styles/mapbox/light-v11';
 const MAPBOX_DARK = 'mapbox://styles/mapbox/dark-v11';
@@ -1511,7 +1479,7 @@ export default function StepPage() {
       ...(color.trim() && { color: color.trim() }),
       ...(carrier && !['Laptops', 'Headphones', 'Speaker', 'Console', 'Video Games', 'MP3', 'Gaming Handhelds'].includes(category) && { carrier }),
       verification_code: verificationCode,
-      credits: estimatedCredits,
+      credits: estimatedCredits ?? 0,
       ...(listingLocation && { latitude: listingLocation.latitude, longitude: listingLocation.longitude, city: listingLocation.city || undefined, state: listingLocation.state || undefined }),
       ...(listingPhotoUrls.length > 0 && { image_urls: listingPhotoUrls }),
     });
@@ -1572,7 +1540,7 @@ export default function StepPage() {
     setPickupLocation1(null);
     setPickupLocation2(null);
     clearDraft();
-    setCelebrationCredits(estimatedCredits);
+    setCelebrationCredits(estimatedCredits ?? 0);
     setShowCelebration(true);
 
     // After confirming pickup locations and creating the listing, ensure the seller
@@ -2218,9 +2186,6 @@ export default function StepPage() {
                 </div>
               </div>
             )}
-            {category === 'Console' && (
-              <ConsoleAccessoryField accessories={accessories} onToggle={toggleAccessory} />
-            )}
             {category === 'Tablets' && carrier === 'Unlocked' && imei.trim().length > 0 && imei.trim().length < 15 && (
               <p className="text-amber-600 dark:text-amber-400 text-xs">IMEI must be 15 digits for Unlocked iPad.</p>
             )}
@@ -2609,6 +2574,210 @@ export default function StepPage() {
                   <label key={a.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(a.id)}>
                     <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${accessories.includes(a.id) ? 'border-transparent bg-primary' : 'border-relay-border dark:border-relay-border-dark'}`}>{accessories.includes(a.id) && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}</span>
                     <span className="text-[9px] tracking-widest text-relay-muted">{a.id}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {category === 'Console' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+                  Included Accessories
+                </label>
+                {CONSOLE_ACCESSORY_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggleAccessory(opt.id)}
+                  >
+                    <span
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        accessories.includes(opt.id)
+                          ? 'border-transparent bg-primary'
+                          : 'border-relay-border dark:border-relay-border-dark'
+                      }`}
+                    >
+                      {accessories.includes(opt.id) && (
+                        <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                      )}
+                    </span>
+                    <span className="text-[9px] tracking-widest text-relay-muted">
+                      {opt.id}
+                      {opt.required ? ' (required)' : ''}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {category === 'Tablets' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+                  Included Accessories
+                </label>
+                {TABLET_ACCESSORY_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggleAccessory(opt.id)}
+                  >
+                    <span
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        accessories.includes(opt.id)
+                          ? 'border-transparent bg-primary'
+                          : 'border-relay-border dark:border-relay-border-dark'
+                      }`}
+                    >
+                      {accessories.includes(opt.id) && (
+                        <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                      )}
+                    </span>
+                    <span className="text-[9px] tracking-widest text-relay-muted">
+                      {opt.id}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {category === 'Laptops' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+                  Included Accessories
+                </label>
+                {LAPTOP_ACCESSORY_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggleAccessory(opt.id)}
+                  >
+                    <span
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        accessories.includes(opt.id)
+                          ? 'border-transparent bg-primary'
+                          : 'border-relay-border dark:border-relay-border-dark'
+                      }`}
+                    >
+                      {accessories.includes(opt.id) && (
+                        <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                      )}
+                    </span>
+                    <span className="text-[9px] tracking-widest text-relay-muted">
+                      {opt.id}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {category === 'Gaming Handhelds' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+                  Included Accessories
+                </label>
+                {HANDHELD_ACCESSORY_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggleAccessory(opt.id)}
+                  >
+                    <span
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        accessories.includes(opt.id)
+                          ? 'border-transparent bg-primary'
+                          : 'border-relay-border dark:border-relay-border-dark'
+                      }`}
+                    >
+                      {accessories.includes(opt.id) && (
+                        <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                      )}
+                    </span>
+                    <span className="text-[9px] tracking-widest text-relay-muted">
+                      {opt.id}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {category === 'Headphones' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+                  Included Accessories
+                </label>
+                {HEADPHONES_ACCESSORY_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggleAccessory(opt.id)}
+                  >
+                    <span
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        accessories.includes(opt.id)
+                          ? 'border-transparent bg-primary'
+                          : 'border-relay-border dark:border-relay-border-dark'
+                      }`}
+                    >
+                      {accessories.includes(opt.id) && (
+                        <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                      )}
+                    </span>
+                    <span className="text-[9px] tracking-widest text-relay-muted">
+                      {opt.id}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {category === 'Speaker' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+                  Included Accessories
+                </label>
+                {SPEAKER_ACCESSORY_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggleAccessory(opt.id)}
+                  >
+                    <span
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        accessories.includes(opt.id)
+                          ? 'border-transparent bg-primary'
+                          : 'border-relay-border dark:border-relay-border-dark'
+                      }`}
+                    >
+                      {accessories.includes(opt.id) && (
+                        <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                      )}
+                    </span>
+                    <span className="text-[9px] tracking-widest text-relay-muted">
+                      {opt.id}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {category === 'MP3' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+                  Included Accessories
+                </label>
+                {MP3_ACCESSORY_OPTIONS.map((opt) => (
+                  <label
+                    key={opt.id}
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => toggleAccessory(opt.id)}
+                  >
+                    <span
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        accessories.includes(opt.id)
+                          ? 'border-transparent bg-primary'
+                          : 'border-relay-border dark:border-relay-border-dark'
+                      }`}
+                    >
+                      {accessories.includes(opt.id) && (
+                        <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                      )}
+                    </span>
+                    <span className="text-[9px] tracking-widest text-relay-muted">
+                      {opt.id}
+                    </span>
                   </label>
                 ))}
               </div>
