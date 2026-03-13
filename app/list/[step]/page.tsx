@@ -1742,9 +1742,12 @@ export default function StepPage() {
       const open = pickupDropdownVisible === which;
       const setOpen = (v: boolean) => setPickupDropdownVisible(v ? which : null);
       const dotColor = is1 ? '#f08070' : '#3b82f6';
-      const excludeDisplayName = is1 ? pickupLocation2?.displayName : pickupLocation1?.displayName;
-      const filtered = excludeDisplayName
-        ? suggestions.filter((s) => (s.displayName || [s.city, s.state].filter(Boolean).join(', ')) !== excludeDisplayName)
+      const other = is1 ? pickupLocation2 : pickupLocation1;
+      const makeKey = (d: { displayName?: string; city: string; state: string }) =>
+        [d.displayName ?? '', d.city ?? '', d.state ?? ''].join(' | ').toLowerCase();
+      const excludeKey = other ? makeKey(other) : null;
+      const filtered = excludeKey
+        ? suggestions.filter((s) => makeKey(s) !== excludeKey)
         : suggestions;
       return (
         <div key={which} className="relative">
@@ -1770,7 +1773,12 @@ export default function StepPage() {
           {value && (
             <div className="flex items-center gap-1 mt-1.5 pl-0.5 text-[11px] text-[#aaa]">
               <span style={{ color: dotColor }}>✓</span>
-              <span className="truncate">{value.displayName || [value.city, value.state].filter(Boolean).join(', ')}</span>
+              <span className="truncate">
+                {value.displayName}
+                {([value.city, value.state].filter(Boolean).join(', ') || '').trim()
+                  ? ` — ${[value.city, value.state].filter(Boolean).join(', ')}`
+                  : ''}
+              </span>
             </div>
           )}
           {open && (filtered.length > 0 || locationSuggestionsLoading) && (
@@ -1779,7 +1787,8 @@ export default function StepPage() {
                 <div className="p-3 text-center text-[#888] text-xs">Searching...</div>
               ) : (
                 filtered.map((s, i) => {
-                  const exact = s.displayName || [s.city, s.state].filter(Boolean).join(', ') || 'Unknown';
+                  const cityState = [s.city, s.state].filter(Boolean).join(', ');
+                  const exact = s.displayName || cityState || 'Unknown';
                   return (
                     <button
                       key={i}
@@ -1789,8 +1798,12 @@ export default function StepPage() {
                     >
                       <div className="w-7 h-7 rounded-lg bg-[#f5f4f0] dark:bg-[#333] flex items-center justify-center text-sm shrink-0">📍</div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-[#222] dark:text-gray-100 truncate">{s.displayName?.split(',')[0]?.trim() || s.city || 'Location'}</div>
-                        <div className="text-[11px] text-[#aaa] mt-0.5 truncate">{s.displayName || [s.city, s.state].filter(Boolean).join(', ')}</div>
+                        <div className="font-semibold text-[#222] dark:text-gray-100 truncate">
+                          {s.displayName?.split(',')[0]?.trim() || s.city || 'Location'}
+                        </div>
+                        <div className="text-[11px] text-[#aaa] mt-0.5 truncate">
+                          {cityState || s.displayName}
+                        </div>
                       </div>
                     </button>
                   );
@@ -1872,6 +1885,7 @@ export default function StepPage() {
   const reviewPrimaryDisabled = isSubmitting || !userId || !listingLocation || (!videoGamesNonFunctionalReview && (!hasEnoughPhotos || estimatedCredits == null || estimatedCredits <= 0));
   const photosPrimaryLabel = isValuating ? 'Processing...' : !hasEnoughPhotos ? 'CAPTURE PHOTOS' : 'COMPLETE EVALUATION';
   const photosPrimaryDisabled = isValuating || !hasEnoughPhotos;
+  const photosNextDisabled = !hasEnoughPhotos;
 
   let footerProps: ListingStepFooterProps;
   if (currentStep === 1) {
@@ -1887,7 +1901,14 @@ export default function StepPage() {
   } else if (isConditionPartStep || isFunctionalityStep) {
     footerProps = { variant: 'condition-or-functionality', nextDisabled: conditionPartBlocked || functionalityBlocked, onNext: handleNext };
   } else if (isPhotosStep) {
-    footerProps = { variant: 'photos', primaryLabel: photosPrimaryLabel, primaryDisabled: photosPrimaryDisabled, onPrimary: simulateValuation };
+    footerProps = {
+      variant: 'photos',
+      primaryLabel: photosPrimaryLabel,
+      primaryDisabled: photosPrimaryDisabled,
+      onPrimary: simulateValuation,
+      nextDisabled: photosNextDisabled,
+      onNext: handleNext,
+    };
   } else if (isReviewStep) {
     footerProps = {
       variant: 'review',
@@ -2210,7 +2231,9 @@ export default function StepPage() {
         {isPhoneFlow && currentStep === 2 && (
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">Device Verification</h2>
+              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">
+                Device Verification
+              </h2>
               <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
                 {isGooglePhone
                   ? <>Upload a screenshot of your phone&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page. For Google Pixel we also need a Storage page screenshot, and if you selected Unlocked, a screenshot of Developer Options with &quot;OEM unlocking&quot; toggled on.</>

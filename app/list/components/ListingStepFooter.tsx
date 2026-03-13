@@ -28,6 +28,8 @@ type PhotosFooterProps = BaseFooterProps & {
   primaryLabel: string;
   primaryDisabled: boolean;
   onPrimary: () => void;
+  nextDisabled: boolean;
+  onNext: () => void;
 };
 
 type ReviewFooterProps = BaseFooterProps & {
@@ -105,17 +107,26 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
   }
 
   if (variant === 'photos') {
-    const { primaryLabel, primaryDisabled, onPrimary } = props;
+    const { primaryLabel, primaryDisabled, onPrimary, nextDisabled, onNext } = props;
     return (
       <div className={`${barClassName} ${className ?? ''}`.trim()} style={barStyle}>
-        <div className="flex items-center justify-end">
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            disabled={primaryDisabled}
             onClick={onPrimary}
-            className="h-9 px-6 rounded-lg font-semibold text-[10px] tracking-widest uppercase flex items-center justify-center gap-1.5 next-step-button text-white disabled:bg-relay-bg dark:disabled:bg-relay-bg-dark disabled:text-relay-muted disabled:border disabled:border-relay-border disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={primaryDisabled}
+            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-[10px] tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
             {primaryLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={nextDisabled}
+            className="shrink-0 flex items-center justify-center size-9 rounded-full bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
+            aria-label="Next step"
+          >
+            <ChevronIcon direction="right" className="size-5" />
           </button>
         </div>
       </div>
