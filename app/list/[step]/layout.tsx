@@ -9,7 +9,7 @@ const PHONE_STEPS = [
   { step: 1, title: 'Your device' },
   { step: 2, title: 'Verification' },
   { step: 3, title: 'Front condition' },
-  { step: 4, title: 'Back condition' },
+  { step: 4, title: 'Back Condition' },
   { step: 5, title: 'Functionality' },
   { step: 6, title: 'Photos' },
   { step: 7, title: 'Review' },
@@ -18,8 +18,8 @@ const PHONE_STEPS = [
 const LAPTOP_STEPS = [
   { step: 1, title: 'Your device' },
   { step: 2, title: 'Verification' },
-  { step: 3, title: 'Front condition' },
-  { step: 4, title: 'Back condition' },
+  { step: 3, title: 'Front Condition' },
+  { step: 4, title: 'Bottom condition' },
   { step: 5, title: 'Functionality' },
   { step: 6, title: 'Photos' },
   { step: 7, title: 'Review' },
@@ -28,7 +28,7 @@ const LAPTOP_STEPS = [
 const TABLET_STEPS = [
   { step: 1, title: 'Your device' },
   { step: 2, title: 'Verification' },
-  { step: 3, title: 'Front condition' },
+  { step: 3, title: 'Front Condition' },
   { step: 4, title: 'Back condition' },
   { step: 5, title: 'Functionality' },
   { step: 6, title: 'Photos' },
@@ -38,7 +38,7 @@ const TABLET_STEPS = [
 const NON_PHONE_STEPS = [
   { step: 1, title: 'Your device' },
   { step: 2, title: 'Front condition' },
-  { step: 3, title: 'Back condition' },
+  { step: 3, title: 'Condition' },
   { step: 4, title: 'Functionality' },
   { step: 5, title: 'Photos' },
   { step: 6, title: 'Review' },
