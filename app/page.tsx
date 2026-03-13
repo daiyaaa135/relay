@@ -486,7 +486,7 @@ function LandingPageContent() {
                 }}
                 className={`flex-shrink-0 flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
                   isActive
-                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-8px_-8px_16px_#ffffff,_8px_8px_16px_#c9d9e8] dark:bg-gray-700 dark:shadow-none'
+                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-2px_-2px_16px_#ffffff,_2px_2px_16px_#c9d9e8] dark:bg-gray-700 dark:shadow-none'
                     : 'h-6 w-6 rounded-full text-relay-muted dark:text-white hover:text-relay-text dark:hover:text-white/90 hover:bg-gray-200/60 dark:hover:bg-gray-700/40'
                 }`}
               >
