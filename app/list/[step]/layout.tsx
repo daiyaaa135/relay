@@ -17,7 +17,7 @@ const PHONE_STEPS = [
 
 const LAPTOP_STEPS = [
   { step: 1, title: 'Your device' },
-  { step: 2, title: 'Serial verification' },
+  { step: 2, title: 'Verification' },
   { step: 3, title: 'Front condition' },
   { step: 4, title: 'Back condition' },
   { step: 5, title: 'Functionality' },
@@ -27,7 +27,7 @@ const LAPTOP_STEPS = [
 
 const TABLET_STEPS = [
   { step: 1, title: 'Your device' },
-  { step: 2, title: 'Serial verification' },
+  { step: 2, title: 'Verification' },
   { step: 3, title: 'Front condition' },
   { step: 4, title: 'Back condition' },
   { step: 5, title: 'Functionality' },

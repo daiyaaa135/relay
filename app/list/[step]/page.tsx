@@ -2316,17 +2316,30 @@ export default function StepPage() {
 
         {/* Step 2 (Tablet Unlocked): IMEI verification */}
         {isTabletFlow && currentStep === 2 && isTabletUnlocked && (
-          <div className="space-y-6">
-            <p className="text-sm text-relay-muted dark:text-relay-muted-light">
-              Upload a screenshot of your iPad&apos;s About page (Settings → General → About) showing the IMEI. We&apos;ll verify the IMEI and model match.
-            </p>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">About page screenshot</label>
-              <label className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90">
-                <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
-                +
-              </label>
-              {aboutScreenshotPreviewUrl && <div className="mt-2 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48"><img src={aboutScreenshotPreviewUrl} alt="About screenshot" className="w-full h-auto object-contain max-h-48" /></div>}
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">
+                Device Verification
+              </h2>
+              <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
+                Upload a screenshot of your iPad&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page (Settings → General → About) showing the IMEI. We&apos;ll verify the IMEI and model match.
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">About Page Screenshot</span>
+              {aboutScreenshotPreviewUrl ? (
+                <label className="cursor-pointer w-full">
+                  <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
+                  <div className="rounded-2xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48">
+                    <img src={aboutScreenshotPreviewUrl} alt="About screenshot" className="w-full h-auto object-contain max-h-48" />
+                  </div>
+                </label>
+              ) : (
+                <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                  <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
+                  +
+                </label>
+              )}
             </div>
             {verificationStatus === 'failed' && (
               <div className="p-4 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
@@ -2344,17 +2357,30 @@ export default function StepPage() {
 
         {/* Step 2 (Laptop / Tablet Wifi): Serial verification */}
         {((isLaptopFlow || (isTabletFlow && !isTabletUnlocked)) && currentStep === 2) && (
-          <div className="space-y-6">
-            <p className="text-sm text-relay-muted dark:text-relay-muted-light">
-              Upload a screenshot showing the serial number (e.g. About This Mac, Settings → About, or the serial on the device/label). We’ll verify it matches the serial you entered in Step 1 and confirm the model with SNLookup.
-            </p>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Serial number screenshot</label>
-              <label className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90">
-                <input type="file" accept="image/*" onChange={handleLaptopSerialScreenshotChange} className="sr-only" />
-                +
-              </label>
-              {laptopSerialScreenshotPreviewUrl && <div className="mt-2 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48"><img src={laptopSerialScreenshotPreviewUrl} alt="Serial screenshot" className="w-full h-auto object-contain max-h-48" /></div>}
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">
+                Device Verification
+              </h2>
+              <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
+                Upload a screenshot showing the serial number (e.g. About This Mac, Settings → About, or the serial on the device/label). We’ll verify it matches the serial you entered in Step 1 and confirm the model with SNLookup.
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Serial Number Screenshot</span>
+              {laptopSerialScreenshotPreviewUrl ? (
+                <label className="cursor-pointer w-full">
+                  <input type="file" accept="image/*" onChange={handleLaptopSerialScreenshotChange} className="sr-only" />
+                  <div className="rounded-2xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48">
+                    <img src={laptopSerialScreenshotPreviewUrl} alt="Serial screenshot" className="w-full h-auto object-contain max-h-48" />
+                  </div>
+                </label>
+              ) : (
+                <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                  <input type="file" accept="image/*" onChange={handleLaptopSerialScreenshotChange} className="sr-only" />
+                  +
+                </label>
+              )}
             </div>
             {laptopVerificationStatus === 'failed' && (
               <div className="p-4 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">

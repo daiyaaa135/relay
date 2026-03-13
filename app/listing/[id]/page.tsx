@@ -12,18 +12,18 @@ import { fetchExchangeCount, fetchProfile } from '@/lib/profiles';
 import { fetchTransactions } from '@/lib/transactions';
 import { createClient } from '@/lib/supabase';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import type { PickupSlot } from '@/app/components/PickupCalendarModal';
 
-const PickupCalendarModal = dynamic(
+const PickupCalendarModal = nextDynamic(
   () => import('@/app/components/PickupCalendarModal').then(m => ({ default: m.PickupCalendarModal })),
   { ssr: false, loading: () => null }
 );
-const LocationMapWithAvatar = dynamic(
+const LocationMapWithAvatar = nextDynamic(
   () => import('@/app/components/LocationMapWithAvatar').then(m => ({ default: m.LocationMapWithAvatar })),
   { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
 );
-const PickupLocationsMap = dynamic(
+const PickupLocationsMap = nextDynamic(
   () => import('@/app/components/PickupLocationsMap').then(m => ({ default: m.PickupLocationsMap })),
   { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
 );
