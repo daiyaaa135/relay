@@ -132,8 +132,14 @@ export async function searchLocations(
       const addr = item.address ?? {};
       const city = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
       const state = addr.state ?? addr.region ?? addr.country ?? '';
-      const placeName = item.namedetails?.name ?? item.display_name ?? [city, state].filter(Boolean).join(', ') ?? '';
-      const displayName = placeName || [city, state].filter(Boolean).join(', ') || 'Unknown';
+      const name = (item.namedetails?.name ?? '').trim();
+      const baseDisplay = item.display_name ?? [city, state].filter(Boolean).join(', ') ?? '';
+      // Store both the POI name and the full address in displayName so the UI
+      // can show "Starbucks" on the first line and the detailed address on the second.
+      const displayName =
+        name && baseDisplay
+          ? `${name} — ${baseDisplay}`
+          : (baseDisplay || name || [city, state].filter(Boolean).join(', ') || 'Unknown');
       const cls = (item.class ?? '').toLowerCase();
       const typ = (item.type ?? '').toLowerCase();
       const preferred = NOMINATIM_PREFERRED_CLASS.has(cls) || NOMINATIM_PREFERRED_TYPE.has(typ);

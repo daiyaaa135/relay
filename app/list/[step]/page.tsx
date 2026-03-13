@@ -1742,10 +1742,14 @@ export default function StepPage() {
             <div className="flex items-center gap-1 mt-1.5 pl-0.5 text-[11px] text-[#aaa]">
               <span style={{ color: dotColor }}>✓</span>
               <span className="truncate">
-                {value.displayName}
-                {([value.city, value.state].filter(Boolean).join(', ') || '').trim()
-                  ? ` — ${[value.city, value.state].filter(Boolean).join(', ')}`
-                  : ''}
+                {(() => {
+                  const raw = value.displayName || '';
+                  const [namePart, addressPart] = raw.split('—');
+                  const name = namePart.trim() || value.city || 'Location';
+                  const fallbackAddress = [value.city, value.state].filter(Boolean).join(', ');
+                  const addr = (addressPart || '').trim() || fallbackAddress;
+                  return addr ? `${name} — ${addr}` : name;
+                })()}
               </span>
             </div>
           )}
@@ -1755,8 +1759,12 @@ export default function StepPage() {
                 <div className="p-3 text-center text-[#888] text-xs">Searching...</div>
               ) : (
                 filtered.map((s, i) => {
+                  const raw = s.displayName || '';
+                  const [namePart, addressPart] = raw.split('—');
+                  const name = namePart.trim() || s.city || 'Location';
                   const cityState = [s.city, s.state].filter(Boolean).join(', ');
-                  const exact = s.displayName || cityState || 'Unknown';
+                  const secondary = (addressPart || '').trim() || cityState || raw || 'Unknown';
+                  const exact = raw || `${name}${secondary ? ` — ${secondary}` : ''}`;
                   return (
                     <button
                       key={i}
@@ -1767,10 +1775,10 @@ export default function StepPage() {
                       <div className="w-7 h-7 rounded-lg bg-[#f5f4f0] dark:bg-[#333] flex items-center justify-center text-sm shrink-0">📍</div>
                       <div className="min-w-0">
                         <div className="font-semibold text-[#222] dark:text-gray-100 truncate">
-                          {s.displayName?.split(',')[0]?.trim() || s.city || 'Location'}
+                          {name}
                         </div>
                         <div className="text-[11px] text-[#aaa] mt-0.5 truncate">
-                          {cityState || s.displayName}
+                          {secondary}
                         </div>
                       </div>
                     </button>
