@@ -156,7 +156,13 @@ export async function searchLocations(
     });
     if (userLocation?.state?.trim()) {
       const userState = userLocation.state.trim().toLowerCase();
-      list = list.filter((s) => (s.state || '').trim().toLowerCase() === userState);
+      const sameState = list.filter((s) => (s.state || '').trim().toLowerCase() === userState);
+      // Prefer matches in the user's state, but if none are found (e.g. ambiguous
+      // street-only queries), fall back to the full result set so the user still
+      // sees address suggestions.
+      if (sameState.length > 0) {
+        list = sameState;
+      }
     }
     if (userLocation?.latitude != null && userLocation?.longitude != null) {
       const withDist = list.map((s) => ({
