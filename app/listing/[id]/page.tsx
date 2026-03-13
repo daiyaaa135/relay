@@ -740,100 +740,225 @@ function ListingDetailPageContent() {
           {(() => {
             const rawDescription = item.description ?? '';
 
-            // ── Accessories ──
+            // ── Accessories (from description) ──
             let accessories: string[] = [];
             const accessoryMatch = rawDescription.match(/^Accessories:\s*(.+)/m);
             if (accessoryMatch) {
               accessories = accessoryMatch[1].split(',').map((a: string) => a.trim()).filter(Boolean);
             }
 
-            // ── Functionality line ──
-            // Maps long checklist sentences → concise feature labels
-            const FUNC_FEATURE_MAP: [string, string][] = [
-              ['The device turns on, turns off, and charges', 'powers on & charges'],
-              ['The front and rear cameras work perfectly', 'cameras'],
-              ['The speakers and microphones work perfectly', 'speakers & mic'],
-              ['Touch ID and Face ID are functional', 'biometrics'],
-              ['All other features including Wi-Fi, Bluetooth', 'Wi-Fi & Bluetooth'],
-              ['Powers on and off with no issues, and charges properly', 'powers on & charges'],
-              ['Reads cartridges properly', 'cartridges'],
-              ['The hinge is not damaged', 'hinge'],
-              ['LCD screen has no issues', 'screen'],
-              ['Touchscreen functions correctly', 'touchscreen'],
-              ['Sound works properly', 'sound'],
-              ['All buttons function normally', 'buttons'],
-            ];
-            let functionalityLine = '';
-            const funcMatch = rawDescription.match(/^Functional:\s*(.+)/m);
-            if (funcMatch) {
-              const rawFunc = funcMatch[1];
-              const confirmedFeatures: string[] = [];
-              for (const [pattern, label] of FUNC_FEATURE_MAP) {
-                if (rawFunc.includes(pattern)) confirmedFeatures.push(label);
+            // ── Condition bullet ──
+            let conditionBullet = '';
+            const condDetailsMatch = rawDescription.match(/^Condition details:\s*(.+)/m);
+            const category = item.category;
+            const conditionRaw = (item.condition || '').trim();
+            const condition = conditionRaw.toLowerCase();
+            const isPhoneTabletLaptop = ['phones', 'tablets', 'laptops'].includes(category.toLowerCase());
+            if (isPhoneTabletLaptop) {
+              const CONDITION_COPY: Record<string, string> = {
+                new: 'Brand new in original box with all accessories. Never used.',
+                mint: 'Excellent cosmetic condition with minimal signs of use.',
+                good: 'Shows light signs of use. There are a few light scratches or marks.',
+                fair: 'Noticeable wear and tear. There are visible scratches or marks.',
+                poor: 'Damage such as deep scratches or cracks. Some features may not work as expected.',
+              };
+              conditionBullet = CONDITION_COPY[condition] ?? '';
+            } else {
+              // Console / Headphones / Speaker / Gaming Handhelds / MP3 / Video Games:
+              // use the same condition descriptions as the listing flow.
+              const LOOK_CONDITION_COPY: Record<string, Record<string, string>> = {
+                'Video Games': {
+                  Poor: 'Heavy scratches, scuffs, or cracks on disc/cartridge and case. Case may be broken or missing entirely. Manual absent.',
+                  Fair: 'Visible scratches and wear on disc/cartridge and case. Case may have cracks or heavy scuffing. Manual likely missing.',
+                  Good: 'Minor surface scratches on disc/cartridge. Case shows light wear. Manual may or may not be included.',
+                  Mint: 'Near-perfect cosmetic condition. Disc/cartridge and case are clean and well-preserved. Manual included.',
+                  New: 'Factory sealed. No signs of opening or use. All original packaging and inserts present.',
+                },
+                MP3: {
+                  Poor: 'Deep scratches across screen and body. Heavy scuffing, dents, or discoloration.',
+                  Fair: 'Noticeable scratches and scuffs on screen and body. Visible signs of heavy use.',
+                  Good: 'Light scratches on body. Screen has minor scuffs but remains clear.',
+                  Mint: 'Barely visible marks. Excellent cosmetic appearance overall.',
+                  New: 'Unopened, in original packaging with all accessories. No marks or blemishes.',
+                },
+                'Gaming Handhelds': {
+                  Poor: 'Cracked casing, heavy scratches on screen and body, missing parts or covers.',
+                  Fair: 'Significant scratching on screen and shell. Heavy cosmetic wear throughout.',
+                  Good: 'Light scratches on body. Screen is clear with minimal marks.',
+                  Mint: 'Minimal cosmetic wear. Looks nearly new with no notable marks or damage.',
+                  New: 'Brand new in original box with all accessories. Never used.',
+                },
+                Console: {
+                  Poor: 'Cracks, deep scratches, heavy discoloration or yellowing on shell.',
+                  Fair: 'Significant scuffs, scratches, or yellowing on the housing. Heavy cosmetic wear.',
+                  Good: 'Light surface scratches on shell. Minor cosmetic blemishes only.',
+                  Mint: 'Excellent cosmetic condition with minimal signs of use.',
+                  New: 'Factory sealed in original box with all accessories. Pristine condition.',
+                },
+                Headphones: {
+                  Poor: 'Ear pads heavily cracked, torn, or missing. Headband visibly damaged or peeling.',
+                  Fair: 'Ear pads show significant wear or peeling. Headband has visible scratches or cracks.',
+                  Good: 'Light wear on ear pads and headband. Minor scuffs or marks only.',
+                  Mint: 'Ear pads and headband are clean and intact. Looks nearly new.',
+                  New: 'Unopened with all original packaging and accessories. No wear of any kind.',
+                },
+                Speaker: {
+                  Poor: 'Torn or punctured grille, cracked or dented housing. Heavy cosmetic damage throughout.',
+                  Fair: 'Grille shows wear or minor damage. Housing has visible scuffs and scratches.',
+                  Good: 'Light scratches or scuffs on housing. Grille is intact with minimal marks.',
+                  Mint: 'Excellent cosmetic appearance. Minimal to no visible marks or blemishes.',
+                  New: 'Brand new and unused. Original packaging and all accessories included.',
+                },
+              };
+              const lookup = LOOK_CONDITION_COPY[category as keyof typeof LOOK_CONDITION_COPY];
+              if (lookup && conditionRaw && lookup[conditionRaw as keyof typeof lookup]) {
+                conditionBullet = lookup[conditionRaw as keyof typeof lookup];
+              } else if (condDetailsMatch) {
+                // Fallback: use the "Condition details" sentence if we don't have a mapped description
+                conditionBullet = condDetailsMatch[1].trim();
               }
-              if (confirmedFeatures.length > 0) {
-                functionalityLine = `Confirmed working: ${confirmedFeatures.join(', ')}.`;
-              }
-            }
-            // Console "Device functional: Yes/No" fallback
-            const consoleFuncMatch = rawDescription.match(/^Device functional:\s*(.+)/m);
-            if (!functionalityLine && consoleFuncMatch) {
-              const val = consoleFuncMatch[1].trim();
-              functionalityLine = `Device functional: ${val}.`;
             }
 
-            // ── Battery health line ──
-            let batteryLine = '';
+            // ── Functionality bullet ──
+            let functionalityBullet = '';
+            const funcMatch = rawDescription.match(/^Functional:\s*(.+)/m);
+            const consoleFuncMatch = rawDescription.match(/^Device functional:\s*(.+)/m);
+
+            const GENERAL_FUNC_PATTERNS = [
+              'The device turns on, turns off, and charges',
+              'The front and rear cameras work perfectly',
+              'The speakers and microphones work perfectly',
+              'Touch ID and Face ID are functional',
+              'All other features including Wi-Fi, Bluetooth',
+            ];
+            const HANDHELD_FUNC_PATTERNS = [
+              'Powers on and off with no issues, and charges properly',
+              'Reads cartridges properly',
+              'The hinge is not damaged',
+              'LCD screen has no issues',
+              'Touchscreen functions correctly',
+              'Sound works properly',
+              'All buttons function normally',
+            ];
+
+            if (funcMatch) {
+              const rawFunc = funcMatch[1];
+              const isHandheldFunc = HANDHELD_FUNC_PATTERNS.some((p) => rawFunc.includes(p));
+              if (isHandheldFunc) {
+                const selected = HANDHELD_FUNC_PATTERNS.filter((p) => rawFunc.includes(p));
+                if (selected.length === HANDHELD_FUNC_PATTERNS.length) {
+                  functionalityBullet =
+                    'The handheld powers on/off, charges properly, reads cartridges, and its hinge, screen, touchscreen, sound, and buttons all work properly.';
+                } else if (selected.length > 0) {
+                  const LABELS: Record<string, string> = {
+                    [HANDHELD_FUNC_PATTERNS[0]]: 'powers on/off and charges',
+                    [HANDHELD_FUNC_PATTERNS[1]]: 'reads cartridges',
+                    [HANDHELD_FUNC_PATTERNS[2]]: 'hinge',
+                    [HANDHELD_FUNC_PATTERNS[3]]: 'LCD screen',
+                    [HANDHELD_FUNC_PATTERNS[4]]: 'touchscreen',
+                    [HANDHELD_FUNC_PATTERNS[5]]: 'sound',
+                    [HANDHELD_FUNC_PATTERNS[6]]: 'buttons',
+                  };
+                  const selectedLabels = HANDHELD_FUNC_PATTERNS.filter((p) => rawFunc.includes(p)).map((p) => LABELS[p]);
+                  const missingLabels = HANDHELD_FUNC_PATTERNS.filter((p) => !rawFunc.includes(p)).map((p) => LABELS[p]);
+                  functionalityBullet = '';
+                  if (selectedLabels.length > 0) {
+                    functionalityBullet += `The handheld has the following working features: ${selectedLabels.join(', ')}.`;
+                  }
+                  if (missingLabels.length > 0) {
+                    functionalityBullet += ` The following features may have issues or weren’t confirmed: ${missingLabels.join(', ')}.`;
+                  }
+                }
+              } else {
+                // General device checklist (phones, tablets, laptops, etc.)
+                const selected = GENERAL_FUNC_PATTERNS.filter((p) => rawFunc.includes(p));
+                const allSelected = selected.length === GENERAL_FUNC_PATTERNS.length;
+                const firstSelected = rawFunc.includes(GENERAL_FUNC_PATTERNS[0]);
+                if (allSelected) {
+                  functionalityBullet =
+                    'The device powers on/off, charges properly, and all features function normally.';
+                } else if (firstSelected) {
+                  const LABELS: Record<string, string> = {
+                    [GENERAL_FUNC_PATTERNS[1]]: 'camera',
+                    [GENERAL_FUNC_PATTERNS[2]]: 'speakers and microphones',
+                    [GENERAL_FUNC_PATTERNS[3]]: 'Touch ID / Face ID',
+                    [GENERAL_FUNC_PATTERNS[4]]: 'Wi‑Fi, Bluetooth, or buttons',
+                  };
+                  const missing = GENERAL_FUNC_PATTERNS.slice(1).filter((p) => !rawFunc.includes(p));
+                  const missingLabels = missing.map((p) => LABELS[p]).filter(Boolean);
+                  if (missingLabels.length > 0) {
+                    functionalityBullet =
+                      `The device powers on/off, charges properly, and all features function normally except for ${missingLabels.join(', ')}.`;
+                  } else {
+                    functionalityBullet =
+                      'The device powers on/off, charges properly, and all features function normally.';
+                  }
+                } else {
+                  functionalityBullet =
+                    'Some features may not work as expected. The device may not power on, charge properly, or have all features working.';
+                }
+              }
+            } else if (consoleFuncMatch) {
+              const val = consoleFuncMatch[1].trim();
+              if (val.toLowerCase() === 'yes') {
+                functionalityBullet = 'The item is fully functional as described, with no known issues.';
+              } else if (val.toLowerCase() === 'no') {
+                functionalityBullet = 'The item is not fully functional. Some features may not work as expected.';
+              } else {
+                functionalityBullet = `Device functional: ${val}.`;
+              }
+            }
+
+            // ── Battery health bullet ──
+            let batteryBullet = '';
             const batteryMatch = rawDescription.match(/^Battery health:\s*(\d+)%/m);
             if (batteryMatch) {
               const pct = parseInt(batteryMatch[1], 10);
-              const label = pct >= 90 ? 'excellent' : pct >= 80 ? 'solid' : pct >= 70 ? 'fair' : 'low';
-              batteryLine = `Battery health: ${pct}% — ${label}.`;
+              batteryBullet = `${pct}%`;
             }
 
-            // ── Cosmetics / condition line ──
-            let conditionLine = '';
-            const condDetailsMatch = rawDescription.match(/^Condition details:\s*(.+)/m);
-            if (condDetailsMatch) {
-              conditionLine = `Cosmetics: ${condDetailsMatch[1].trim()}.`;
+            // ── Freeform notes (remaining lines) ──
+            let notesBullet = '';
+            if (rawDescription.trim()) {
+              const lines = rawDescription.split(/\r?\n/);
+              const noteLines = lines.filter(
+                (line) =>
+                  !/^(Accessories|Functional|Device functional|Battery health|Condition details):\s*/.test(line.trim())
+              );
+              notesBullet = noteLines.join(' ').trim();
             }
 
-            const structuredLines = [functionalityLine, conditionLine, batteryLine].filter(Boolean);
+            const bullets: { label: string; value: string }[] = [];
+            if (conditionBullet) bullets.push({ label: 'Condition', value: conditionBullet });
+            if (functionalityBullet) bullets.push({ label: 'Functionality', value: functionalityBullet });
+            if (batteryBullet) bullets.push({ label: 'Battery health', value: batteryBullet });
+            if (accessories.length > 0) bullets.push({ label: 'Accessories', value: accessories.join(', ') });
+            if (notesBullet) bullets.push({ label: 'Notes', value: notesBullet });
 
-            const accessoryIcons: Record<string, string> = {
-              'Charging Cable': 'cable',
-              'SIM Ejector Pin': 'sim_card',
-              'S Pen': 'stylus',
-              'Original Box': 'inventory_2',
-            };
             return (
               <div className="space-y-4 py-2">
                 <div className="space-y-3">
-                  <h4 className="text-[10px] font-semibold tracking-tight text-relay-muted dark:text-relay-muted-light">Description</h4>
-                  {structuredLines.length > 0 ? (
+                  <h4 className="text-[10px] font-semibold tracking-tight text-relay-muted dark:text-relay-muted-light">
+                    Description
+                  </h4>
+                  {bullets.length > 0 ? (
                     <div className="space-y-1.5">
-                      {structuredLines.map((line, i) => (
-                        <p key={i} className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">{line}</p>
+                      {bullets.map((b) => (
+                        <p
+                          key={b.label}
+                          className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80"
+                        >
+                          <span className="font-semibold">{b.label}: </span>
+                          <span>{b.value}</span>
+                        </p>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">No details provided.</p>
+                    <p className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">
+                      No details provided.
+                    </p>
                   )}
                 </div>
-
-                {accessories.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-semibold tracking-tight text-relay-muted dark:text-relay-muted-light">Bundled Extras</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {accessories.map((a) => (
-                        <div key={a} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark">
-                          <span className="material-symbols-outlined !text-[14px] text-relay-text dark:text-relay-text-dark">{accessoryIcons[a] ?? 'check_circle'}</span>
-                          <span className="text-[10px] font-bold tracking-widest text-relay-text dark:text-relay-text-dark">{a.replace('Charging Cable', 'Cable').replace('SIM Ejector Pin', 'SIM Pin').replace('Original Box', 'Box')}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })()}
