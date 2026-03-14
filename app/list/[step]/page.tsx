@@ -569,7 +569,7 @@ export default function StepPage() {
     return () => { cancelled = true; };
   }, [userId, listingLocation]);
 
-  // Debounced location search for pickup locations modal
+  // Debounced location search for pickup locations modal (always "all" — addresses, POIs, places)
   useEffect(() => {
     if (!showPickupLocationsModal) return;
     const q1 = location1Query.trim();
@@ -592,18 +592,13 @@ export default function StepPage() {
       : undefined;
     const t = setTimeout(async () => {
       setLocationSuggestionsLoading(true);
-      // Always use Nominatim (OSM) for pickup location search; Mapbox is used only for the map.
-      // Only search fields that have changed from their confirmed selection to avoid concurrent
-      // Nominatim requests that trigger rate limiting.
-      if (!needs1) {
-        if (q1.length < 2) setLocation1Suggestions([]);
-      } else {
+      if (q1.length < 2) setLocation1Suggestions([]);
+      else {
         const list = await searchLocations(q1, userLoc);
         setLocation1Suggestions(list);
       }
-      if (!needs2) {
-        if (q2.length < 2) setLocation2Suggestions([]);
-      } else {
+      if (q2.length < 2) setLocation2Suggestions([]);
+      else {
         const list = await searchLocations(q2, userLoc);
         setLocation2Suggestions(list);
       }
@@ -638,9 +633,6 @@ export default function StepPage() {
     setLaptopModelsLoading(true);
     // Only clear model when the brand changes (not on mount / navigation back to step 1)
     if (!hasResumedDraftRef.current && brandChanged) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'list/[step]/page.tsx:effect-Laptops', message: 'Clearing modelName (Laptops)', data: { currentStep }, timestamp: Date.now(), hypothesisId: 'H1-H5' }) }).catch(() => {});
-      // #endregion
       setModelName('');
     }
     fetch(`/api/devices/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setLaptopModels(Array.isArray(d.models) ? d.models : [])).catch(() => setLaptopModels([])).finally(() => setLaptopModelsLoading(false));
@@ -1752,10 +1744,14 @@ export default function StepPage() {
             <div className="flex items-center gap-1 mt-1.5 pl-0.5 text-[11px] text-[#aaa]">
               <span style={{ color: dotColor }}>✓</span>
               <span className="truncate">
-                {value.displayName}
-                {([value.city, value.state].filter(Boolean).join(', ') || '').trim()
-                  ? ` — ${[value.city, value.state].filter(Boolean).join(', ')}`
-                  : ''}
+                {(() => {
+                  const raw = value.displayName || '';
+                  const [namePart, addressPart] = raw.split('—');
+                  const name = namePart.trim() || value.city || 'Location';
+                  const fallbackAddress = [value.city, value.state].filter(Boolean).join(', ');
+                  const addr = (addressPart || '').trim() || fallbackAddress;
+                  return addr ? `${name} — ${addr}` : name;
+                })()}
               </span>
             </div>
           )}
@@ -1765,8 +1761,12 @@ export default function StepPage() {
                 <div className="p-3 text-center text-[#888] text-xs">Searching...</div>
               ) : (
                 filtered.map((s, i) => {
+                  const raw = s.displayName || '';
+                  const [namePart, addressPart] = raw.split('—');
+                  const name = namePart.trim() || s.city || 'Location';
                   const cityState = [s.city, s.state].filter(Boolean).join(', ');
-                  const exact = s.displayName || cityState || 'Unknown';
+                  const secondary = (addressPart || '').trim() || cityState || raw || 'Unknown';
+                  const exact = raw || `${name}${secondary ? ` — ${secondary}` : ''}`;
                   return (
                     <button
                       key={i}
@@ -1777,10 +1777,10 @@ export default function StepPage() {
                       <div className="w-7 h-7 rounded-lg bg-[#f5f4f0] dark:bg-[#333] flex items-center justify-center text-sm shrink-0">📍</div>
                       <div className="min-w-0">
                         <div className="font-semibold text-[#222] dark:text-gray-100 truncate">
-                          {s.displayName?.split(',')[0]?.trim() || s.city || 'Location'}
+                          {name}
                         </div>
                         <div className="text-[11px] text-[#aaa] mt-0.5 truncate">
-                          {cityState || s.displayName}
+                          {secondary}
                         </div>
                       </div>
                     </button>
@@ -2522,11 +2522,25 @@ export default function StepPage() {
                 <p className="text-xs text-relay-muted dark:text-relay-muted-light">{listingPhotoUrls.length} / {minListingPhotos} Captured</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={openDeviceCapture} disabled={!userId} className="aspect-square rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-relay-surface dark:hover:bg-relay-surface-dark disabled:opacity-50 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={openDeviceCapture}
+                  disabled={!userId}
+                  className="aspect-square rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-relay-surface dark:hover:bg-relay-surface-dark disabled:opacity-50 overflow-hidden"
+                >
                   {listingPhotoUrls[0] ? (
                     <div className="relative w-full h-full rounded-lg overflow-hidden">
                       <img src={listingPhotoUrls[0]} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(0); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                      <span
+                        role="button"
+                        aria-label="Remove photo"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); removeListingPhoto(0); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeListingPhoto(0); } }}
+                        className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined !text-sm">close</span>
+                      </span>
                     </div>
                   ) : (
                     <>
@@ -2535,11 +2549,25 @@ export default function StepPage() {
                     </>
                   )}
                 </button>
-                <button type="button" onClick={openDeviceCapture} disabled={!userId} className="aspect-square rounded-xl border border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center bg-[#e8e9ec] dark:bg-relay-surface-dark hover:bg-relay-surface dark:hover:bg-relay-surface disabled:opacity-50 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={openDeviceCapture}
+                  disabled={!userId}
+                  className="aspect-square rounded-xl border border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center bg-[#e8e9ec] dark:bg-relay-surface-dark hover:bg-relay-surface dark:hover:bg-relay-surface disabled:opacity-50 overflow-hidden"
+                >
                   {listingPhotoUrls[1] ? (
                     <div className="relative w-full h-full rounded-lg overflow-hidden">
                       <img src={listingPhotoUrls[1]} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(1); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                      <span
+                        role="button"
+                        aria-label="Remove photo"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); removeListingPhoto(1); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeListingPhoto(1); } }}
+                        className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined !text-sm">close</span>
+                      </span>
                     </div>
                   ) : (
                     <span className="text-xs font-medium text-relay-muted dark:text-relay-muted-light">BACK SIDE</span>

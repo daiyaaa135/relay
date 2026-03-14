@@ -7,21 +7,48 @@ export type LocationSuggestion = {
   displayName: string;
 };
 
-/** Optional user location to limit and prioritize pickup suggestions (same state, nearest first). */
+/** Optional user location and Search Box API filters (types, poi_category). */
 export type SearchLocationsOptions = {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   state?: string;
+  /** Comma-separated: address, poi, place, street, city, region, etc. */
+  types?: string;
+  /** Comma-separated canonical POI category IDs (e.g. coffee, restaurant, gas_station). */
+  poi_category?: string;
+  /** Comma-separated category IDs to exclude from POI results. */
+  poi_category_exclusions?: string;
+};
+
+/** Category item from Search Box API list/category. */
+export type SearchCategoryItem = {
+  canonical_id: string;
+  icon: string;
+  name: string;
+};
+
+/** Search Box API forward response feature (minimal shape we use). */
+type SearchBoxFeature = {
+  geometry?: { coordinates?: [number, number] };
+  properties?: {
+    name?: string;
+    full_address?: string;
+    address?: string;
+    place_formatted?: string;
+    context?: {
+      place?: { name?: string };
+      region?: { name?: string; region_code?: string };
+    };
+  };
 };
 
 /**
- * Search for locations using Mapbox Geocoding API with proximity bias (requires NEXT_PUBLIC_MAPBOX_TOKEN).
- * When userLocation is provided, results are biased toward that point (nearest first).
- * Returns up to 5 suggestions.
+ * Search for locations using Mapbox Search Box API /forward (requires NEXT_PUBLIC_MAPBOX_TOKEN).
+ * Supports optional types and poi_category for filtering by class/type.
  */
-export async function searchLocationsMapbox(
+export async function searchLocationsSearchBox(
   query: string,
-  userLocation?: SearchLocationsOptions
+  options?: SearchLocationsOptions
 ): Promise<LocationSuggestion[]> {
   const q = query.trim();
   if (q.length < 2) return [];
@@ -31,47 +58,51 @@ export async function searchLocationsMapbox(
   try {
     const params = new URLSearchParams({
       access_token: token,
-      limit: '5',
-      types: 'poi,place,address',
+      limit: '10',
     });
-    if (userLocation?.latitude != null && userLocation?.longitude != null) {
-      params.set('proximity', `${userLocation.longitude},${userLocation.latitude}`);
+    if (options?.latitude != null && options?.longitude != null) {
+      params.set('proximity', `${options.longitude},${options.latitude}`);
     }
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?${params.toString()}`;
+    if (options?.types?.trim()) params.set('types', options.types.trim());
+    if (options?.poi_category?.trim()) params.set('poi_category', options.poi_category.trim());
+    if (options?.poi_category_exclusions?.trim()) {
+      params.set('poi_category_exclusions', options.poi_category_exclusions.trim());
+    }
+    const url = `https://api.mapbox.com/search/searchbox/v1/forward?q=${encodeURIComponent(q)}&${params.toString()}`;
     const res = await fetch(url);
     if (!res.ok) return [];
-    const data = (await res.json()) as {
-      features?: Array<{
-        center: [number, number];
-        place_name?: string;
-        context?: Array<{ id: string; text: string }>;
-      }>;
-    };
+    const data = (await res.json()) as { features?: SearchBoxFeature[] };
     const features = data?.features ?? [];
-    let list = features.map((f) => {
-      const [lng, lat] = f.center;
-      const placeName = f.place_name ?? '';
-      const ctx = f.context ?? [];
-      const region = ctx.find((c) => c.id.startsWith('region.'))?.text ?? '';
-      const place = ctx.find((c) => c.id.startsWith('place.'))?.text ?? '';
-      const city = place || region;
-      const state = ctx.find((c) => c.id.startsWith('region.'))?.text ?? region;
+    let list: LocationSuggestion[] = features.map((f) => {
+      const [lng, lat] = f.geometry?.coordinates ?? [0, 0];
+      const props = f.properties ?? {};
+      const ctx = props.context ?? {};
+      const city = ctx.place?.name ?? '';
+      const state = ctx.region?.name ?? ctx.region?.region_code ?? '';
+      const fullAddress =
+        props.full_address ??
+        ([props.address, props.place_formatted].filter(Boolean).join(', ') ||
+          [city, state].filter(Boolean).join(', '));
+      const name = (props.name ?? '').trim();
+      // Show "Business/Facility Name — Address, City, State" so UI can display name + address on two lines
+      const displayName =
+        name && fullAddress
+          ? `${name} — ${fullAddress}`
+          : name || fullAddress || [city, state].filter(Boolean).join(', ') || 'Unknown';
       return {
         latitude: lat,
         longitude: lng,
         city,
         state,
-        displayName: placeName || [city, state].filter(Boolean).join(', ') || 'Unknown',
+        displayName,
       };
     });
-    if (userLocation?.latitude != null && userLocation?.longitude != null) {
-      // Sort by distance and strongly prefer nearby results (e.g. Starbucks near the user)
+    if (options?.latitude != null && options?.longitude != null) {
       const withDistances = list.map((s) => ({
         ...s,
-        _d: distanceMiles(userLocation.latitude, userLocation.longitude, s.latitude, s.longitude),
+        _d: distanceMiles(options.latitude!, options.longitude!, s.latitude, s.longitude),
       }));
       withDistances.sort((a, b) => a._d - b._d);
-      // Keep only locations within ~100 miles; if none, fall back to top 5 globally
       const nearby = withDistances.filter((s) => s._d <= 100);
       const trimmed = (nearby.length > 0 ? nearby : withDistances).slice(0, 5);
       return trimmed.map(({ _d, ...rest }) => rest);
@@ -82,95 +113,30 @@ export async function searchLocationsMapbox(
   }
 }
 
-/** Preferred OSM classes/types for POI (place name over street). */
-const NOMINATIM_PREFERRED_CLASS = new Set(['amenity', 'shop']);
-const NOMINATIM_PREFERRED_TYPE = new Set(['cafe', 'restaurant', 'fast_food', 'pharmacy', 'bank', 'place']);
-const NOMINATIM_DEPRIORITIZED_CLASS = new Set(['highway']);
-const NOMINATIM_DEPRIORITIZED_TYPE = new Set(['road', 'residential', 'street', 'primary', 'secondary', 'tertiary']);
-
 /**
- * Search for locations by query string (OpenStreetMap Nominatim, no API key).
- * Uses free-form ?q= only (no street= structured query). Requests namedetails=1 so the
- * actual place name (e.g. Starbucks) is returned. Results are prioritized: amenity/shop/cafe
- * over highway/road. If userLocation is provided, results are limited to the user's state
- * and sorted by distance (nearest first). Returns up to 5 suggestions.
+ * Primary search function used by the app.
+ * Uses Mapbox Search Box API with optional types and poi_category.
  */
 export async function searchLocations(
   query: string,
-  userLocation?: SearchLocationsOptions
+  options?: SearchLocationsOptions
 ): Promise<LocationSuggestion[]> {
-  const q = query.trim();
-  if (q.length < 2) return [];
+  return searchLocationsSearchBox(query, options);
+}
+
+/**
+ * Fetch available POI categories from Search Box API for category picker UI.
+ */
+export async function listCategories(language = 'en'): Promise<SearchCategoryItem[]> {
+  const token =
+    typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_MAPBOX_TOKEN : undefined;
+  if (!token) return [];
   try {
-    const limit = userLocation?.state ? 20 : 5;
-    const searchQuery = userLocation?.state?.trim() ? `${q}, ${userLocation.state.trim()}` : q;
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&addressdetails=1&namedetails=1&limit=${limit}`;
-    const res = await fetch(url, {
-      headers: { Accept: 'application/json', 'User-Agent': 'RellaeyApp/1.0' },
-    });
+    const url = `https://api.mapbox.com/search/searchbox/v1/list/category?access_token=${token}&language=${language}`;
+    const res = await fetch(url);
     if (!res.ok) return [];
-    const data = (await res.json()) as Array<{
-      lat: string;
-      lon: string;
-      display_name?: string;
-      class?: string;
-      type?: string;
-      address?: {
-        city?: string;
-        town?: string;
-        village?: string;
-        municipality?: string;
-        state?: string;
-        region?: string;
-        county?: string;
-        country?: string;
-        road?: string;
-      };
-      namedetails?: { name?: string };
-    }>;
-    let list = (data || []).map((item) => {
-      const addr = item.address ?? {};
-      const city = addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? '';
-      const state = addr.state ?? addr.region ?? addr.country ?? '';
-      const name = item.namedetails?.name ?? '';
-      const road = addr.road ?? '';
-      // Build a descriptive display name: "Starbucks, 200 Main St, San Francisco, California"
-      const displayName = name
-        ? [name, road, city, state].filter(Boolean).join(', ')
-        : item.display_name ?? [city, state].filter(Boolean).join(', ') ?? 'Unknown';
-      const cls = (item.class ?? '').toLowerCase();
-      const typ = (item.type ?? '').toLowerCase();
-      const preferred = NOMINATIM_PREFERRED_CLASS.has(cls) || NOMINATIM_PREFERRED_TYPE.has(typ);
-      const deprioritized = NOMINATIM_DEPRIORITIZED_CLASS.has(cls) || NOMINATIM_DEPRIORITIZED_TYPE.has(typ);
-      const priority = preferred ? 1 : deprioritized ? -1 : 0;
-      return {
-        latitude: parseFloat(item.lat),
-        longitude: parseFloat(item.lon),
-        city,
-        state,
-        displayName,
-        _priority: priority,
-      };
-    });
-    if (userLocation?.state?.trim()) {
-      const userState = userLocation.state.trim().toLowerCase();
-      list = list.filter((s) => (s.state || '').trim().toLowerCase() === userState);
-    }
-    if (userLocation?.latitude != null && userLocation?.longitude != null) {
-      const withDist = list.map((s) => ({
-        ...s,
-        _d: distanceMiles(userLocation.latitude, userLocation.longitude, s.latitude, s.longitude),
-      }));
-      withDist.sort((a, b) => {
-        if (b._priority !== a._priority) return b._priority - a._priority;
-        return a._d - b._d;
-      });
-      list = withDist.map(({ _d, _priority, ...rest }) => rest);
-    } else {
-      list = [...list].sort((a, b) => b._priority - a._priority).map(({ _priority, ...rest }) => rest);
-    }
-    const final = list.slice(0, 5);
-    return final;
+    const data = (await res.json()) as { list_items?: SearchCategoryItem[] };
+    return data?.list_items ?? [];
   } catch {
     return [];
   }
