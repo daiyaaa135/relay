@@ -114,7 +114,7 @@ const BottomNav: React.FC = () => {
               <div
                 className={`relative rounded-full p-2 transition-all ${
                   showHighlight
-                    ? 'bg-relay-surface dark:bg-relay-input-dark shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:shadow-none'
+                    ? 'bg-relay-surface shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] nav-icon-glass'
                     : 'group-hover:bg-relay-surface dark:group-hover:bg-relay-input-dark'
                 }`}
                 style={{ minWidth: 14, minHeight: 14, margin: 2 }}

@@ -460,7 +460,7 @@ function LandingPageContent() {
                 selectedBrands.length > 0 ||
                 selectedStorages.length > 0
                   ? 'border-transparent text-primary bg-primary/5'
-                  : 'border-relay-border dark:border-relay-border-dark text-relay-muted hover:text-relay-text'
+                  : 'border-relay-border dark:border-relay-border-dark text-relay-muted dark:text-relay-text-dark hover:text-relay-text'
               }`}
             >
               <FilterIcon className="size-6 shrink-0 text-current" />
@@ -485,7 +485,7 @@ function LandingPageContent() {
                 }}
                 className={`flex-shrink-0 flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
                   isActive
-                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:bg-gray-700 dark:shadow-none'
+                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph'
                     : 'h-6 w-6 rounded-full text-relay-muted dark:text-white hover:text-relay-text dark:hover:text-white/90 hover:bg-gray-200/60 dark:hover:bg-gray-700/40'
                 }`}
               >
@@ -558,7 +558,7 @@ function LandingPageContent() {
           tabIndex={0}
           onClick={() => router.push(`/meetup/${upcomingMeetup.swapId}`)}
           onKeyDown={(e) => e.key === 'Enter' && router.push(`/meetup/${upcomingMeetup.swapId}`)}
-          className="mx-6 mt-0 mb-4 p-5 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
+          className="mx-6 mt-0 mb-4 p-5 rounded-2xl glass-card meetup-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
         >
           <p className="text-relay-text dark:text-relay-text-dark font-semibold text-base mb-1">
             {upcomingMeetup.stage === 1 && 'Preparing for your meetup...'}
@@ -988,14 +988,14 @@ function LandingPageContent() {
                       setPriceRange(2000);
                       setDistanceRange(100);
                     }}
-                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:shadow-none text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
+                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
                   >
                     Reset
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowFilters(false)}
-                    className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none active-scale"
+                    className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph active-scale"
                   >
                     Apply Selection
                   </button>
@@ -1060,11 +1060,11 @@ function LandingPageContent() {
                       else if (filterSubPanel === 'condition') setSelectedConditions([]);
                       else setSelectedStorages([]);
                     }}
-                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:shadow-none text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
+                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
                   >
                     Reset
                   </button>
-                  <button type="button" onClick={() => setFilterSubPanel(null)} className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none active-scale">
+                  <button type="button" onClick={() => setFilterSubPanel(null)} className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph active-scale">
                     Apply Selection
                   </button>
                 </div>

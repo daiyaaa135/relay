@@ -290,7 +290,7 @@ export function BrowseCategoryClient({ initialData }: { initialData?: BrowseResp
                               )}
                             </div>
                             <div className="px-2 py-1 min-w-0 bg-white dark:bg-white">
-                              <p className="text-relay-text dark:text-relay-text-dark text-[10px] truncate">{device.brand} {device.model}</p>
+                              <p className="text-relay-text text-[10px] truncate">{device.brand} {device.model}</p>
                             </div>
                           </div>
                         )}

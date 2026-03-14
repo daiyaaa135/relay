@@ -81,7 +81,7 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
             type="button"
             onClick={onVerify}
             disabled={verifyDisabled}
-            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-xs disabled:opacity-50 flex items-center justify-center gap-1.5"
+            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-xs disabled:opacity-50 flex items-center justify-center gap-1.5 btn-dark-neumorph"
           >
             {verifying ? (
               <>
@@ -115,7 +115,7 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
             type="button"
             onClick={onPrimary}
             disabled={primaryDisabled}
-            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-[10px] tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-1.5"
+            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-[10px] tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-1.5 btn-dark-neumorph"
           >
             {primaryLabel}
           </button>
@@ -143,7 +143,7 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
             type="button"
             disabled={primaryDisabled}
             onClick={onPrimary}
-            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-[10px] tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-1.5"
+            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-[10px] tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-1.5 btn-dark-neumorph"
           >
             {primaryLabel}
           </button>

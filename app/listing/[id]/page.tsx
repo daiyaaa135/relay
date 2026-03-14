@@ -1062,7 +1062,7 @@ function ListingDetailPageContent() {
             ) : (
               <button 
                 onClick={handleInitiateSwap}
-                className="flex-1 rounded-full bg-primary text-white flex items-center justify-center gap-4 shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none active-scale transition-all"
+                className="flex-1 rounded-full bg-primary text-white flex items-center justify-center gap-4 shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph active-scale transition-all"
                 style={{ height: '42px' }}
               >
                 <span className="text-xs font-semibold tracking-[0.1em]">Swap with Credits</span>

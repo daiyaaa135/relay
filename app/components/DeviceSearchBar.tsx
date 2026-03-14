@@ -85,7 +85,7 @@ export function DeviceSearchBar({
 
   return (
     <div ref={containerRef} className={`relative flex-1 group ${className}`}>
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-relay-muted group-focus-within:text-primary transition-colors pointer-events-none z-10">
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-relay-muted dark:text-white/50 group-focus-within:text-primary transition-colors pointer-events-none z-10">
         search
       </span>
       <input
@@ -94,7 +94,7 @@ export function DeviceSearchBar({
         onChange={handleInputChange}
         onFocus={handleFocus}
         placeholder={placeholder}
-        className="w-full h-10 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-12 pr-4 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+        className="search-bar-input w-full h-10 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-12 pr-4 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
         autoComplete="off"
         role="combobox"
         aria-expanded={showDropdown}

@@ -141,7 +141,7 @@ function PasswordPageContent() {
             type="button"
             onClick={handleNext}
             disabled={!canProceed}
-            className="size-10 rounded-full bg-primary shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none inline-flex items-center justify-center text-white disabled:opacity-50 disabled:pointer-events-none"
+            className="size-10 rounded-full bg-primary shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph inline-flex items-center justify-center text-white disabled:opacity-50 disabled:pointer-events-none"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
           </button>

@@ -204,7 +204,7 @@ textarea {
 .active-scale:active { transform: scale(0.96); }
 .hover-lift:hover { transform: translateY(-4px); }
 .glass-card {
-  backdrop-filter: blur(12px);
+  @apply backdrop-blur-[12px];
   background: rgba(255, 255, 255, 0.05);
 }
 .glass-card.no-blur {
@@ -234,6 +234,60 @@ textarea {
   box-shadow:
     42px 42px 52px rgba(142, 155, 174, 0.2),
     inset -2px -4px 4px rgba(255, 255, 255, 0.6);
+}
+
+/* Dark-mode frosted glass button: translucent white fill + border glow */
+/* Applied via `.btn-dark-neumorph` class; `.dark` parent activates it */
+.dark .btn-dark-neumorph {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+/* Dark-mode nav icon active state: luminosity pill */
+.dark .nav-icon-glass {
+  background: rgba(60, 59, 59, 0.41);
+  mix-blend-mode: luminosity;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 30px;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Dark-mode bottom nav: layered glass with blur + inner highlights */
+.dark nav.glass-card {
+  @apply !backdrop-blur-[15px];
+  background: rgba(67, 67, 67, 0.34) !important;
+  box-shadow:
+    inset 0px 2px 4px rgba(255, 255, 255, 0.25),
+    inset 0px 1px 2px rgba(255, 255, 255, 0.5) !important;
+  border-radius: 29px 29px 0 0 !important;
+  border-color: transparent !important;
+}
+
+/* Dark-mode header: remove glass effect from no-blur glass-card elements */
+.dark .glass-card.no-blur {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Dark-mode meetup card: warm tinted glass */
+.dark .meetup-card {
+  background: rgba(189, 65, 23, 0.07) !important;
+  box-shadow:
+    inset 0px 2px 4px rgba(255, 255, 255, 0.05),
+    inset 0px 1px 2px rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: transparent !important;
+  border-radius: 24px !important;
+}
+
+/* Dark-mode search bar input: frosted glass (specificity must beat the :where(.dark) input:not(...) rule above) */
+:where(.dark) input.search-bar-input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]) {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 /* ---- Coin celebration animation ---- */
@@ -373,7 +427,7 @@ textarea {
   --color-primary: #1F2129;
 
   --color-relay-bg: #F3F4F7;
-  --color-relay-bg-dark: #0E151E;
+  --color-relay-bg-dark: #2C2C2C;
   --color-relay-surface: #FFFFFF;
   --color-relay-surface-dark: #1F2129;
   --color-relay-border: rgba(255, 255, 255, 0.30);
@@ -395,9 +449,9 @@ textarea {
 :root.dark,
 .dark {
   /* App background + surfaces (Dark) */
-  --background: #0E151E;
+  --background: #2C2C2C;
   --foreground: #F4F4F4;
-  --relay-bg: #0E151E;
+  --relay-bg: #2C2C2C;
   --relay-surface: #1F2129;
   --relay-border: rgba(255, 255, 255, 0.16);
 
@@ -419,8 +473,8 @@ textarea {
   --color-foreground: var(--foreground);
   --color-primary: #F4F4F4;
 
-  --color-relay-bg: #0E151E;
-  --color-relay-bg-dark: #0E151E;
+  --color-relay-bg: #2C2C2C;
+  --color-relay-bg-dark: #2C2C2C;
   --color-relay-surface: #1F2129;
   --color-relay-surface-dark: #1F2129;
   --color-relay-border: rgba(255, 255, 255, 0.16);
