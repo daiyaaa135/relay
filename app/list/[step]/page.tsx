@@ -569,7 +569,7 @@ export default function StepPage() {
     return () => { cancelled = true; };
   }, [userId, listingLocation]);
 
-  // Debounced location search for pickup locations modal
+  // Debounced location search for pickup locations modal (always "all" — addresses, POIs, places)
   useEffect(() => {
     if (!showPickupLocationsModal) return;
     const q1 = location1Query.trim();
@@ -585,16 +585,14 @@ export default function StepPage() {
       : undefined;
     const t = setTimeout(async () => {
       setLocationSuggestionsLoading(true);
-      // Always use Nominatim (OSM) for pickup location search; Mapbox is used only for the map.
-      const search = searchLocations;
       if (q1.length < 2) setLocation1Suggestions([]);
       else {
-        const list = await search(q1, userLoc);
+        const list = await searchLocations(q1, userLoc);
         setLocation1Suggestions(list);
       }
       if (q2.length < 2) setLocation2Suggestions([]);
       else {
-        const list = await search(q2, userLoc);
+        const list = await searchLocations(q2, userLoc);
         setLocation2Suggestions(list);
       }
       setLocationSuggestionsLoading(false);
@@ -628,9 +626,6 @@ export default function StepPage() {
     setLaptopModelsLoading(true);
     // Only clear model when the brand changes (not on mount / navigation back to step 1)
     if (!hasResumedDraftRef.current && brandChanged) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'list/[step]/page.tsx:effect-Laptops', message: 'Clearing modelName (Laptops)', data: { currentStep }, timestamp: Date.now(), hypothesisId: 'H1-H5' }) }).catch(() => {});
-      // #endregion
       setModelName('');
     }
     fetch(`/api/devices/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setLaptopModels(Array.isArray(d.models) ? d.models : [])).catch(() => setLaptopModels([])).finally(() => setLaptopModelsLoading(false));
@@ -2520,11 +2515,25 @@ export default function StepPage() {
                 <p className="text-xs text-relay-muted dark:text-relay-muted-light">{listingPhotoUrls.length} / {minListingPhotos} Captured</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={openDeviceCapture} disabled={!userId} className="aspect-square rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-relay-surface dark:hover:bg-relay-surface-dark disabled:opacity-50 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={openDeviceCapture}
+                  disabled={!userId}
+                  className="aspect-square rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-relay-surface dark:hover:bg-relay-surface-dark disabled:opacity-50 overflow-hidden"
+                >
                   {listingPhotoUrls[0] ? (
                     <div className="relative w-full h-full rounded-lg overflow-hidden">
                       <img src={listingPhotoUrls[0]} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(0); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                      <span
+                        role="button"
+                        aria-label="Remove photo"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); removeListingPhoto(0); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeListingPhoto(0); } }}
+                        className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined !text-sm">close</span>
+                      </span>
                     </div>
                   ) : (
                     <>
@@ -2533,11 +2542,25 @@ export default function StepPage() {
                     </>
                   )}
                 </button>
-                <button type="button" onClick={openDeviceCapture} disabled={!userId} className="aspect-square rounded-xl border border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center bg-[#e8e9ec] dark:bg-relay-surface-dark hover:bg-relay-surface dark:hover:bg-relay-surface disabled:opacity-50 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={openDeviceCapture}
+                  disabled={!userId}
+                  className="aspect-square rounded-xl border border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center bg-[#e8e9ec] dark:bg-relay-surface-dark hover:bg-relay-surface dark:hover:bg-relay-surface disabled:opacity-50 overflow-hidden"
+                >
                   {listingPhotoUrls[1] ? (
                     <div className="relative w-full h-full rounded-lg overflow-hidden">
                       <img src={listingPhotoUrls[1]} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(1); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                      <span
+                        role="button"
+                        aria-label="Remove photo"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); removeListingPhoto(1); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); removeListingPhoto(1); } }}
+                        className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined !text-sm">close</span>
+                      </span>
                     </div>
                   ) : (
                     <span className="text-xs font-medium text-relay-muted dark:text-relay-muted-light">BACK SIDE</span>
