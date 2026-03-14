@@ -70,7 +70,7 @@ export function SuccessTransition({ onComplete }: SuccessTransitionProps) {
   const circleHidden = phase >= 5;
   const orangeExpanding = phase >= 5;
   const panelUp = phase >= 7;
-  const statusLight = phase >= 6;
+
   const showReplay = phase >= 8;
 
   // Circle size: small → large round
@@ -87,53 +87,6 @@ export function SuccessTransition({ onComplete }: SuccessTransitionProps) {
             '0 60px 140px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)',
         }}
       >
-        {/* Status bar */}
-        <div
-          className="absolute top-0 left-0 right-0 h-11 pt-[14px] px-[28px] flex items-center justify-between z-[100] text-[13px] font-bold tracking-[0.01em] transition-colors duration-300"
-          style={{ color: statusLight ? '#fff' : '#111' }}
-        >
-          <span>9:41</span>
-          <div className="flex items-center gap-[5px]">
-            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor">
-              <rect x="0" y="4" width="3" height="8" rx="1" opacity="0.4" />
-              <rect
-                x="4.5"
-                y="2.5"
-                width="3"
-                height="9.5"
-                rx="1"
-                opacity="0.6"
-              />
-              <rect x="9" y="0" width="3" height="12" rx="1" />
-              <path
-                d="M13.5 3 Q15.5 0.5 18 3 Q15.5 2 13.5 3Z"
-                opacity="0.5"
-              />
-            </svg>
-            <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
-              <rect
-                x="1"
-                y="3"
-                width="12"
-                height="8"
-                rx="2"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                fill="none"
-              />
-              <rect x="2" y="4" width="8" height="6" rx="1" />
-              <rect
-                x="13.5"
-                y="4.5"
-                width="1.5"
-                height="3"
-                rx="0.75"
-                opacity="0.5"
-              />
-            </svg>
-          </div>
-        </div>
-
         {/* Scene */}
         <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden">
           {/* Message */}

@@ -264,6 +264,17 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <div className="flex justify-end mb-5">
+            <button
+              type="submit"
+              disabled={loading || !email.trim() || !password}
+              className="size-10 rounded-full bg-primary shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none inline-flex items-center justify-center text-white disabled:opacity-50 disabled:pointer-events-none"
+              aria-label="Log in"
+            >
+              <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </button>
+          </div>
+
           <div className="flex items-center gap-3 my-2">
             <span className="h-px flex-1 bg-relay-border dark:bg-relay-border-dark" />
             <span className="text-[10px] text-relay-muted tracking-tight uppercase">or</span>
@@ -284,16 +295,6 @@ export default function LoginPage() {
             </svg>
             <span>{loading ? 'Signing in…' : 'Continue with Google'}</span>
           </button>
-
-          <div className="flex justify-end mt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="text-primary font-semibold text-xs tracking-tight disabled:opacity-60"
-            >
-              Log in
-            </button>
-          </div>
         </form>
 
         <div className="mt-8 text-center max-w-sm mx-auto">

@@ -954,7 +954,7 @@ export default function ChatThreadPage() {
             disabled={!message.trim() || sending}
             className={`size-14 rounded-2xl flex items-center justify-center transition-all shrink-0 ${
               message.trim() && !sending
-                ? 'bg-primary text-white shadow-xl shadow-primary/20'
+                ? 'bg-primary text-white shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:shadow-none'
                 : 'bg-relay-bg dark:bg-relay-bg-dark text-relay-muted opacity-40'
             } disabled:opacity-60 disabled:cursor-not-allowed`}
           >

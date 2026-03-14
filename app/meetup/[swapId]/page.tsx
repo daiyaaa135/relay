@@ -882,11 +882,11 @@ export default function MeetupPage() {
                   }`}
                 >
                   <span
-                    className={`size-4 rounded-full border flex items-center justify-center ${
-                      issueReason === opt.id ? 'border-primary' : 'border-relay-border dark:border-relay-border-dark'
+                    className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center ${
+                      issueReason === opt.id ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   >
-                    {issueReason === opt.id && <span className="size-2 rounded-full bg-primary" />}
+                    {issueReason === opt.id && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
                   </span>
                   <span className="text-[13px] leading-snug">{opt.label}</span>
                 </button>

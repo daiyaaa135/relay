@@ -114,8 +114,10 @@ export interface ListingContextValue {
   description: string;
   setDescription: (v: string) => void;
   accessories: string[];
+  setAccessories: (v: string[]) => void;
   toggleAccessory: (item: string) => void;
   functionalityOptions: string[];
+  setFunctionalityOptions: (v: string[]) => void;
   toggleFunctionality: (item: string) => void;
   consoleFunctional: boolean | null;
   setConsoleFunctional: (v: boolean | null) => void;
@@ -648,8 +650,10 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
     description,
     setDescription,
     accessories,
+    setAccessories,
     toggleAccessory,
     functionalityOptions,
+    setFunctionalityOptions,
     toggleFunctionality,
     consoleFunctional,
     setConsoleFunctional,

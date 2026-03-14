@@ -143,7 +143,7 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
             type="button"
             disabled={primaryDisabled}
             onClick={onPrimary}
-            className="ml-auto h-9 px-6 rounded-lg font-semibold text-[10px] tracking-widest uppercase flex items-center justify-center next-step-button text-white disabled:bg-relay-bg dark:disabled:bg-relay-bg-dark disabled:text-relay-muted disabled:border disabled:border-relay-border cursor-not-allowed disabled:opacity-50"
+            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-[10px] tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
             {primaryLabel}
           </button>

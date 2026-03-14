@@ -260,7 +260,7 @@ export function BrowseCategoryClient({ initialData }: { initialData?: BrowseResp
                     const href = `/browse/${encodeURIComponent(category)}/${encodeURIComponent(device.brand)}/${encodeURIComponent(device.model)}${device.image_url ? `?img=${encodeURIComponent(device.image_url)}` : ''}`;
                     const cardClasses = isVideoGames
                       ? 'flex-shrink-0 w-[18vw] max-w-[70px] rounded-lg'
-                      : 'flex-shrink-0 w-[72vw] max-w-[280px] rounded-2xl';
+                      : 'flex-shrink-0 w-[140px] max-h-[110px] rounded-2xl';
                     return (
                       <Link
                         key={device.id}
@@ -281,16 +281,16 @@ export function BrowseCategoryClient({ initialData }: { initialData?: BrowseResp
                             </div>
                           </div>
                         ) : (
-                          <div className="flex">
-                            <div className="w-2/5 min-h-[100px] flex items-center justify-center bg-relay-surface dark:bg-relay-surface-dark p-2 transition-colors">
+                          <div className="flex flex-col h-[110px]">
+                            <div className="w-full h-[80px] shrink-0 flex items-center justify-center bg-relay-surface dark:bg-relay-surface-dark p-2 transition-colors">
                               {device.image_url ? (
-                                <img src={device.image_url} alt="" className="w-full h-full object-contain max-h-24" loading="lazy" />
+                                <img src={device.image_url} alt="" className="w-full h-full object-contain" loading="lazy" />
                               ) : (
-                                <Smartphone className="size-10 text-relay-muted dark:text-relay-muted-light" />
+                                <Smartphone className="size-8 text-relay-muted dark:text-relay-muted-light" />
                               )}
                             </div>
-                            <div className="flex-1 flex flex-col justify-center p-3 min-w-0">
-                              <p className="text-relay-text dark:text-relay-text-dark text-sm truncate">{device.brand} {device.model}</p>
+                            <div className="px-2 py-1 min-w-0 bg-white dark:bg-white">
+                              <p className="text-relay-text dark:text-relay-text-dark text-[10px] truncate">{device.brand} {device.model}</p>
                             </div>
                           </div>
                         )}

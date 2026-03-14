@@ -13,6 +13,7 @@ import { WishlistHeartIcon } from '@/app/components/WishlistHeartIcon';
 import { fetchGadgets } from '@/lib/gadgets';
 import { distanceMiles } from '@/lib/geo';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
+import { Skeleton } from '@/app/components/Skeleton';
 import type { Gadget } from '@/lib/types';
 import { getDefaultAvatar } from '@/lib/avatars';
 import { ChevronIcon } from '@/app/components/ChevronIcon';
@@ -72,6 +73,8 @@ function LandingPageContent() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [upcomingMeetup, setUpcomingMeetup] = useState<UpcomingMeetup | null>(null);
   const [catalogBrands, setCatalogBrands] = useState<string[]>([]);
+  const [exploreReady, setExploreReady] = useState(false);
+  const exploreLoadedRef = useRef(0);
 
   const loadGadgets = useCallback(() => {
     setLoading(true);
@@ -433,7 +436,7 @@ function LandingPageContent() {
         className="shrink-0 z-40 glass-card no-blur border-b border-relay-border dark:border-relay-border-dark px-6 pb-2 space-y-2 pt-safe-2_5"
         style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-h-14">
           <DeviceSearchBar
             value={searchQuery}
             onChange={setSearchQuery}
@@ -446,27 +449,23 @@ function LandingPageContent() {
               );
             }}
           />
-          <div className="size-14 flex items-center justify-center">
-            {selectedCategory !== 'Explore' && selectedCategory !== 'All' ? (
-              <button
-                type="button"
-                onClick={() => setShowFilters(true)}
-                aria-label="Filters"
-                className={`size-14 rounded-sm border flex items-center justify-center transition-all active-scale ${
-                  showFilters ||
-                  selectedConditions.length > 0 ||
-                  selectedBrands.length > 0 ||
-                  selectedStorages.length > 0
-                    ? 'border-transparent text-primary bg-primary/5'
-                    : 'border-relay-border dark:border-relay-border-dark text-relay-muted hover:text-relay-text'
-                }`}
-              >
-                <FilterIcon className="size-6 shrink-0 text-current" />
-              </button>
-            ) : (
-              <div className="size-14 rounded-sm border border-transparent invisible" aria-hidden />
-            )}
-          </div>
+          {selectedCategory !== 'Explore' && selectedCategory !== 'All' && (
+            <button
+              type="button"
+              onClick={() => setShowFilters(true)}
+              aria-label="Filters"
+              className={`size-14 shrink-0 rounded-sm border flex items-center justify-center transition-all active-scale ${
+                showFilters ||
+                selectedConditions.length > 0 ||
+                selectedBrands.length > 0 ||
+                selectedStorages.length > 0
+                  ? 'border-transparent text-primary bg-primary/5'
+                  : 'border-relay-border dark:border-relay-border-dark text-relay-muted hover:text-relay-text'
+              }`}
+            >
+              <FilterIcon className="size-6 shrink-0 text-current" />
+            </button>
+          )}
         </div>
         <div className="flex gap-4 overflow-x-auto hide-scrollbar py-0.5 px-1 items-center">
           {categories.map((cat, index) => {
@@ -486,7 +485,7 @@ function LandingPageContent() {
                 }}
                 className={`flex-shrink-0 flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
                   isActive
-                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-2px_-2px_16px_#ffffff,_2px_2px_16px_#c9d9e8] dark:bg-gray-700 dark:shadow-none'
+                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:bg-gray-700 dark:shadow-none'
                     : 'h-6 w-6 rounded-full text-relay-muted dark:text-white hover:text-relay-text dark:hover:text-white/90 hover:bg-gray-200/60 dark:hover:bg-gray-700/40'
                 }`}
               >
@@ -621,8 +620,21 @@ function LandingPageContent() {
       <div className="px-6 pt-4 pb-32">
         {selectedCategory === 'Explore' ? (
           <>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.keys(BRANDS_BY_CATEGORY).map((cat) => (
+            <div className="relative">
+              {!exploreReady && (
+                <div className="grid grid-cols-2 gap-4" aria-busy="true">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="aspect-[4/3] rounded-2xl" />
+                  ))}
+                </div>
+              )}
+              <div
+                className="grid grid-cols-2 gap-4 transition-opacity duration-300 ease-out"
+                style={{ opacity: exploreReady ? 1 : 0, position: exploreReady ? 'relative' : 'absolute', top: 0, left: 0, right: 0 }}
+              >
+              {Object.keys(BRANDS_BY_CATEGORY).map((cat, index) => {
+                const totalCategories = Object.keys(BRANDS_BY_CATEGORY).length;
+                return (
                 <button
                   key={cat}
                   type="button"
@@ -634,8 +646,15 @@ function LandingPageContent() {
                       src={CATEGORY_CARD_IMAGES[cat]}
                       alt=""
                       fill
+                      priority={index < 4}
                       sizes="(max-width: 768px) 50vw, 33vw"
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onLoad={() => {
+                        exploreLoadedRef.current += 1;
+                        if (exploreLoadedRef.current >= totalCategories) {
+                          setExploreReady(true);
+                        }
+                      }}
                     />
                   ) : (
                     <div className="absolute inset-0 bg-relay-surface dark:bg-relay-surface-dark flex items-center justify-center">
@@ -645,7 +664,9 @@ function LandingPageContent() {
                   <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-transparent" />
                   <span className="absolute bottom-3 left-0 right-0 text-center text-white text-xs font-semibold tracking-normal px-2">{cat}</span>
                 </button>
-              ))}
+                );
+              })}
+              </div>
             </div>
           </>
         ) : (
@@ -673,15 +694,16 @@ function LandingPageContent() {
 
         <div className="grid grid-cols-1 gap-14">
           {loading ? (
-            <div className="py-32 text-center flex flex-col items-center">
-              <div className="size-16 rounded-full border-2 border-primary border-t-transparent animate-spin mb-6" />
-              <p className="text-relay-muted font-bold text-[10px] tracking-widest">Loading marketplace...</p>
+            <div className="grid grid-cols-1 gap-14">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[1/1.618] rounded-[64px]" />
+              ))}
             </div>
           ) : (
           <>
-          {filteredItems.map((item) => (
-            <div 
-              key={item.id} 
+          {filteredItems.map((item, idx) => (
+            <div
+              key={item.id}
               onClick={() => {
                 const params = new URLSearchParams();
                 params.set('from', 'home');
@@ -695,6 +717,7 @@ function LandingPageContent() {
                   src={item.image}
                   alt={item.name}
                   fill
+                  priority={idx === 0}
                   sizes="(max-width: 768px) 100vw, 60vw"
                   className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000 grayscale-[10%] group-hover:grayscale-0"
                 />
@@ -965,17 +988,17 @@ function LandingPageContent() {
                       setPriceRange(2000);
                       setDistanceRange(100);
                     }}
-                    className="flex-1 h-8 rounded-2xl border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-bg-dark text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
+                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:shadow-none text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
                   >
                     Reset
                   </button>
-                  <NextStepButton
+                  <button
                     type="button"
                     onClick={() => setShowFilters(false)}
-                    className="flex-[1.5] h-8 rounded-2xl tracking-tight active-scale"
+                    className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none active-scale"
                   >
                     Apply Selection
-                  </NextStepButton>
+                  </button>
                 </div>
               </>
             ) : (
@@ -984,7 +1007,7 @@ function LandingPageContent() {
                   <button type="button" onClick={() => setFilterSubPanel(null)} className="size-10 flex items-center justify-center text-relay-text dark:text-relay-text-dark">
                     <ChevronIcon direction="left" className="size-6" />
                   </button>
-                  <h2 className="text-[10px] font-bold tracking-[0.4em] text-relay-muted dark:text-relay-muted-light">
+                  <h2 className="text-[22px] font-semibold tracking-tighter text-relay-text dark:text-relay-text-dark">
                     {filterSubPanel === 'brand' ? 'Brand' : filterSubPanel === 'condition' ? 'Condition' : 'Storage'}
                   </h2>
                   <button type="button" onClick={() => { setShowFilters(false); setFilterSubPanel(null); }} className="size-10 flex items-center justify-center text-relay-text dark:text-relay-text-dark">
@@ -994,11 +1017,11 @@ function LandingPageContent() {
                 <div className="flex-1 overflow-y-auto px-6 py-4 hide-scrollbar">
                   {filterSubPanel === 'brand' && (
                     <>
-                      <button type="button" onClick={() => setSelectedBrands([])} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.length === 0 ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                      <button type="button" onClick={() => setSelectedBrands([])} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.length === 0 ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                         All
                       </button>
                       {brandsForFilter.map((b) => (
-                        <button key={b} type="button" onClick={() => handleBrandToggle(b)} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.includes(b) ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                        <button key={b} type="button" onClick={() => handleBrandToggle(b)} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.includes(b) ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                           {b.toUpperCase()}
                         </button>
                       ))}
@@ -1006,11 +1029,11 @@ function LandingPageContent() {
                   )}
                   {filterSubPanel === 'condition' && (
                     <>
-                      <button type="button" onClick={() => setSelectedConditions([])} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.length === 0 ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                      <button type="button" onClick={() => setSelectedConditions([])} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.length === 0 ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                         All
                       </button>
                       {conditions.map((c) => (
-                        <button key={c} type="button" onClick={() => handleConditionToggle(c)} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.includes(c) ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                        <button key={c} type="button" onClick={() => handleConditionToggle(c)} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.includes(c) ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                           {c.toUpperCase()}
                         </button>
                       ))}
@@ -1018,11 +1041,11 @@ function LandingPageContent() {
                   )}
                   {filterSubPanel === 'storage' && (
                     <>
-                      <button type="button" onClick={() => setSelectedStorages([])} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.length === 0 ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                      <button type="button" onClick={() => setSelectedStorages([])} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.length === 0 ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                         All
                       </button>
                       {STORAGE_OPTIONS.map((s) => (
-                        <button key={s} type="button" onClick={() => handleStorageToggle(s)} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.includes(s) ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                        <button key={s} type="button" onClick={() => handleStorageToggle(s)} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.includes(s) ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                           {s}
                         </button>
                       ))}
@@ -1037,11 +1060,11 @@ function LandingPageContent() {
                       else if (filterSubPanel === 'condition') setSelectedConditions([]);
                       else setSelectedStorages([]);
                     }}
-                    className="flex-1 h-8 rounded-2xl border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-bg-dark text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
+                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] dark:shadow-none text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
                   >
                     Reset
                   </button>
-                  <button type="button" onClick={() => setFilterSubPanel(null)} className="next-step-button flex-[1.5] h-8 rounded-2xl text-white text-xs font-semibold tracking-tight active-scale">
+                  <button type="button" onClick={() => setFilterSubPanel(null)} className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none active-scale">
                     Apply Selection
                   </button>
                 </div>

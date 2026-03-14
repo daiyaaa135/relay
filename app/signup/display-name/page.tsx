@@ -75,9 +75,8 @@ function DisplayNamePageContent() {
             type="button"
             onClick={handleNext}
             disabled={!canProceed}
-            className="inline-flex items-center justify-end gap-2 text-primary font-semibold text-xs tracking-tight disabled:opacity-50"
+            className="size-10 rounded-full bg-primary shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] dark:shadow-none inline-flex items-center justify-center text-white disabled:opacity-50 disabled:pointer-events-none"
           >
-            <span>Next</span>
             <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
           </button>
         </div>

@@ -94,6 +94,8 @@ interface ConditionStepPartProps {
   showBatteryHealth?: boolean;
   batteryHealth?: string;
   onBatteryHealthChange?: (v: string) => void;
+  /** When true, the image/buttons stay visible after selection (no collapse). */
+  noCollapse?: boolean;
 }
 
 export function ConditionStepPart({
@@ -106,6 +108,7 @@ export function ConditionStepPart({
   showBatteryHealth = false,
   batteryHealth = '',
   onBatteryHealthChange,
+  noCollapse = false,
 }: ConditionStepPartProps) {
   const isSelected = value !== null;
   const useLimitedGrades = category === 'Console' || category === 'Speaker';
@@ -134,7 +137,7 @@ export function ConditionStepPart({
         <h2 className="text-lg font-semibold text-relay-text dark:text-relay-text-dark">
           {question}
         </h2>
-        {isSelected && (
+        {isSelected && !noCollapse && (
           <div className="flex items-center gap-2 shrink-0 ml-3">
             <span className="text-sm font-bold text-primary">{value}</span>
             {onClear && (
@@ -153,7 +156,7 @@ export function ConditionStepPart({
       {/* ── Collapsible: preview card + grade buttons ── */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isSelected ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[600px] opacity-100'
+          isSelected && !noCollapse ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[600px] opacity-100'
         }`}
       >
         <div className="space-y-6">
@@ -186,11 +189,11 @@ export function ConditionStepPart({
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                    value === grade ? 'border-transparent bg-primary' : 'border-relay-muted'
+                  className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 ${
+                    value === grade ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 >
-                  {value === grade && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
+                  {value === grade && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
                 </span>
                 <span className="text-sm font-medium text-relay-text dark:text-relay-text-dark">{grade}</span>
               </button>
@@ -201,11 +204,11 @@ export function ConditionStepPart({
 
       {/* ── Battery health — revealed after condition is selected ── */}
       {showBatteryHealth && isSelected && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-relay-text dark:text-relay-text-dark">
-            What&apos;s the battery health?
-          </h2>
-          <div className="flex items-center gap-3 bg-relay-bg dark:bg-relay-bg-dark rounded-xl px-4 py-3 border border-relay-border dark:border-relay-border-dark focus-within:border-primary/80 transition-colors">
+        <div className="space-y-2 w-1/2">
+          <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+            Battery Health
+          </label>
+          <div className="flex items-center gap-2">
             <input
               type="text"
               inputMode="numeric"
@@ -214,13 +217,10 @@ export function ConditionStepPart({
               placeholder="e.g. 87"
               value={batteryHealth}
               onChange={handleBatteryInput}
-              className="flex-1 bg-transparent text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-0 focus:outline-none text-3xl font-bold tracking-tighter leading-none"
+              className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark px-4 text-sm"
             />
-            <span className="text-2xl font-bold text-relay-muted leading-none select-none">%</span>
+            <span className="text-sm font-medium text-relay-muted shrink-0">%</span>
           </div>
-          <p className="text-[11px] text-relay-muted">
-            Find this in Settings → Battery. Enter a number between 1 and 100.
-          </p>
         </div>
       )}
     </div>
