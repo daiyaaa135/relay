@@ -1,9 +1,8 @@
 import UIKit
 
 // Pure UIKit splash overlay.
-// The AppLogo image already contains its own light-gray background, so we
-// match the view background to that same colour — no card, no shadow, no
-// visible border between the image and the screen.
+// AppLogo is a transparent-background PNG; the view's #FBFBFB background
+// matches LaunchScreen.storyboard exactly for a seamless one-screen effect.
 
 final class SplashOverlayController: UIViewController {
 
@@ -25,9 +24,10 @@ final class SplashOverlayController: UIViewController {
 
         view.addSubview(logoView)
 
-        // Start hidden + slightly small; animateIn() will reveal it
-        logoView.alpha     = 0
-        logoView.transform = CGAffineTransform(scaleX: 0.80, y: 0.80)
+        // Start fully visible — the OS LaunchScreen already showed the logo,
+        // so we appear at 100% opacity immediately for a seamless handoff.
+        logoView.alpha     = 1.0
+        logoView.transform = .identity
     }
 
     override func viewDidLayoutSubviews() {
@@ -46,18 +46,9 @@ final class SplashOverlayController: UIViewController {
 
     // MARK: — Animations
 
-    func animateIn() {
-        UIView.animate(
-            withDuration: 0.50,
-            delay: 0,
-            usingSpringWithDamping: 0.72,
-            initialSpringVelocity: 0.15,
-            options: .curveEaseOut
-        ) {
-            self.logoView.alpha     = 1.0
-            self.logoView.transform = .identity
-        }
-    }
+    // animateIn is a no-op: the overlay mounts fully visible so it matches
+    // the OS LaunchScreen exactly, giving a seamless handoff with no flash.
+    func animateIn() {}
 
     func animateOut(completion: (() -> Void)? = nil) {
         UIView.animate(

@@ -110,8 +110,8 @@ final class BridgeViewController: CAPBridgeViewController {
         addChild(overlay)
         overlay.view.frame = view.bounds
         overlay.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        // Guarantee white even before SwiftUI renders its first frame
-        overlay.view.backgroundColor = UIColor.white
+        // Do NOT override backgroundColor here — SplashOverlayController sets
+        // it to #FBFBFB in viewDidLoad, matching LaunchScreen.storyboard exactly.
         view.addSubview(overlay.view)
         overlay.didMove(toParent: self)
         // Trigger the icon entrance animation
