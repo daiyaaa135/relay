@@ -1576,10 +1576,9 @@ export default function StepPage() {
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
     });
     if (isPhoneFlow && currentStep === 1 && !imei.trim()) return;
-    const isTestSerial = imei.trim().toLowerCase() === 'test1234';
-    if (isPhoneFlow && currentStep === 2 && verificationStatus !== 'passed' && !isTestSerial) return;
-    if (currentStep === 2 && isTabletFlow && isTabletUnlocked && verificationStatus !== 'passed' && !isTestSerial) return;
-    if (currentStep === 2 && (isLaptopFlow || (isTabletFlow && !isTabletUnlocked)) && laptopVerificationStatus !== 'passed' && !isTestSerial) return;
+    if (isPhoneFlow && currentStep === 2 && verificationStatus !== 'passed') return;
+    if (currentStep === 2 && isTabletFlow && isTabletUnlocked && verificationStatus !== 'passed') return;
+    if (currentStep === 2 && (isLaptopFlow || (isTabletFlow && !isTabletUnlocked)) && laptopVerificationStatus !== 'passed') return;
     // Gaming Handhelds: if any critical checks fail, block progression with a message
     if (
       !isPhoneFlow &&
@@ -1934,32 +1933,26 @@ export default function StepPage() {
   const needValuation = videoGamesNonFunctionalReview ? false : (estimatedCredits == null || estimatedCredits <= 0);
   const reviewPrimaryLabel = isSubmitting ? 'Listing...' : needLocation ? 'USE MY LOCATION TO FINALIZE' : needValuation ? (estimatedCreditsReason?.includes('not available') ? 'VALUATION NOT AVAILABLE' : 'GET VALUATION ON PHOTOS STEP FIRST') : 'FINALIZE';
   const reviewPrimaryDisabled = isSubmitting || !userId || !listingLocation || (!videoGamesNonFunctionalReview && (!hasEnoughPhotos || estimatedCredits == null || estimatedCredits <= 0));
-  const photosPrimaryLabel = isValuating ? 'Processing...' : !hasEnoughPhotos ? 'CAPTURE PHOTOS' : 'COMPLETE EVALUATION';
-  const photosPrimaryDisabled = isValuating || !hasEnoughPhotos;
-  const photosNextDisabled = !hasEnoughPhotos;
+  const photosNextDisabled = !hasEnoughPhotos || isValuating;
 
   let footerProps: ListingStepFooterProps;
   if (currentStep === 1) {
     footerProps = { variant: 'step1', nextDisabled: step1NextDisabled, onNext: handleNext };
   } else if (isVerificationStep) {
-    const testBypass = imei.trim().toLowerCase() === 'test1234';
     if (isPhoneFlow) {
-      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunVerification || verificationStatus === 'verifying', verifying: verificationStatus === 'verifying', nextDisabled: verificationStatus !== 'passed' && !testBypass, onVerify: runVerification, onNext: handleNext };
+      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunVerification || verificationStatus === 'verifying', verifying: verificationStatus === 'verifying', nextDisabled: verificationStatus !== 'passed', onVerify: runVerification, onNext: handleNext };
     } else if (isTabletFlow && isTabletUnlocked) {
-      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunTabletImeiVerification || verificationStatus === 'verifying', verifying: verificationStatus === 'verifying', nextDisabled: verificationStatus !== 'passed' && !testBypass, onVerify: runTabletImeiVerification, onNext: handleNext };
+      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunTabletImeiVerification || verificationStatus === 'verifying', verifying: verificationStatus === 'verifying', nextDisabled: verificationStatus !== 'passed', onVerify: runTabletImeiVerification, onNext: handleNext };
     } else {
-      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunSerialVerification || laptopVerificationStatus === 'verifying', verifying: laptopVerificationStatus === 'verifying', nextDisabled: laptopVerificationStatus !== 'passed' && !testBypass, onVerify: runSerialVerification, onNext: handleNext };
+      footerProps = { variant: 'verify-and-next', verifyDisabled: !canRunSerialVerification || laptopVerificationStatus === 'verifying', verifying: laptopVerificationStatus === 'verifying', nextDisabled: laptopVerificationStatus !== 'passed', onVerify: runSerialVerification, onNext: handleNext };
     }
   } else if (isConditionPartStep || isFunctionalityStep) {
     footerProps = { variant: 'condition-or-functionality', nextDisabled: conditionPartBlocked || functionalityBlocked, onNext: handleNext };
   } else if (isPhotosStep) {
     footerProps = {
       variant: 'photos',
-      primaryLabel: photosPrimaryLabel,
-      primaryDisabled: photosPrimaryDisabled,
-      onPrimary: simulateValuation,
       nextDisabled: photosNextDisabled,
-      onNext: handleNext,
+      onNext: simulateValuation,
     };
   } else if (isReviewStep) {
     footerProps = {
