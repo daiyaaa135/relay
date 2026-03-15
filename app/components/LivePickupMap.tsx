@@ -171,6 +171,7 @@ export function LivePickupMap({
   const sellerMarkerRef = useRef<unknown>(null);
   const buyerDistRef = useRef<HTMLSpanElement | null>(null);
   const sellerDistRef = useRef<HTMLSpanElement | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   // Compute bounds that fit all available points
@@ -255,6 +256,7 @@ export function LivePickupMap({
         }
 
         computeBounds(mbgl, map);
+        (map as unknown as { resize: () => void }).resize();
       });
 
       // Dark mode observer
@@ -263,12 +265,24 @@ export function LivePickupMap({
         (mapRef.current as { setStyle: (s: string) => void }).setStyle(isDark() ? DARK_STYLE : LIGHT_STYLE);
       });
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+      // Resize observer — keeps canvas in sync when container size changes
+      // (mobile keyboard, sticky snapping, viewport shifts, etc.)
+      const ro = new ResizeObserver(() => {
+        if (mapRef.current) {
+          (mapRef.current as { resize: () => void }).resize();
+        }
+      });
+      ro.observe(containerRef.current);
+      resizeObserverRef.current = ro;
     };
 
     init();
 
     return () => {
       mounted = false;
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       observer?.disconnect();
       (map as unknown as { remove?: () => void })?.remove?.();
       mapRef.current = null;
@@ -329,7 +343,9 @@ export function LivePickupMap({
       className={`relative w-full overflow-hidden rounded-2xl border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark ${className}`}
     >
       {!loaded && <div className="absolute inset-0 z-20 animate-pulse bg-[#e2e5e9] dark:bg-[#1c1c1e]" />}
-      <div ref={containerRef} style={{ width: '100%', paddingBottom: '75%' }} />
+      <div style={{ width: '100%', paddingBottom: '75%', position: 'relative' }}>
+        <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      </div>
     </div>
   );
 }

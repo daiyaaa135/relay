@@ -106,7 +106,11 @@ export function LocationMapWithAvatar({
       });
 
       (map as { on: (e: string, cb: () => void) => void }).on('load', () => {
-        if (!mounted) return;
+        // Guard: component may have unmounted while the map was loading.
+        if (!mounted) {
+          (map as { remove?: () => void })?.remove?.();
+          return;
+        }
 
         const sw = new mbgl.LngLat(longitude - MAP_DELTA, latitude - MAP_DELTA);
         const ne = new mbgl.LngLat(longitude + MAP_DELTA, latitude + MAP_DELTA);
@@ -121,12 +125,14 @@ export function LocationMapWithAvatar({
           .addTo(map as Parameters<typeof mbgl.Marker.prototype.addTo>[0]);
 
         setLoaded(true);
-      });
 
-      observer = new MutationObserver(() => {
-        (map as { setStyle: (s: string) => void }).setStyle(isDark() ? DARK_STYLE : LIGHT_STYLE);
+        // Dark mode observer — moved inside the load callback so observer
+        // is always assigned before the cleanup function may call disconnect().
+        observer = new MutationObserver(() => {
+          (map as { setStyle: (s: string) => void }).setStyle(isDark() ? DARK_STYLE : LIGHT_STYLE);
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
       });
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     };
 
     init();

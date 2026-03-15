@@ -92,7 +92,11 @@ export function PickupLocationsMap({ locations, className = '' }: Props) {
       });
 
       (map as { on: (e: string, cb: () => void) => void }).on('load', () => {
-        if (!mounted) return;
+        // Guard: component may have unmounted while the map was loading.
+        if (!mounted) {
+          (map as { remove?: () => void })?.remove?.();
+          return;
+        }
 
         // Fit to all points
         const sw = new mbgl.LngLat(Math.min(...lons) - PADDING, Math.min(...lats) - PADDING);
@@ -112,13 +116,14 @@ export function PickupLocationsMap({ locations, className = '' }: Props) {
         });
 
         setLoaded(true);
-      });
 
-      // Dark mode
-      observer = new MutationObserver(() => {
-        (map as { setStyle: (s: string) => void }).setStyle(isDark() ? DARK_STYLE : LIGHT_STYLE);
+        // Dark mode observer — created here so it's guaranteed to be set
+        // before the cleanup function references it.
+        observer = new MutationObserver(() => {
+          (map as { setStyle: (s: string) => void }).setStyle(isDark() ? DARK_STYLE : LIGHT_STYLE);
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
       });
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     };
 
     init();

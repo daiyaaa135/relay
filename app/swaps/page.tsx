@@ -144,8 +144,8 @@ export default function SwapsPage() {
     }
   };
 
-  const incoming = swaps.filter((s) => s.seller_profile_id === profileId);
-  const outgoing = swaps.filter((s) => s.buyer_profile_id === profileId);
+  const incoming = swaps.filter((s) => s.buyer_profile_id === profileId);
+  const outgoing = swaps.filter((s) => s.seller_profile_id === profileId);
   const list = activeTab === 'incoming' ? incoming : outgoing;
 
   if (!authChecked || loading) {

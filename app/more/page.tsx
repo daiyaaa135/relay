@@ -192,7 +192,7 @@ export default function MorePage() {
               <h4 className="text-sm font-medium text-relay-text dark:text-relay-text-dark">
                 {item.label}
               </h4>
-              <p className="text-[10px] text-relay-muted font-medium mt-1 tracking-widest opacity-40 group-hover:opacity-100 transition-opacity">{item.desc}</p>
+              <p className="text-[10px] text-relay-muted dark:text-relay-muted-light font-medium mt-1 tracking-widest opacity-40 dark:opacity-60 group-hover:opacity-100 transition-opacity">{item.desc}</p>
             </div>
             <span className="material-symbols-outlined text-relay-border dark:text-relay-border-dark group-hover:text-primary transition-colors">arrow_right_alt</span>
           </button>

@@ -11,7 +11,6 @@ import { MessagesNavIcon } from '@/app/components/MessagesNavIcon';
 import { MoreNavIcon } from '@/app/components/MoreNavIcon';
 import { WishlistNavIcon } from '@/app/components/WishlistNavIcon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import SplashScreen from '@/app/components/SplashScreen';
 
 const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -25,7 +24,12 @@ const BottomNav: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const supabase = createClient();
+    let supabase: ReturnType<typeof createClient>;
+    try {
+      supabase = createClient();
+    } catch {
+      return; // Missing env vars — skip unread check silently
+    }
 
     const check = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -52,7 +56,7 @@ const BottomNav: React.FC = () => {
       if (!cancelled) setHasUnreadMessages(!!(unread && unread.length > 0));
     };
 
-    check();
+    check().catch(err => console.warn('[BottomNav] unread check failed:', err));
     // Re-check when window gains focus
     const onFocus = () => check();
     window.addEventListener('focus', onFocus);
@@ -114,7 +118,7 @@ const BottomNav: React.FC = () => {
               <div
                 className={`relative rounded-full p-2 transition-all ${
                   showHighlight
-                    ? 'bg-relay-surface dark:bg-relay-input-dark'
+                    ? 'bg-relay-surface shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] nav-icon-glass'
                     : 'group-hover:bg-relay-surface dark:group-hover:bg-relay-input-dark'
                 }`}
                 style={{ minWidth: 14, minHeight: 14, margin: 2 }}
@@ -133,7 +137,7 @@ const BottomNav: React.FC = () => {
                   <span className={`material-symbols-outlined ${isActive ? 'fill-1' : ''}`}>{item.icon}</span>
                 )}
                 {hasBadge && (
-                  <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-relay-text dark:bg-relay-text-dark border-2 border-relay-surface dark:border-relay-surface-dark" />
+                  <span className="absolute top-1.5 right-1.5 size-2.5 rounded-full bg-primary border-2 border-relay-surface dark:border-relay-surface-dark" />
                 )}
               </div>
               <span className={`text-[10px] font-normal tracking-tighter transition-opacity duration-200 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>{item.label}</span>
@@ -150,7 +154,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const hideNavPaths = ['/login', '/signup'];
   const mainRef = React.useRef<HTMLElement>(null);
   const router = useRouter();
-  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     const cleanup = usePushNotifications(router);
@@ -180,20 +183,38 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  // Global error + unhandled rejection debug instrumentation has been removed.
-
-  // One-time per-session splash screen on home route
+  // Guard against unhandled Promise rejections AND uncaught synchronous errors
+  // crashing the WKWebView process. On certain iOS/WebKit versions both types
+  // of unhandled JS errors send SIGABRT to the web content process.
+  // event.preventDefault() / returning true stops that signal.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (pathname !== '/') return;
-    try {
-      if (sessionStorage.getItem('splashShown')) return;
-      sessionStorage.setItem('splashShown', 'true');
-      setShowSplash(true);
-    } catch {
-      // ignore
-    }
-  }, [pathname]);
+
+    const rejectionHandler = (event: PromiseRejectionEvent) => {
+      event.preventDefault();
+      console.warn('[unhandledrejection]', event.reason);
+    };
+
+    // Also suppress uncaught synchronous JS errors from crashing WKWebView.
+    // Returning true from window.onerror prevents the default "uncaught" handling.
+    const errorHandler = (
+      message: string | Event,
+      source?: string,
+      lineno?: number,
+      colno?: number,
+      error?: Error,
+    ): boolean => {
+      console.warn('[uncaughterror]', message, source, lineno, colno, error);
+      return true; // prevents default browser error handling (including WKWebView SIGABRT)
+    };
+
+    window.addEventListener('unhandledrejection', rejectionHandler);
+    window.onerror = errorHandler;
+    return () => {
+      window.removeEventListener('unhandledrejection', rejectionHandler);
+      if ((window.onerror as unknown) === errorHandler) window.onerror = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -248,8 +269,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       try {
         await plugin.enablePullToRefresh();
       } catch (err) {
-        // Preserve previous behavior: surface the error
-        throw err;
+        // Log but do not rethrow — rethrowing inside an unawaited async IIFE
+        // creates an unhandled Promise rejection which crashes WKWebView on iOS.
+        console.warn('[PullToRefresh] enablePullToRefresh failed:', err);
+        return;
       }
 
       if (cancelled) return;
@@ -279,11 +302,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {children}
             </div>
           </main>
-          {showSplash && (
-            <div className="absolute inset-0 z-[9998] flex items-center justify-center">
-              <SplashScreen onDone={() => setShowSplash(false)} />
-            </div>
-          )}
           {!shouldHideNav && <BottomNav />}
         </div>
       </div>

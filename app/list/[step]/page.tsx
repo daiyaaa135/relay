@@ -16,9 +16,20 @@ import { hasAvailability } from '@/lib/availability';
 import { fetchProfile } from '@/lib/profiles';
 import { reverseGeocode, searchLocations, type LocationSuggestion } from '@/lib/geo';
 import { Capacitor } from '@capacitor/core';
-import { DeviceCaptureFlow } from '@/app/components/DeviceCaptureFlow';
-import { LocationMapWithAvatar } from '@/app/components/LocationMapWithAvatar';
-import { SearchableGameDropdown } from '@/app/components/SearchableGameDropdown';
+import dynamic from 'next/dynamic';
+
+const DeviceCaptureFlow = dynamic(
+  () => import('@/app/components/DeviceCaptureFlow').then(m => ({ default: m.DeviceCaptureFlow })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const LocationMapWithAvatar = dynamic(
+  () => import('@/app/components/LocationMapWithAvatar').then(m => ({ default: m.LocationMapWithAvatar })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const SearchableGameDropdown = dynamic(
+  () => import('@/app/components/SearchableGameDropdown').then(m => ({ default: m.SearchableGameDropdown })),
+  { ssr: false, loading: () => <div className="w-full h-12 rounded-xl bg-relay-bg animate-pulse" /> }
+);
 import { NextStepButton } from '@/app/components/NextStepButton';
 import { useListing, VALUATION_STORAGE_KEY } from '../ListingContext';
 import { ConditionStepPart, getWorstCondition } from '../ConditionStepPart';
@@ -26,6 +37,7 @@ import { ListingStepFooter, type ListingStepFooterProps } from '../components/Li
 import type { DeviceType } from '@/lib/DeviceCaptureConfig';
 
 const MIN_LISTING_PHOTOS = 6;
+const BATTERY_HEALTH_CATEGORIES = ['Phones', 'Tablets', 'Laptops', 'Gaming Handhelds', 'MP3'] as const;
 
 const CONSOLE_ACCESSORY_OPTIONS = [
   { id: 'Power cord', required: true },
@@ -33,68 +45,36 @@ const CONSOLE_ACCESSORY_OPTIONS = [
   { id: 'HDMI cable', required: false },
 ] as const;
 
-function ConsoleAccessoryField({ accessories, onToggle }: { accessories: string[]; onToggle: (item: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const optionIds = CONSOLE_ACCESSORY_OPTIONS.map((o) => o.id);
-  const selected = accessories.filter((a) => optionIds.includes(a));
-  const displayText = selected.length > 0 ? selected.join(', ') : '';
+const TABLET_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+] as const;
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+const LAPTOP_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+] as const;
 
-  return (
-    <div className="space-y-2" ref={containerRef}>
-      <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
-        Accessory
-      </label>
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-left text-relay-text dark:text-relay-text-dark px-4 text-sm flex items-center justify-between"
-        >
-          <span className={displayText ? '' : 'text-relay-muted dark:text-relay-muted-light'}>
-            {displayText || 'Select accessories'}
-          </span>
-          <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light text-lg shrink-0">
-            {open ? 'expand_less' : 'expand_more'}
-          </span>
-        </button>
-        {open && (
-          <div className="absolute top-full left-0 right-0 mt-1 z-10 rounded-lg border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark shadow-lg py-1">
-            {CONSOLE_ACCESSORY_OPTIONS.map((opt) => {
-              const isSelected = accessories.includes(opt.id);
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => onToggle(opt.id)}
-                  className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-relay-bg dark:hover:bg-relay-bg-dark"
-                >
-                  <span
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-transparent bg-primary' : 'border-relay-border dark:border-relay-border-dark'}`}
-                  >
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
-                  </span>
-                  {opt.id}
-                  {!opt.required && (
-                    <span className="text-relay-muted dark:text-relay-muted-light text-xs">(not required)</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+const HANDHELD_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+] as const;
+
+const HEADPHONES_ACCESSORY_OPTIONS = [
+  { id: 'Charging cable' },
+  { id: 'Power adapter' },
+  { id: 'Original box' },
+] as const;
+
+const SPEAKER_ACCESSORY_OPTIONS = [
+  { id: 'Power cable / adapter' },
+  { id: 'Remote control' },
+  { id: 'Original box' },
+] as const;
+
+const MP3_ACCESSORY_OPTIONS = [
+  { id: 'Charging/sync cable' },
+] as const;
 
 const MAPBOX_LIGHT = 'mapbox://styles/mapbox/light-v11';
 const MAPBOX_DARK = 'mapbox://styles/mapbox/dark-v11';
@@ -439,11 +419,12 @@ export default function StepPage() {
     userId, authChecked, setUserId, setAuthChecked,
     category, setCategory, brand, setBrand, modelName, setModelName, condition, setCondition,
     frontCondition, setFrontCondition, backCondition, setBackCondition,
+    batteryHealth, setBatteryHealth,
     sideTop, setSideTop, sideBottom, setSideBottom, sideLeft, setSideLeft, sideRight, setSideRight,
     conditionPercentage, setConditionPercentage, conditionAnalyzing, setConditionAnalyzing, conditionError, setConditionError,
     swappaCredits, setSwappaCredits, swappaPrice, setSwappaPrice, swappaLookupError, setSwappaLookupError,
     storage, setStorage, ram, setRam, color, setColor, carrier, setCarrier, imei, setImei, videoGameName, setVideoGameName, videoGameCondition, setVideoGameCondition, description, setDescription,
-    accessories, toggleAccessory, functionalityOptions, toggleFunctionality, consoleFunctional, setConsoleFunctional, verificationCode,
+    accessories, setAccessories, toggleAccessory, functionalityOptions, setFunctionalityOptions, toggleFunctionality, consoleFunctional, setConsoleFunctional, verificationCode,
     listingLocation, setListingLocation, locationLoading, setLocationLoading, locationError, setLocationError,
     listingPhotoUrls, setListingPhotoUrls, photoError, setPhotoError,
     chipCpu, setChipCpu, year, setYear, size, setSize,
@@ -487,6 +468,8 @@ export default function StepPage() {
   const [pickupDropdownVisible, setPickupDropdownVisible] = useState<'1' | '2' | null>(null);
   const [pickupLocationsSaving, setPickupLocationsSaving] = useState(false);
   const [pickupLocationsError, setPickupLocationsError] = useState<string | null>(null);
+  const [batteryHealthRevealed, setBatteryHealthRevealed] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   const isPhoneFlow = category === 'Phones';
   const isLaptopFlow = category === 'Laptops';
@@ -496,6 +479,9 @@ export default function StepPage() {
   const totalSteps = isPhoneFlow || isLaptopFlow || isTabletFlow ? 7 : isVideoGamesFlow ? 4 : isConsoleLikeFlow ? 5 : 6;
   const currentStep = Math.max(1, Math.min(stepNum, totalSteps));
   const accessoryType = category === 'Headphones' ? 'headphones' : category === 'Speaker' ? 'speaker' : category === 'Console' ? 'console' : null;
+
+  // Reset battery health phase when navigating between steps
+  useEffect(() => { setBatteryHealthRevealed(false); }, [currentStep]);
 
   useEffect(() => {
     if (!showCelebration) return;
@@ -589,14 +575,21 @@ export default function StepPage() {
     return () => { cancelled = true; };
   }, [userId, listingLocation]);
 
-  // Debounced location search for pickup locations modal
+  // Debounced location search for pickup locations modal (always "all" — addresses, POIs, places)
   useEffect(() => {
     if (!showPickupLocationsModal) return;
     const q1 = location1Query.trim();
     const q2 = location2Query.trim();
-    if (q1.length < 2 && q2.length < 2) {
-      setLocation1Suggestions([]);
-      setLocation2Suggestions([]);
+    // Skip re-searching a field whose confirmed selection already matches the current query text.
+    // This prevents firing two simultaneous Nominatim requests (violates 1 req/sec rate limit)
+    // when the user types in location 2 while location 1 is already confirmed.
+    const loc1Name = pickupLocation1 ? (pickupLocation1.displayName || [pickupLocation1.city, pickupLocation1.state].filter(Boolean).join(', ')) : null;
+    const loc2Name = pickupLocation2 ? (pickupLocation2.displayName || [pickupLocation2.city, pickupLocation2.state].filter(Boolean).join(', ')) : null;
+    const needs1 = q1.length >= 2 && loc1Name !== q1;
+    const needs2 = q2.length >= 2 && loc2Name !== q2;
+    if (!needs1 && !needs2) {
+      if (q1.length < 2) setLocation1Suggestions([]);
+      if (q2.length < 2) setLocation2Suggestions([]);
       setLocationSuggestionsLoading(false);
       return;
     }
@@ -605,22 +598,20 @@ export default function StepPage() {
       : undefined;
     const t = setTimeout(async () => {
       setLocationSuggestionsLoading(true);
-      // Always use Nominatim (OSM) for pickup location search; Mapbox is used only for the map.
-      const search = searchLocations;
       if (q1.length < 2) setLocation1Suggestions([]);
       else {
-        const list = await search(q1, userLoc);
+        const list = await searchLocations(q1, userLoc);
         setLocation1Suggestions(list);
       }
       if (q2.length < 2) setLocation2Suggestions([]);
       else {
-        const list = await search(q2, userLoc);
+        const list = await searchLocations(q2, userLoc);
         setLocation2Suggestions(list);
       }
       setLocationSuggestionsLoading(false);
     }, 300);
     return () => clearTimeout(t);
-  }, [showPickupLocationsModal, location1Query, location2Query, listingLocation]);
+  }, [showPickupLocationsModal, location1Query, location2Query, listingLocation, pickupLocation1, pickupLocation2]);
 
   // Rehydrate valuation from sessionStorage when on Review with no credits (survives navigation/remount)
   const valuationCategories = ['Phones', 'Tablets', 'Laptops', 'MP3', 'Console', 'Video Games', 'Gaming Handhelds', 'Headphones', 'Speaker'];
@@ -648,9 +639,6 @@ export default function StepPage() {
     setLaptopModelsLoading(true);
     // Only clear model when the brand changes (not on mount / navigation back to step 1)
     if (!hasResumedDraftRef.current && brandChanged) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/1b68bc98-dfbf-4969-9794-62dc8b7c5307', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'list/[step]/page.tsx:effect-Laptops', message: 'Clearing modelName (Laptops)', data: { currentStep }, timestamp: Date.now(), hypothesisId: 'H1-H5' }) }).catch(() => {});
-      // #endregion
       setModelName('');
     }
     fetch(`/api/devices/models?${new URLSearchParams({ brand })}`).then((r) => r.json()).then((d: { models?: string[] }) => setLaptopModels(Array.isArray(d.models) ? d.models : [])).catch(() => setLaptopModels([])).finally(() => setLaptopModelsLoading(false));
@@ -1383,7 +1371,7 @@ export default function StepPage() {
 
   const openDeviceCapture = useCallback(() => {
     setPhotoError(null);
-    if (!userId) { setPhotoError('Sign in to take photos.'); return; }
+    if (!userId) { setShowSignInModal(true); return; }
     const isNative = typeof window !== 'undefined' && Capacitor.isNativePlatform();
     const secure = typeof window !== 'undefined' && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || isNative);
     if (!secure) { setPhotoError('Camera requires HTTPS.'); return; }
@@ -1488,11 +1476,18 @@ export default function StepPage() {
       category,
       condition: cond,
       specs,
-      description: [accessories.length ? `Accessories: ${accessories.join(', ')}` : '', functionalityOptions.length ? `Functional: ${functionalityOptions.join('. ')}` : '', isConsoleLikeFlow && consoleFunctional !== null ? `Device functional: ${consoleFunctional ? 'Yes' : 'No'}` : '', description.trim()].filter(Boolean).join('\n') || undefined,
+      description: [
+        accessories.length ? `Accessories: ${accessories.join(', ')}` : '',
+        functionalityOptions.length ? `Functional: ${functionalityOptions.join('. ')}` : '',
+        isConsoleLikeFlow && consoleFunctional !== null ? `Device functional: ${consoleFunctional ? 'Yes' : 'No'}` : '',
+        ['Phones', 'Tablets', 'Laptops', 'Gaming Handhelds', 'MP3'].includes(category) && batteryHealth.trim() ? `Battery health: ${batteryHealth.trim()}%` : '',
+        frontCondition ? `Condition details: Front: ${frontCondition}${backCondition ? `, Back: ${backCondition}` : ''}` : '',
+        description.trim(),
+      ].filter(Boolean).join('\n') || undefined,
       ...(color.trim() && { color: color.trim() }),
       ...(carrier && !['Laptops', 'Headphones', 'Speaker', 'Console', 'Video Games', 'MP3', 'Gaming Handhelds'].includes(category) && { carrier }),
       verification_code: verificationCode,
-      credits: estimatedCredits,
+      credits: estimatedCredits ?? 0,
       ...(listingLocation && { latitude: listingLocation.latitude, longitude: listingLocation.longitude, city: listingLocation.city || undefined, state: listingLocation.state || undefined }),
       ...(listingPhotoUrls.length > 0 && { image_urls: listingPhotoUrls }),
     });
@@ -1508,7 +1503,7 @@ export default function StepPage() {
     setPickupDropdownVisible(null);
     setPickupLocationsError(null);
     setShowPickupLocationsModal(true);
-  }, [userId, condition, frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight, storage, effectiveStorage, imei, category, size, year, brand, modelName, accessories, functionalityOptions, consoleFunctional, description, color, carrier, verificationCode, estimatedCredits, estimatedCreditsReason, listingLocation, listingPhotoUrls, router, setIsSubmitting, setSubmitError, isConsoleLikeFlow, isVideoGamesFlow, videoGameName, videoGameCondition]);
+  }, [userId, condition, frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight, storage, effectiveStorage, imei, category, size, year, brand, modelName, accessories, functionalityOptions, consoleFunctional, description, color, carrier, verificationCode, estimatedCredits, estimatedCreditsReason, listingLocation, listingPhotoUrls, router, setIsSubmitting, setSubmitError, isConsoleLikeFlow, isVideoGamesFlow, videoGameName, videoGameCondition, batteryHealth]);
 
   const handlePickupLocationsConfirm = useCallback(async () => {
     if (!userId || !newGadgetId || !pickupLocation1 || !pickupLocation2) return;
@@ -1553,7 +1548,7 @@ export default function StepPage() {
     setPickupLocation1(null);
     setPickupLocation2(null);
     clearDraft();
-    setCelebrationCredits(estimatedCredits);
+    setCelebrationCredits(estimatedCredits ?? 0);
     setShowCelebration(true);
 
     // After confirming pickup locations and creating the listing, ensure the seller
@@ -1605,15 +1600,82 @@ export default function StepPage() {
       router.push('/list/4');
       return;
     }
+    // Two-phase battery health reveal:
+    // First Next click on a condition step with battery health → collapse condition & reveal battery health.
+    // Second Next click → navigate to next step.
+    const isConsoleLikeConditionStep = isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 2;
+    const isBackConditionStep = (isPhoneFlow || isLaptopFlow || isTabletFlow) && currentStep === 4;
+    const needsBatteryReveal = (isConsoleLikeConditionStep || isBackConditionStep) && (BATTERY_HEALTH_CATEGORIES as readonly string[]).includes(category);
+    if (needsBatteryReveal && !batteryHealthRevealed) {
+      setBatteryHealthRevealed(true);
+      return;
+    }
     router.push(`/list/${currentStep + 1}`);
-  }, [currentStep, totalSteps, isPhoneFlow, isLaptopFlow, isTabletFlow, isVideoGamesFlow, consoleFunctional, imei, verificationStatus, laptopVerificationStatus, router]);
+  }, [currentStep, totalSteps, isPhoneFlow, isLaptopFlow, isTabletFlow, isVideoGamesFlow, isConsoleLikeFlow, consoleFunctional, imei, verificationStatus, laptopVerificationStatus, router, batteryHealthRevealed, category]);
+
+  /* Reset all state from steps 2+ (verification, conditions, functionality, photos, etc.) */
+  const resetOtherPagesState = useCallback(() => {
+    // Conditions
+    setFrontCondition(null);
+    setBackCondition(null);
+    setSideTop(null);
+    setSideBottom(null);
+    setSideLeft(null);
+    setSideRight(null);
+    setCondition(null);
+    setConditionPercentage(null);
+    setConditionError(null);
+    // Battery & description
+    setBatteryHealth('');
+    setDescription('');
+    // Accessories & functionality
+    setAccessories([]);
+    setFunctionalityOptions([]);
+    setConsoleFunctional(null);
+    // Photos
+    setListingPhotoUrls([]);
+    // Verification (phones)
+    setAboutScreenshotFile(null);
+    setAboutScreenshotPreviewUrl(null);
+    setStorageScreenshotFile(null);
+    setStorageScreenshotPreviewUrl(null);
+    setOemUnlockingScreenshotFile(null);
+    setOemUnlockingScreenshotPreviewUrl(null);
+    setVerificationStatus('idle');
+    setVerificationMessage('');
+    // Verification (laptop/tablet serial)
+    setLaptopSerialScreenshotFile(null);
+    setLaptopSerialScreenshotPreviewUrl(null);
+    setLaptopSerialNumber('');
+    setLaptopVerificationStatus('idle');
+    setLaptopVerificationMessage('');
+    // Valuation
+    setSwappaCredits(null);
+    setSwappaPrice(null);
+    // Battery health phase
+    setBatteryHealthRevealed(false);
+  }, [
+    setFrontCondition, setBackCondition, setSideTop, setSideBottom, setSideLeft, setSideRight,
+    setCondition, setConditionPercentage, setConditionError, setBatteryHealth, setDescription,
+    setAccessories, setFunctionalityOptions, setConsoleFunctional, setListingPhotoUrls,
+    setAboutScreenshotFile, setAboutScreenshotPreviewUrl, setStorageScreenshotFile, setStorageScreenshotPreviewUrl,
+    setOemUnlockingScreenshotFile, setOemUnlockingScreenshotPreviewUrl, setVerificationStatus, setVerificationMessage,
+    setLaptopSerialScreenshotFile, setLaptopSerialScreenshotPreviewUrl, setLaptopSerialNumber,
+    setLaptopVerificationStatus, setLaptopVerificationMessage, setSwappaCredits, setSwappaPrice,
+  ]);
 
   const setCategoryAndBrand = useCallback((cat: string) => {
     setCategory(cat);
     if (['Phones', 'Tablets', 'Headphones', 'Speaker', 'Console', 'Video Games', 'MP3', 'Gaming Handhelds'].includes(cat)) setBrand('');
     else setBrand(BRANDS_BY_CATEGORY[cat]?.[0] ?? '');
     if (cat !== 'Video Games') { setVideoGameName(''); setVideoGameCondition(''); }
-  }, [setCategory, setBrand, setVideoGameName, setVideoGameCondition]);
+    resetOtherPagesState();
+  }, [setCategory, setBrand, setVideoGameName, setVideoGameCondition, resetOtherPagesState]);
+
+  const handleBrandChange = useCallback((newBrand: string) => {
+    setBrand(newBrand);
+    resetOtherPagesState();
+  }, [setBrand, resetOtherPagesState]);
 
   const handleToggleHandheldCheck = useCallback(
     (text: string) => {
@@ -1723,9 +1785,12 @@ export default function StepPage() {
       const open = pickupDropdownVisible === which;
       const setOpen = (v: boolean) => setPickupDropdownVisible(v ? which : null);
       const dotColor = is1 ? '#f08070' : '#3b82f6';
-      const excludeDisplayName = is1 ? pickupLocation2?.displayName : pickupLocation1?.displayName;
-      const filtered = excludeDisplayName
-        ? suggestions.filter((s) => (s.displayName || [s.city, s.state].filter(Boolean).join(', ')) !== excludeDisplayName)
+      const other = is1 ? pickupLocation2 : pickupLocation1;
+      const makeKey = (d: { displayName?: string; city: string; state: string }) =>
+        [d.displayName ?? '', d.city ?? '', d.state ?? ''].join(' | ').toLowerCase();
+      const excludeKey = other ? makeKey(other) : null;
+      const filtered = excludeKey
+        ? suggestions.filter((s) => makeKey(s) !== excludeKey)
         : suggestions;
       return (
         <div key={which} className="relative">
@@ -1751,7 +1816,16 @@ export default function StepPage() {
           {value && (
             <div className="flex items-center gap-1 mt-1.5 pl-0.5 text-[11px] text-[#aaa]">
               <span style={{ color: dotColor }}>✓</span>
-              <span className="truncate">{value.displayName || [value.city, value.state].filter(Boolean).join(', ')}</span>
+              <span className="truncate">
+                {(() => {
+                  const raw = value.displayName || '';
+                  const [namePart, addressPart] = raw.split('—');
+                  const name = namePart.trim() || value.city || 'Location';
+                  const fallbackAddress = [value.city, value.state].filter(Boolean).join(', ');
+                  const addr = (addressPart || '').trim() || fallbackAddress;
+                  return addr ? `${name} — ${addr}` : name;
+                })()}
+              </span>
             </div>
           )}
           {open && (filtered.length > 0 || locationSuggestionsLoading) && (
@@ -1760,7 +1834,12 @@ export default function StepPage() {
                 <div className="p-3 text-center text-[#888] text-xs">Searching...</div>
               ) : (
                 filtered.map((s, i) => {
-                  const exact = s.displayName || [s.city, s.state].filter(Boolean).join(', ') || 'Unknown';
+                  const raw = s.displayName || '';
+                  const [namePart, addressPart] = raw.split('—');
+                  const name = namePart.trim() || s.city || 'Location';
+                  const cityState = [s.city, s.state].filter(Boolean).join(', ');
+                  const secondary = (addressPart || '').trim() || cityState || raw || 'Unknown';
+                  const exact = raw || `${name}${secondary ? ` — ${secondary}` : ''}`;
                   return (
                     <button
                       key={i}
@@ -1770,8 +1849,12 @@ export default function StepPage() {
                     >
                       <div className="w-7 h-7 rounded-lg bg-[#f5f4f0] dark:bg-[#333] flex items-center justify-center text-sm shrink-0">📍</div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-[#222] dark:text-gray-100 truncate">{s.displayName?.split(',')[0]?.trim() || s.city || 'Location'}</div>
-                        <div className="text-[11px] text-[#aaa] mt-0.5 truncate">{s.displayName || [s.city, s.state].filter(Boolean).join(', ')}</div>
+                        <div className="font-semibold text-[#222] dark:text-gray-100 truncate">
+                          {name}
+                        </div>
+                        <div className="text-[11px] text-[#aaa] mt-0.5 truncate">
+                          {secondary}
+                        </div>
                       </div>
                     </button>
                   );
@@ -1837,9 +1920,10 @@ export default function StepPage() {
   const isVerificationStep = (isPhoneFlow && currentStep === 2) || (isLaptopFlow && currentStep === 2) || (isTabletFlow && currentStep === 2);
   const isConditionPartStep = (isPhoneFlow && [3, 4].includes(currentStep)) || (isLaptopFlow && [3, 4].includes(currentStep)) || (isTabletFlow && [3, 4].includes(currentStep)) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && ((isConsoleLikeFlow && currentStep === 2 && !isVideoGamesFlow) || (!isConsoleLikeFlow && !isVideoGamesFlow && [2, 3].includes(currentStep))));
   const isFunctionalityStep = (isPhoneFlow && currentStep === 5) || (isLaptopFlow && currentStep === 5) || (isTabletFlow && currentStep === 5) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && (((isConsoleLikeFlow && !isVideoGamesFlow) && currentStep === 3) || (isVideoGamesFlow && currentStep === 2) || (!isConsoleLikeFlow && !isVideoGamesFlow && currentStep === 4)));
+  const hasBatteryHealth = (BATTERY_HEALTH_CATEGORIES as readonly string[]).includes(category);
   const conditionPartBlocked = isConditionPartStep && (
-    ((isPhoneFlow && currentStep === 3) || (isLaptopFlow && currentStep === 3) || (isTabletFlow && currentStep === 3) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && currentStep === 2)) ? !frontCondition :
-    ((isPhoneFlow && currentStep === 4) || (isLaptopFlow && currentStep === 4) || (isTabletFlow && currentStep === 4) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && !isConsoleLikeFlow && currentStep === 3)) ? !backCondition :
+    ((isPhoneFlow && currentStep === 3) || (isLaptopFlow && currentStep === 3) || (isTabletFlow && currentStep === 3) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && currentStep === 2)) ? !frontCondition || (isConsoleLikeFlow && hasBatteryHealth && batteryHealthRevealed && batteryHealth.trim() === '') :
+    ((isPhoneFlow && currentStep === 4) || (isLaptopFlow && currentStep === 4) || (isTabletFlow && currentStep === 4) || (!isPhoneFlow && !isLaptopFlow && !isTabletFlow && !isConsoleLikeFlow && currentStep === 3)) ? !backCondition || (hasBatteryHealth && batteryHealthRevealed && batteryHealth.trim() === '') :
     false
   );
   const functionalityBlocked = isFunctionalityStep && isConsoleLikeFlow && consoleFunctional === null;
@@ -1847,10 +1931,9 @@ export default function StepPage() {
   const step1NextDisabled = (isVideoGamesFlow && (!modelName.trim() || !videoGameName.trim() || !videoGameCondition)) || ((isPhoneFlow || isLaptopFlow || category === 'Tablets') && ((category === 'Tablets' && carrier === 'Unlocked' ? imei.trim().replace(/\D/g, '').length !== 15 : !imei.trim()) || !brand?.trim() || !modelName?.trim())) || (['MP3', 'Gaming Handhelds', 'Console', 'Headphones', 'Speaker'].includes(category) && (!brand?.trim() || !modelName?.trim()));
   const needLocation = isReviewStep && !listingLocation;
   const needValuation = videoGamesNonFunctionalReview ? false : (estimatedCredits == null || estimatedCredits <= 0);
-  const reviewPrimaryLabel = isSubmitting ? 'Listing...' : needLocation ? 'USE MY LOCATION TO FINALIZE' : needValuation ? (estimatedCreditsReason?.includes('not available') ? 'VALUATION NOT AVAILABLE' : 'GET VALUATION ON PHOTOS STEP FIRST') : 'FINALIZE LISTING';
+  const reviewPrimaryLabel = isSubmitting ? 'Listing...' : needLocation ? 'USE MY LOCATION TO FINALIZE' : needValuation ? (estimatedCreditsReason?.includes('not available') ? 'VALUATION NOT AVAILABLE' : 'GET VALUATION ON PHOTOS STEP FIRST') : 'FINALIZE';
   const reviewPrimaryDisabled = isSubmitting || !userId || !listingLocation || (!videoGamesNonFunctionalReview && (!hasEnoughPhotos || estimatedCredits == null || estimatedCredits <= 0));
-  const photosPrimaryLabel = isValuating ? 'Processing...' : !hasEnoughPhotos ? 'CAPTURE PHOTOS' : 'COMPLETE EVALUATION';
-  const photosPrimaryDisabled = isValuating || !hasEnoughPhotos;
+  const photosNextDisabled = !hasEnoughPhotos || isValuating;
 
   let footerProps: ListingStepFooterProps;
   if (currentStep === 1) {
@@ -1866,7 +1949,11 @@ export default function StepPage() {
   } else if (isConditionPartStep || isFunctionalityStep) {
     footerProps = { variant: 'condition-or-functionality', nextDisabled: conditionPartBlocked || functionalityBlocked, onNext: handleNext };
   } else if (isPhotosStep) {
-    footerProps = { variant: 'photos', primaryLabel: photosPrimaryLabel, primaryDisabled: photosPrimaryDisabled, onPrimary: simulateValuation };
+    footerProps = {
+      variant: 'photos',
+      nextDisabled: photosNextDisabled,
+      onNext: simulateValuation,
+    };
   } else if (isReviewStep) {
     footerProps = {
       variant: 'review',
@@ -1950,6 +2037,34 @@ export default function StepPage() {
           </div>
         )}
 
+        {/* Sign-in required modal */}
+        {showSignInModal && (
+          <div className="fixed inset-0 z-[9998] flex items-center justify-center p-6 bg-relay-bg/70 dark:bg-relay-bg-dark/70" role="dialog" aria-modal="true" aria-labelledby="signin-modal-title" onClick={() => setShowSignInModal(false)}>
+            <div className="relative z-10 w-full max-w-sm glass-card shadow-xl p-6 space-y-4 pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+              <h2 id="signin-modal-title" className="text-lg font-semibold text-relay-text dark:text-relay-text-dark uppercase">Sign in required</h2>
+              <p className="text-sm text-relay-muted dark:text-relay-muted-light">Please sign in to take photos and complete your listing.</p>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setShowSignInModal(false); router.push('/login'); }}
+                  className="w-full rounded-xl border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-xs font-medium cursor-pointer uppercase"
+                  style={{ height: '42px' }}
+                >
+                  SIGN IN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSignInModal(false)}
+                  className="w-full rounded-xl border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-xs font-medium cursor-pointer uppercase"
+                  style={{ height: '42px' }}
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Step 1: Device Details */}
         {currentStep === 1 && (
           <div className="space-y-6">
@@ -1962,7 +2077,7 @@ export default function StepPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Brand</label>
-                <select value={brand} onChange={(e) => setBrand(e.target.value)} disabled={Boolean((category === 'Phones' && phoneBrandsLoading && !phoneBrands.length) || (category === 'Tablets' && tabletBrandsLoading && !tabletBrands.length) || (category === 'MP3' && relicBrandsLoading && !relicBrands.length) || (category === 'Gaming Handhelds' && handheldBrandsLoading && !handheldBrands.length) || (accessoryType && accessoryBrandsLoading && !accessoryBrands.length))} className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark px-4 text-sm">
+                <select value={brand} onChange={(e) => handleBrandChange(e.target.value)} disabled={Boolean((category === 'Phones' && phoneBrandsLoading && !phoneBrands.length) || (category === 'Tablets' && tabletBrandsLoading && !tabletBrands.length) || (category === 'MP3' && relicBrandsLoading && !relicBrands.length) || (category === 'Gaming Handhelds' && handheldBrandsLoading && !handheldBrands.length) || (accessoryType && accessoryBrandsLoading && !accessoryBrands.length))} className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark px-4 text-sm">
                   <option value="">Select brand</option>
                   {category === 'Phones' && phoneBrands.map((b) => <option key={b} value={b}>{b}</option>)}
                   {category === 'Tablets' && tabletBrands.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -2176,9 +2291,6 @@ export default function StepPage() {
                 </div>
               </div>
             )}
-            {category === 'Console' && (
-              <ConsoleAccessoryField accessories={accessories} onToggle={toggleAccessory} />
-            )}
             {category === 'Tablets' && carrier === 'Unlocked' && imei.trim().length > 0 && imei.trim().length < 15 && (
               <p className="text-amber-600 dark:text-amber-400 text-xs">IMEI must be 15 digits for Unlocked iPad.</p>
             )}
@@ -2189,7 +2301,6 @@ export default function StepPage() {
         {isPhoneFlow && currentStep === 2 && (
           <div className="space-y-8">
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-relay-text dark:text-relay-text-dark">Device Verification</h2>
               <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
                 {isGooglePhone
                   ? <>Upload a screenshot of your phone&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page. For Google Pixel we also need a Storage page screenshot, and if you selected Unlocked, a screenshot of Developer Options with &quot;OEM unlocking&quot; toggled on.</>
@@ -2208,9 +2319,9 @@ export default function StepPage() {
                   </div>
                 </label>
               ) : (
-                <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                <label className="inline-flex items-center justify-center size-16 rounded-2xl bg-primary text-white cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
                   <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
-                  +
+                  <span className="material-symbols-outlined !text-3xl">add</span>
                 </label>
               )}
             </div>
@@ -2228,9 +2339,9 @@ export default function StepPage() {
                       </div>
                     </label>
                   ) : (
-                    <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                    <label className="inline-flex items-center justify-center size-16 rounded-2xl bg-primary text-white cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
                       <input type="file" accept="image/*" onChange={handleStorageScreenshotChange} className="sr-only" />
-                      +
+                      <span className="material-symbols-outlined !text-3xl">add</span>
                     </label>
                   )}
                 </div>
@@ -2246,9 +2357,9 @@ export default function StepPage() {
                         </div>
                       </label>
                     ) : (
-                      <label className="inline-flex items-center justify-center size-14 rounded-xl bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                      <label className="inline-flex items-center justify-center size-16 rounded-2xl bg-primary text-white cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
                         <input type="file" accept="image/*" onChange={handleOemUnlockingScreenshotChange} className="sr-only" />
-                        +
+                        <span className="material-symbols-outlined !text-3xl">add</span>
                       </label>
                     )}
                   </div>
@@ -2272,17 +2383,27 @@ export default function StepPage() {
 
         {/* Step 2 (Tablet Unlocked): IMEI verification */}
         {isTabletFlow && currentStep === 2 && isTabletUnlocked && (
-          <div className="space-y-6">
-            <p className="text-sm text-relay-muted dark:text-relay-muted-light">
-              Upload a screenshot of your iPad&apos;s About page (Settings → General → About) showing the IMEI. We&apos;ll verify the IMEI and model match.
-            </p>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">About page screenshot</label>
-              <label className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90">
-                <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
-                +
-              </label>
-              {aboutScreenshotPreviewUrl && <div className="mt-2 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48"><img src={aboutScreenshotPreviewUrl} alt="About screenshot" className="w-full h-auto object-contain max-h-48" /></div>}
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
+                Upload a screenshot of your iPad&apos;s <strong className="font-semibold text-relay-text dark:text-relay-text-dark">About</strong> page (Settings → General → About) showing the IMEI.
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">About Page Screenshot</span>
+              {aboutScreenshotPreviewUrl ? (
+                <label className="cursor-pointer w-full">
+                  <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
+                  <div className="rounded-2xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48">
+                    <img src={aboutScreenshotPreviewUrl} alt="About screenshot" className="w-full h-auto object-contain max-h-48" />
+                  </div>
+                </label>
+              ) : (
+                <label className="inline-flex items-center justify-center size-16 rounded-2xl bg-primary text-white cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                  <input type="file" accept="image/*" onChange={handleAboutScreenshotChange} className="sr-only" />
+                  <span className="material-symbols-outlined !text-3xl">add</span>
+                </label>
+              )}
             </div>
             {verificationStatus === 'failed' && (
               <div className="p-4 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
@@ -2300,17 +2421,27 @@ export default function StepPage() {
 
         {/* Step 2 (Laptop / Tablet Wifi): Serial verification */}
         {((isLaptopFlow || (isTabletFlow && !isTabletUnlocked)) && currentStep === 2) && (
-          <div className="space-y-6">
-            <p className="text-sm text-relay-muted dark:text-relay-muted-light">
-              Upload a screenshot showing the serial number (e.g. About This Mac, Settings → About, or the serial on the device/label). We’ll verify it matches the serial you entered in Step 1 and confirm the model with SNLookup.
-            </p>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Serial number screenshot</label>
-              <label className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-white text-2xl font-light cursor-pointer hover:opacity-90">
-                <input type="file" accept="image/*" onChange={handleLaptopSerialScreenshotChange} className="sr-only" />
-                +
-              </label>
-              {laptopSerialScreenshotPreviewUrl && <div className="mt-2 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48"><img src={laptopSerialScreenshotPreviewUrl} alt="Serial screenshot" className="w-full h-auto object-contain max-h-48" /></div>}
+          <div className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed">
+                Upload a screenshot showing the serial number (e.g. About This Mac, Settings → About, or the serial on the device/label).
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Serial Number Screenshot</span>
+              {laptopSerialScreenshotPreviewUrl ? (
+                <label className="cursor-pointer w-full">
+                  <input type="file" accept="image/*" onChange={handleLaptopSerialScreenshotChange} className="sr-only" />
+                  <div className="rounded-2xl overflow-hidden border border-relay-border dark:border-relay-border-dark max-h-48">
+                    <img src={laptopSerialScreenshotPreviewUrl} alt="Serial screenshot" className="w-full h-auto object-contain max-h-48" />
+                  </div>
+                </label>
+              ) : (
+                <label className="inline-flex items-center justify-center size-16 rounded-2xl bg-primary text-white cursor-pointer hover:opacity-90 shadow-lg shadow-primary/20 transition-opacity active-scale">
+                  <input type="file" accept="image/*" onChange={handleLaptopSerialScreenshotChange} className="sr-only" />
+                  <span className="material-symbols-outlined !text-3xl">add</span>
+                </label>
+              )}
             </div>
             {laptopVerificationStatus === 'failed' && (
               <div className="p-4 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
@@ -2333,7 +2464,12 @@ export default function StepPage() {
               question={isConsoleLikeFlow ? 'How does the device look?' : 'How does the front look?'}
               value={frontCondition}
               onChange={(v) => setFrontCondition(v)}
+              onClear={() => { setFrontCondition(null); setBatteryHealthRevealed(false); setBatteryHealth(''); }}
               category={isConsoleLikeFlow ? category : undefined}
+              noCollapse={!(isConsoleLikeFlow && hasBatteryHealth && batteryHealthRevealed)}
+              showBatteryHealth={isConsoleLikeFlow && hasBatteryHealth && batteryHealthRevealed}
+              batteryHealth={batteryHealth}
+              onBatteryHealthChange={(v) => setBatteryHealth(v)}
             />
           </div>
         )}
@@ -2345,7 +2481,12 @@ export default function StepPage() {
               question="How does the back look?"
               value={backCondition}
               onChange={(v) => setBackCondition(v)}
+              onClear={() => { setBackCondition(null); setBatteryHealthRevealed(false); setBatteryHealth(''); }}
               variant="back"
+              noCollapse={!(hasBatteryHealth && batteryHealthRevealed)}
+              showBatteryHealth={hasBatteryHealth && batteryHealthRevealed}
+              batteryHealth={batteryHealth}
+              onBatteryHealthChange={(v) => setBatteryHealth(v)}
             />
           </div>
         )}
@@ -2392,21 +2533,21 @@ export default function StepPage() {
                       {HANDHELD_FUNCTIONALITY_CHECKS.map((text) => (
                         <label
                           key={text}
-                          className="flex items-start gap-2.5 p-2.5 rounded-lg border-2 border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark cursor-pointer hover:border-relay-muted transition-colors"
+                          className="flex items-start gap-2.5 p-2.5 rounded-lg border-2 border-relay-border dark:border-relay-border-dark bg-white dark:bg-white cursor-pointer hover:border-relay-muted transition-colors"
                           onClick={() => handleToggleHandheldCheck(text)}
                         >
                           <span
-                            className={`w-4 h-4 rounded-full mt-0.5 flex-shrink-0 flex items-center justify-center border-2 ${
+                            className={`w-3.5 h-3.5 rounded-full mt-0.5 flex-shrink-0 flex items-center justify-center border-[1.5px] ${
                               functionalityOptions.includes(text)
                                 ? 'border-transparent bg-primary'
-                                : 'bg-white border-[#C2C2C2] opacity-60'
+                                : 'border-gray-300 dark:border-gray-600'
                             }`}
                           >
                             {functionalityOptions.includes(text) && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />
                             )}
                           </span>
-                          <span className="text-sm text-relay-text dark:text-relay-text-dark">{text}</span>
+                          <span className="text-sm text-black dark:text-black">{text}</span>
                         </label>
                       ))}
                     </div>
@@ -2416,19 +2557,19 @@ export default function StepPage() {
                     {(['Yes', 'No'] as const).map((option) => (
                       <label
                         key={option}
-                        className="flex items-center gap-3 p-4 rounded-xl border-2 border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark cursor-pointer hover:border-relay-muted transition-colors"
+                        className="flex items-center gap-3 p-4 rounded-xl border-2 border-relay-border dark:border-relay-border-dark bg-white dark:bg-white cursor-pointer hover:border-relay-muted transition-colors"
                         onClick={() => setConsoleFunctional(option === 'Yes')}
                       >
                         <span
-                          className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center border-2 ${
+                          className={`w-3.5 h-3.5 rounded-full flex-shrink-0 flex items-center justify-center border-[1.5px] ${
                             consoleFunctional === (option === 'Yes')
                               ? 'border-transparent bg-primary'
-                              : 'bg-white border-[#C2C2C2] opacity-60'
+                              : 'border-gray-300 dark:border-gray-600'
                           }`}
                         >
-                          {consoleFunctional === (option === 'Yes') && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
+                          {consoleFunctional === (option === 'Yes') && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
                         </span>
-                        <span className="text-sm font-medium text-relay-text dark:text-relay-text-dark">{option}</span>
+                        <span className="text-sm font-medium text-black dark:text-black">{option}</span>
                       </label>
                     ))}
                   </div>
@@ -2442,19 +2583,19 @@ export default function StepPage() {
                   {FUNCTIONALITY_CHECKS.map(({ text }) => (
                     <label
                       key={text}
-                      className="flex items-start gap-3 p-4 rounded-xl border-2 border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark cursor-pointer hover:border-relay-muted transition-colors"
+                      className="flex items-start gap-3 p-4 rounded-xl border-2 border-relay-border dark:border-relay-border-dark bg-white dark:bg-white cursor-pointer hover:border-relay-muted transition-colors"
                       onClick={() => toggleFunctionality(text)}
                     >
                       <span
-                        className={`w-5 h-5 rounded mt-0.5 flex-shrink-0 flex items-center justify-center border-2 ${
+                        className={`w-3.5 h-3.5 rounded-full mt-0.5 flex-shrink-0 flex items-center justify-center border-[1.5px] ${
                           functionalityOptions.includes(text)
                             ? 'border-transparent bg-primary'
-                            : 'bg-white border-[#C2C2C2] opacity-60'
+                            : 'border-gray-300 dark:border-gray-600'
                         }`}
                       >
-                        {functionalityOptions.includes(text) && <span className="material-symbols-outlined !text-xs text-white">check</span>}
+                        {functionalityOptions.includes(text) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
                       </span>
-                      <span className="text-sm text-relay-text dark:text-relay-text-dark">{text}</span>
+                      <span className="text-sm text-black dark:text-black">{text}</span>
                     </label>
                   ))}
                 </div>
@@ -2481,76 +2622,220 @@ export default function StepPage() {
                 <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Photos</label>
                 <p className="text-xs text-relay-muted dark:text-relay-muted-light">{listingPhotoUrls.length} / {minListingPhotos} Captured</p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <button type="button" onClick={openDeviceCapture} disabled={!userId} className="aspect-square rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-relay-surface dark:hover:bg-relay-surface-dark disabled:opacity-50 overflow-hidden">
-                  {listingPhotoUrls[0] ? (
-                    <div className="relative w-full h-full rounded-lg overflow-hidden">
-                      <img src={listingPhotoUrls[0]} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(0); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light !text-2xl">photo_camera</span>
-                      <span className="text-[10px] font-semibold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Add Photo</span>
-                    </>
-                  )}
-                </button>
-                <button type="button" onClick={openDeviceCapture} disabled={!userId} className="aspect-square rounded-xl border border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center bg-[#e8e9ec] dark:bg-relay-surface-dark hover:bg-relay-surface dark:hover:bg-relay-surface disabled:opacity-50 overflow-hidden">
-                  {listingPhotoUrls[1] ? (
-                    <div className="relative w-full h-full rounded-lg overflow-hidden">
-                      <img src={listingPhotoUrls[1]} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(1); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
-                    </div>
-                  ) : (
-                    <span className="text-xs font-medium text-relay-muted dark:text-relay-muted-light">BACK SIDE</span>
-                  )}
-                </button>
-              </div>
-              {minListingPhotos > 2 && (
-                <div className="flex flex-wrap gap-3 pt-2">
-                  {listingPhotoUrls.slice(2).map((url, i) => (
-                    <div key={url} className="relative aspect-square w-24 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button type="button" onClick={() => removeListingPhoto(i + 2)} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
-                    </div>
-                  ))}
-                  {listingPhotoUrls.length < minListingPhotos && (
-                    <button type="button" onClick={openDeviceCapture} disabled={!userId} className="aspect-square w-24 rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex items-center justify-center hover:bg-relay-surface dark:hover:bg-relay-surface-dark bg-relay-bg dark:bg-relay-bg-dark disabled:opacity-50">
-                      <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light !text-2xl">add</span>
+              {(isPhoneFlow || isLaptopFlow || isTabletFlow || category === 'Console' || category === 'MP3') ? (
+                <>
+                  {/* 2 large labeled slots (FRONT / BACK) */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {(['FRONT', 'BACK'] as const).map((slotLabel, idx) => (
+                      <button key={idx} type="button" onClick={openDeviceCapture}
+                        className={`aspect-square rounded-xl flex items-center justify-center overflow-hidden relative disabled:opacity-50 ${idx === 0 ? 'border-2 border-dashed border-relay-border dark:border-relay-border-dark bg-transparent hover:bg-relay-surface dark:hover:bg-relay-surface-dark' : 'border border-relay-border dark:border-relay-border-dark bg-[#e8e9ec] dark:bg-relay-surface-dark hover:opacity-90'}`}>
+                        {listingPhotoUrls[idx] ? (
+                          <>
+                            <img src={listingPhotoUrls[idx]} alt="" className="w-full h-full object-cover" />
+                            <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(idx); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                          </>
+                        ) : idx === 0 ? (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-[9px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">{slotLabel}</span>
+                            <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light !text-2xl">photo_camera</span>
+                            <span className="text-[10px] font-semibold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Add Photo</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-semibold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">{slotLabel}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {/* 4 small labeled slots (LEFT / RIGHT / TOP / BOTTOM) */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {(['LEFT', 'RIGHT', 'TOP', 'BOTTOM'] as const).map((slotLabel, i) => {
+                      const idx = i + 2;
+                      return (
+                        <button key={idx} type="button" onClick={openDeviceCapture}
+                          className="aspect-square rounded-xl border border-relay-border dark:border-relay-border-dark flex items-center justify-center bg-[#e8e9ec] dark:bg-relay-surface-dark hover:opacity-90 disabled:opacity-50 overflow-hidden relative">
+                          {listingPhotoUrls[idx] ? (
+                            <>
+                              <img src={listingPhotoUrls[idx]} alt="" className="w-full h-full object-cover" />
+                              <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(idx); }} className="absolute top-0.5 right-0.5 size-5 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-xs">close</span></button>
+                            </>
+                          ) : (
+                            <span className="text-[9px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">{slotLabel}</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Non-phone: existing 2-col grid + flex extras */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button type="button" onClick={openDeviceCapture} className="aspect-square rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center gap-2 bg-transparent hover:bg-relay-surface dark:hover:bg-relay-surface-dark disabled:opacity-50 overflow-hidden">
+                      {listingPhotoUrls[0] ? (
+                        <div className="relative w-full h-full rounded-lg overflow-hidden">
+                          <img src={listingPhotoUrls[0]} alt="" className="w-full h-full object-cover" />
+                          <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(0); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light !text-2xl">photo_camera</span>
+                          <span className="text-[10px] font-semibold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Add Photo</span>
+                        </>
+                      )}
                     </button>
+                    <button type="button" onClick={openDeviceCapture} className="aspect-square rounded-xl border border-relay-border dark:border-relay-border-dark flex flex-col items-center justify-center bg-[#e8e9ec] dark:bg-relay-surface-dark hover:bg-relay-surface dark:hover:bg-relay-surface disabled:opacity-50 overflow-hidden">
+                      {listingPhotoUrls[1] ? (
+                        <div className="relative w-full h-full rounded-lg overflow-hidden">
+                          <img src={listingPhotoUrls[1]} alt="" className="w-full h-full object-cover" />
+                          <button type="button" onClick={(e) => { e.stopPropagation(); removeListingPhoto(1); }} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-medium text-relay-muted dark:text-relay-muted-light">BACK SIDE</span>
+                      )}
+                    </button>
+                  </div>
+                  {minListingPhotos > 2 && (
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      {listingPhotoUrls.slice(2).map((url, i) => (
+                        <div key={url} className="relative aspect-square w-24 rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark">
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <button type="button" onClick={() => removeListingPhoto(i + 2)} className="absolute top-1 right-1 size-6 rounded-full bg-relay-text dark:bg-relay-text-dark text-relay-bg flex items-center justify-center"><span className="material-symbols-outlined !text-sm">close</span></button>
+                        </div>
+                      ))}
+                      {listingPhotoUrls.length < minListingPhotos && (
+                        <button type="button" onClick={openDeviceCapture} className="aspect-square w-24 rounded-xl border-2 border-dashed border-relay-border dark:border-relay-border-dark flex items-center justify-center hover:bg-relay-surface dark:hover:bg-relay-surface-dark bg-relay-bg dark:bg-relay-bg-dark disabled:opacity-50">
+                          <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light !text-2xl">add</span>
+                        </button>
+                      )}
+                    </div>
                   )}
-                </div>
+                </>
               )}
-            {photoError && (
-              <p className="text-[10px] text-relay-text dark:text-relay-text-dark/80">
-                {photoError}
-              </p>
-            )}
+              {photoError && <p className="text-[10px] text-relay-text dark:text-relay-text-dark/80">{photoError}</p>}
             </div>
-            {conditionError && (
-              <p className="text-sm text-relay-text dark:text-relay-text-dark/80">
-                {conditionError}
-              </p>
-            )}
-            {swappaLookupError && (
-              <p className="text-sm text-relay-text dark:text-relay-text-dark/80">
-                {swappaLookupError}
-              </p>
-            )}
+            {conditionError && <p className="text-sm text-relay-text dark:text-relay-text-dark/80">{conditionError}</p>}
+            {swappaLookupError && <p className="text-sm text-relay-text dark:text-relay-text-dark/80">{swappaLookupError}</p>}
             {category === 'Phones' && (
               <div className="space-y-2">
                 <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
-                {[{ id: 'Charging Cable', show: true }, { id: 'SIM Ejector Pin', show: !hideSimPin }, { id: 'S Pen', show: showSPen }, { id: 'Original Box', show: true }].filter((a) => a.show).map((a) => (
-                  <label key={a.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(a.id)}>
-                    <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${accessories.includes(a.id) ? 'border-transparent bg-primary' : 'border-relay-border dark:border-relay-border-dark'}`}>{accessories.includes(a.id) && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}</span>
-                    <span className="text-[9px] tracking-widest text-relay-muted">{a.id}</span>
-                  </label>
-                ))}
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {[{ id: 'Charging Cable', show: true }, { id: 'SIM Ejector Pin', show: !hideSimPin }, { id: 'S Pen', show: showSPen }, { id: 'Original Box', show: true }].filter((a) => a.show).map((a) => (
+                    <label key={a.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(a.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(a.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>{accessories.includes(a.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}</span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{a.id}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
-            <div className="space-y-2">
+            {category === 'Console' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {CONSOLE_ACCESSORY_OPTIONS.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(opt.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(opt.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {accessories.includes(opt.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                      </span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{opt.id}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {category === 'Tablets' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {TABLET_ACCESSORY_OPTIONS.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(opt.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(opt.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {accessories.includes(opt.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                      </span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{opt.id}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {category === 'Laptops' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {LAPTOP_ACCESSORY_OPTIONS.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(opt.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(opt.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {accessories.includes(opt.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                      </span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{opt.id}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {category === 'Gaming Handhelds' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {HANDHELD_ACCESSORY_OPTIONS.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(opt.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(opt.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {accessories.includes(opt.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                      </span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{opt.id}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {category === 'Headphones' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {HEADPHONES_ACCESSORY_OPTIONS.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(opt.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(opt.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {accessories.includes(opt.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                      </span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{opt.id}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {category === 'Speaker' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {SPEAKER_ACCESSORY_OPTIONS.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(opt.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(opt.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {accessories.includes(opt.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                      </span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{opt.id}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            {category === 'MP3' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Included Accessories</label>
+                <div className="bg-[#faf9f6] dark:bg-[#1a1916] rounded-2xl p-4 space-y-3">
+                  {MP3_ACCESSORY_OPTIONS.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-3 cursor-pointer" onClick={() => toggleAccessory(opt.id)}>
+                      <span className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 ${accessories.includes(opt.id) ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'}`}>
+                        {accessories.includes(opt.id) && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                      </span>
+                      <span className="text-sm text-relay-muted dark:text-relay-muted-light">{opt.id}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="space-y-1.5">
               <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">Description</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Any additional details..." className="w-full bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark p-4 text-base min-h-20" />
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Any additional details..." className="w-full bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark p-3 text-sm min-h-[60px]" />
             </div>
           </div>
         )}

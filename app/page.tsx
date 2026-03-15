@@ -3,6 +3,19 @@
 export const dynamic = 'force-dynamic';
 
 import React, { Suspense, useState, useMemo, useEffect, useCallback, useRef } from 'react';
+
+// Hoist the Capacitor Haptics dynamic import to module level so the bundle
+// chunk is fetched at most once across the session instead of being
+// re-requested on every pull-to-refresh threshold crossing.
+let hapticsPromise: Promise<{ Haptics: { impact: (o: { style: string }) => Promise<void> }; ImpactStyle: { Medium: string } } | null> | null = null;
+function getHaptics() {
+  if (!hapticsPromise) {
+    hapticsPromise = import('@capacitor/haptics')
+      .then((m) => m as { Haptics: { impact: (o: { style: string }) => Promise<void> }; ImpactStyle: { Medium: string } })
+      .catch(() => null);
+  }
+  return hapticsPromise;
+}
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
@@ -13,10 +26,24 @@ import { WishlistHeartIcon } from '@/app/components/WishlistHeartIcon';
 import { fetchGadgets } from '@/lib/gadgets';
 import { distanceMiles } from '@/lib/geo';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
+import { Skeleton } from '@/app/components/Skeleton';
 import type { Gadget } from '@/lib/types';
 import { getDefaultAvatar } from '@/lib/avatars';
 import { ChevronIcon } from '@/app/components/ChevronIcon';
 import { NextStepButton } from '@/app/components/NextStepButton';
+import {
+  PhoneIcon,
+  LaptopCategoryIcon,
+  TabletIcon,
+  HeadphonesIcon,
+  SpeakerIcon,
+  MP3PlayerIcon,
+  GamingHandheldIcon,
+  VideoGameIcon,
+  GamingConsoleIcon,
+  ExploreIcon,
+  AllIcon,
+} from '@/app/components/CategoryIcons';
 
 type UserLocation = { latitude: number; longitude: number };
 
@@ -27,6 +54,8 @@ type UpcomingMeetup = {
   /** 1 = before time, 2 = time arrived, 3 = buyer confirmed */
   stage: 1 | 2 | 3;
   otherDisplayName?: string;
+  otherAvatarUrl?: string | null;
+  otherProfileId?: string;
   location?: { latitude: number; longitude: number; displayName?: string; city?: string; state?: string };
 };
 
@@ -59,6 +88,8 @@ function LandingPageContent() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [upcomingMeetup, setUpcomingMeetup] = useState<UpcomingMeetup | null>(null);
   const [catalogBrands, setCatalogBrands] = useState<string[]>([]);
+  const [exploreReady, setExploreReady] = useState(false);
+  const exploreLoadedRef = useRef(0);
 
   const loadGadgets = useCallback(() => {
     setLoading(true);
@@ -78,25 +109,30 @@ function LandingPageContent() {
 
   const PULL_THRESHOLD = 72;
 
+  // Timestamp guard: skip focus re-fetches that happen within 30 s of the last one.
+  const lastFocusFetchRef = useRef(0);
+
   const loadUpcomingMeetup = React.useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return;
     const { data: swaps } = await supabase
       .from('swaps')
-      .select('id, status, completed_at, buyer_profile_id, seller_profile_id, buyer:profiles!buyer_profile_id(display_name), seller:profiles!seller_profile_id(display_name)')
+      .select('id, status, completed_at, buyer_profile_id, seller_profile_id, buyer:profiles!buyer_profile_id(display_name, avatar_url), seller:profiles!seller_profile_id(display_name, avatar_url)')
       .or(`buyer_profile_id.eq.${user.id},seller_profile_id.eq.${user.id}`)
       .in('status', ['pickup_arranged', 'completed'])
       .order('created_at', { ascending: false })
       .limit(1);
     if (!swaps?.length) return;
-    const row = swaps[0] as { id: string; status: string; completed_at: string | null; buyer_profile_id: string; seller_profile_id: string; buyer?: { display_name: string } | { display_name: string }[]; seller?: { display_name: string } | { display_name: string }[] };
+    const row = swaps[0] as { id: string; status: string; completed_at: string | null; buyer_profile_id: string; seller_profile_id: string; buyer?: { display_name: string; avatar_url?: string } | { display_name: string; avatar_url?: string }[]; seller?: { display_name: string; avatar_url?: string } | { display_name: string; avatar_url?: string }[] };
     const swapId = row.id;
     const { data: swapLocation } = await supabase.from('swaps').select('seller_arrived_at').eq('id', swapId).single();
     const sellerArrivedAt = swapLocation?.seller_arrived_at ?? null;
     const isBuyer = row.buyer_profile_id === user.id;
     const otherProfile = isBuyer ? (Array.isArray(row.seller) ? row.seller[0] : row.seller) : (Array.isArray(row.buyer) ? row.buyer[0] : row.buyer);
     const otherDisplayName = otherProfile?.display_name ?? (isBuyer ? 'Seller' : 'Buyer');
+    const otherAvatarUrl = otherProfile?.avatar_url ?? null;
+    const otherProfileId = isBuyer ? row.seller_profile_id : row.buyer_profile_id;
     const status = row.status;
     const { data: conv } = await supabase.from('conversations').select('id').eq('swap_id', swapId).limit(1).maybeSingle();
     const conversationId = (conv as { id: string } | null)?.id;
@@ -140,7 +176,7 @@ function LandingPageContent() {
       }
     }
 
-    setUpcomingMeetup({ swapId, conversationId, pickupTimeLabel, stage, otherDisplayName, location });
+    setUpcomingMeetup({ swapId, conversationId, pickupTimeLabel, stage, otherDisplayName, otherAvatarUrl, otherProfileId, location });
   }, []);
 
   useEffect(() => {
@@ -149,12 +185,16 @@ function LandingPageContent() {
 
   useEffect(() => {
     const onFocus = () => {
+      const now = Date.now();
+      // Skip if a fetch ran within the last 30 s (tab-switch spam / iOS app-resume).
+      if (now - lastFocusFetchRef.current < 30_000) return;
+      lastFocusFetchRef.current = now;
       loadGadgets();
       loadUpcomingMeetup();
     };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, [loadUpcomingMeetup]);
+  }, [loadGadgets, loadUpcomingMeetup]);
 
   useEffect(() => {
     loadWishlist().then(({ ids, profileId }) => {
@@ -231,12 +271,14 @@ function LandingPageContent() {
       if (clamped >= PULL_THRESHOLD && !hapticFiredRef.current) {
         hapticFiredRef.current = true;
         // Capacitor Haptics on iOS/Android, vibrate fallback on web
-        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
-          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        getHaptics().then((mod) => {
+          if (!mod) {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+            return;
+          }
+          mod.Haptics.impact({ style: mod.ImpactStyle.Medium }).catch(() => {
             if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
           });
-        }).catch(() => {
-          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
         });
       }
     };
@@ -324,28 +366,16 @@ function LandingPageContent() {
   const conditions = ['Like New', 'Excellent', 'Good', 'Fair', 'Poor'];
   const STORAGE_OPTIONS = ['64GB', '128GB', '256GB', '512GB', '1TB'];
   const sortOptions = ['Newest First', 'Nearest location', 'Lowest Credits', 'Highest Credits', 'Best Condition'];
-  const CATEGORY_ICONS: Record<string, string> = {
-    Phones: '/icons/phone.png',
-    Laptops: '/icons/laptop.png',
-    Console: '/icons/console.png',
-    Tablets: '/icons/tablet.png',
-    Headphones: '/icons/headphones.png',
-    Speaker: '/icons/speaker.png',
-    MP3: '/icons/relics.png',
-    'Gaming Handhelds': '/icons/gaming-handhelds.png',
-    'Video Games': '/icons/video-games.png',
-  };
-
-  const NAV_ICONS: Record<string, string> = {
-    Phones: '/icons/phone-nav.png',
-    Laptops: '/icons/laptop-nav.png',
-    Console: '/icons/console-nav.png',
-    Tablets: '/icons/tablet-nav.png',
-    Headphones: '/icons/headphones-nav.png',
-    Speaker: '/icons/speaker-nav.png',
-    MP3: '/icons/relics-nav.png',
-    'Gaming Handhelds': '/icons/gaming-handhelds-nav.png',
-    'Video Games': '/icons/video-games-nav.png',
+  const CATEGORY_SVG_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+    Phones: PhoneIcon,
+    Laptops: LaptopCategoryIcon,
+    Tablets: TabletIcon,
+    Headphones: HeadphonesIcon,
+    Speaker: SpeakerIcon,
+    MP3: MP3PlayerIcon,
+    'Gaming Handhelds': GamingHandheldIcon,
+    'Video Games': VideoGameIcon,
+    Console: GamingConsoleIcon,
   };
   // Explore page category cards: place SVGs in public/category-cards/ with these exact filenames.
   // Bump CATEGORY_CARD_VERSION when you replace assets so browsers load the new SVGs (avoids cache).
@@ -362,14 +392,15 @@ function LandingPageContent() {
     'Video Games': `/category-cards/video-games.svg?v=${CATEGORY_CARD_VERSION}`,
   };
   const categories = [
-    { name: 'Explore', icon: 'explore', navIcon: '/icons/nav/explore.png', useMaterialIcon: false, iconScale: 'scale-110', iconClass: 'brightness-0 opacity-80 dark:invert dark:opacity-90' },
-    { name: 'All', icon: 'apps', navIcon: '/icons/nav/all.png', useMaterialIcon: false, iconClass: 'brightness-0 opacity-80 dark:invert dark:opacity-90' },
+    { name: 'Explore', icon: 'explore', navIcon: null, svgIcon: ExploreIcon, useMaterialIcon: false, iconClass: '' },
+    { name: 'All', icon: 'apps', navIcon: null, svgIcon: AllIcon, useMaterialIcon: false, iconClass: '' },
     ...Object.keys(BRANDS_BY_CATEGORY).map((cat) => ({
       name: cat,
-      icon: CATEGORY_ICONS[cat] ?? 'devices',
-      navIcon: NAV_ICONS[cat] ?? null,
-      useMaterialIcon: !CATEGORY_ICONS[cat],
-      iconClass: 'brightness-0 opacity-80 dark:invert dark:opacity-90',
+      icon: 'devices',
+      navIcon: null,
+      svgIcon: CATEGORY_SVG_ICONS[cat] ?? null,
+      useMaterialIcon: !CATEGORY_SVG_ICONS[cat],
+      iconClass: '',
     })),
   ];
   
@@ -431,13 +462,17 @@ function LandingPageContent() {
         className="shrink-0 z-40 glass-card no-blur border-b border-relay-border dark:border-relay-border-dark px-6 pb-2 space-y-2 pt-safe-2_5"
         style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-h-14">
           <DeviceSearchBar
             value={searchQuery}
             onChange={setSearchQuery}
             placeholder="Search marketplace..."
             onSelectDevice={(device) => {
-              router.push(`/browse/${encodeURIComponent(device.category)}/${encodeURIComponent(device.brand)}/${encodeURIComponent(device.model)}${device.image_url ? `?img=${encodeURIComponent(device.image_url)}` : ''}`);
+              router.push(
+                `/browse/${encodeURIComponent(device.category)}/${encodeURIComponent(device.brand)}/${encodeURIComponent(device.model)}${
+                  device.image_url ? `?img=${encodeURIComponent(device.image_url)}` : ''
+                }`,
+              );
             }}
           />
           {selectedCategory !== 'Explore' && selectedCategory !== 'All' && (
@@ -445,13 +480,20 @@ function LandingPageContent() {
               type="button"
               onClick={() => setShowFilters(true)}
               aria-label="Filters"
-              className={`size-14 rounded-2xl border flex items-center justify-center transition-all active-scale ${showFilters || selectedConditions.length > 0 || selectedBrands.length > 0 || selectedStorages.length > 0 ? 'border-transparent text-primary bg-primary/5' : 'border-relay-border dark:border-relay-border-dark text-relay-muted hover:text-relay-text'}`}
+              className={`size-14 shrink-0 rounded-sm border flex items-center justify-center transition-all active-scale ${
+                showFilters ||
+                selectedConditions.length > 0 ||
+                selectedBrands.length > 0 ||
+                selectedStorages.length > 0
+                  ? 'border-transparent text-primary bg-primary/5'
+                  : 'border-relay-border dark:border-relay-border-dark text-relay-muted dark:text-relay-text-dark hover:text-relay-text'
+              }`}
             >
-              <FilterIcon className="size-7 shrink-0 text-current" />
+              <FilterIcon className="size-6 shrink-0 text-current" />
             </button>
           )}
         </div>
-        <div className="flex gap-3 overflow-x-auto hide-scrollbar py-0.5 px-1 items-center">
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar py-0.5 px-1 items-center">
           {categories.map((cat, index) => {
             const isActive = selectedCategory === cat.name;
             return (
@@ -469,11 +511,13 @@ function LandingPageContent() {
                 }}
                 className={`flex-shrink-0 flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
                   isActive
-                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-8px_-8px_16px_#ffffff,_8px_8px_16px_#c9d9e8] dark:bg-gray-700 dark:shadow-none'
+                    ? 'h-8 px-4 rounded-[41px] bg-[#F1F5F9] text-relay-text dark:text-gray-200 shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph'
                     : 'h-6 w-6 rounded-full text-relay-muted dark:text-white hover:text-relay-text dark:hover:text-white/90 hover:bg-gray-200/60 dark:hover:bg-gray-700/40'
                 }`}
               >
-                {cat.useMaterialIcon ? (
+                {cat.svgIcon ? (
+                  (() => { const Icon = cat.svgIcon; return <Icon size={24} className="shrink-0" />; })()
+                ) : cat.useMaterialIcon ? (
                   <span className="material-symbols-outlined !text-[20px]">{cat.icon}</span>
                 ) : cat.navIcon ? (
                   <Image
@@ -532,7 +576,7 @@ function LandingPageContent() {
         </div>
       </div>
 
-      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain pb-20" style={{ marginTop: '-1px' }}>
+      <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain pb-20 pt-4" style={{ marginTop: '-1px' }}>
 
       {upcomingMeetup && (
         <div
@@ -540,14 +584,28 @@ function LandingPageContent() {
           tabIndex={0}
           onClick={() => router.push(`/meetup/${upcomingMeetup.swapId}`)}
           onKeyDown={(e) => e.key === 'Enter' && router.push(`/meetup/${upcomingMeetup.swapId}`)}
-          className="mx-6 mt-0 p-5 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
+          className="mx-6 mt-0 mb-4 p-5 rounded-2xl glass-card meetup-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
         >
-          <p className="text-relay-text dark:text-relay-text-dark font-semibold text-base mb-1">
-            {upcomingMeetup.stage === 1 && 'Preparing for your meetup...'}
-            {upcomingMeetup.stage === 2 && `${upcomingMeetup.otherDisplayName ?? 'They'} is here`}
-            {upcomingMeetup.stage === 3 && 'Pickup Confirmed'}
-          </p>
-          <p className="text-relay-text dark:text-relay-text-dark text-sm mb-3">{upcomingMeetup.pickupTimeLabel}</p>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="relative shrink-0"
+              onClick={(e) => { e.stopPropagation(); if (upcomingMeetup.otherProfileId) router.push(`/profile/${upcomingMeetup.otherProfileId}`); }}
+            >
+              <div className="size-12 rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center cursor-pointer active-scale">
+                {upcomingMeetup.otherAvatarUrl ? (
+                  <img src={upcomingMeetup.otherAvatarUrl} alt={upcomingMeetup.otherDisplayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-sm">{(upcomingMeetup.otherDisplayName ?? '??').slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              {upcomingMeetup.stage === 2 && (
+                <div className="absolute -bottom-0.5 -right-0.5 size-3.5 bg-green-500 rounded-full border-2 border-relay-surface dark:border-relay-surface-dark" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-relay-text dark:text-relay-text-dark font-semibold text-sm truncate">{upcomingMeetup.otherDisplayName}</p>
+              <p className="text-relay-muted dark:text-relay-muted-light text-xs">{upcomingMeetup.pickupTimeLabel}</p>
+            </div>
+          </div>
           <div className="flex gap-1 mb-4">
             {[1, 2, 3].map((s) => (
               <div
@@ -569,28 +627,18 @@ function LandingPageContent() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
+                className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
               >
                 <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
+                  width="15"
+                  height="15"
+                  viewBox="0 0 64 64"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="size-6 shrink-0 text-current"
+                  className="size-[15px] shrink-0 text-current"
                   aria-hidden
                 >
-                  <g clipPath="url(#clip0_403_3286)">
-                    <path
-                      d="M23.1189 0.882014C22.7604 0.519141 22.3144 0.254869 21.8239 0.11473C21.3334 -0.0254085 20.8151 -0.0366769 20.3189 0.0820139L4.31895 3.45201C3.39753 3.57838 2.52968 3.95949 1.81315 4.55243C1.09662 5.14536 0.559862 5.92657 0.263324 6.80808C-0.033214 7.68959 -0.0777536 8.63638 0.134721 9.54183C0.347196 10.4473 0.808246 11.2754 1.46595 11.933L3.18395 13.65C3.27693 13.743 3.35067 13.8534 3.40095 13.9748C3.45123 14.0963 3.47705 14.2265 3.47695 14.358V17.526C3.47916 17.9714 3.5817 18.4107 3.77695 18.811L3.76895 18.818L3.79495 18.844C4.08796 19.4331 4.56653 19.9096 5.15695 20.2L5.18295 20.226L5.18995 20.218C5.59031 20.4133 6.02952 20.5158 6.47495 20.518H9.64295C9.908 20.5178 10.1623 20.6228 10.3499 20.81L12.0669 22.527C12.5275 22.9926 13.0756 23.3625 13.6797 23.6153C14.2839 23.8681 14.9321 23.9989 15.5869 24C16.1327 23.9993 16.6747 23.9102 17.1919 23.736C18.0654 23.4492 18.8413 22.924 19.4322 22.2197C20.023 21.5154 20.4053 20.66 20.5359 19.75L23.9109 3.71501C24.0358 3.21465 24.0284 2.69043 23.8896 2.19378C23.7507 1.69712 23.4852 1.24508 23.1189 0.882014ZM4.59995 12.238L2.88095 10.521C2.48067 10.1304 2.20012 9.63366 2.07224 9.08917C1.94435 8.54468 1.97443 7.97501 2.15895 7.44701C2.33784 6.90534 2.66855 6.42644 3.11175 6.06728C3.55494 5.70811 4.09196 5.4838 4.65895 5.42101L20.4999 2.08601L5.47495 17.113V14.358C5.47646 13.9644 5.39991 13.5743 5.24972 13.2104C5.09953 12.8465 4.87868 12.516 4.59995 12.238ZM18.5709 19.408C18.4942 19.9604 18.265 20.4804 17.909 20.9097C17.5531 21.339 17.0846 21.6606 16.5561 21.8384C16.0275 22.0162 15.4599 22.0431 14.9169 21.9163C14.3739 21.7894 13.877 21.5136 13.4819 21.12L11.7619 19.4C11.4843 19.1209 11.1541 18.8995 10.7904 18.7488C10.4267 18.5981 10.0367 18.521 9.64295 18.522H6.88795L21.9149 3.50001L18.5709 19.408Z"
-                      fill="#374957"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_403_3286">
-                      <rect width="24" height="24" fill="white" />
-                    </clipPath>
-                  </defs>
+                  <path d="M56 8L8 32L28 36L32 56L56 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Get directions
               </a>
@@ -598,11 +646,10 @@ function LandingPageContent() {
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); router.push(`/messages/${upcomingMeetup.conversationId ?? upcomingMeetup.swapId}`); }}
-              className="flex-1 flex items-center justify-center gap-2 h-12 rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
+              className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
             >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="size-6 shrink-0 text-current" aria-hidden>
-                  <path d="M11.2885 10.2372C11.0054 9.38779 9.92735 9.13331 9.29426 9.7664L8.53033 10.5303C8.23744 10.8232 7.76256 10.8232 7.46967 10.5303C7.17678 10.2374 7.17678 9.76256 7.46967 9.46967L8.2336 8.70574C9.65517 7.28417 12.0758 7.8556 12.7115 9.76283C12.9946 10.6122 14.0726 10.8667 14.7057 10.2336L15.4697 9.46967C15.7626 9.17678 16.2374 9.17678 16.5303 9.46967C16.8232 9.76256 16.8232 10.2374 16.5303 10.5303L15.7664 11.2943C14.3448 12.7158 11.9242 12.1444 11.2885 10.2372Z" fill="currentColor" />
-                  <path fillRule="evenodd" clipRule="evenodd" d="M9.96644 1.25H14.0336C15.4053 1.25 16.4807 1.24999 17.3451 1.32061C18.2252 1.39252 18.9523 1.54138 19.6104 1.87671C20.6924 2.42798 21.572 3.30762 22.1233 4.38955C22.4586 5.04769 22.6075 5.77479 22.6794 6.65494C22.75 7.51928 22.75 8.59471 22.75 9.96642V11.1842C22.75 11.2338 22.75 11.2828 22.75 11.3311C22.7502 12.8797 22.7504 13.8244 22.5177 14.6179C21.9667 16.4971 20.4971 17.9667 18.6179 18.5177C17.8244 18.7504 16.8797 18.7502 15.3311 18.75C15.2827 18.75 15.2338 18.75 15.1842 18.75H14.6354L14.5751 18.7501C13.7079 18.7556 12.8632 19.0264 12.1543 19.5259L12.1051 19.5609L9.49441 21.4257C7.9899 22.5003 6.01288 20.9484 6.69954 19.2317C6.79183 19.001 6.62191 18.75 6.37341 18.75H5.77166C3.27441 18.75 1.25 16.7256 1.25 14.2283L1.25 9.96644C1.25 8.59472 1.24999 7.51929 1.32061 6.65494C1.39252 5.77479 1.54138 5.04769 1.87671 4.38955C2.42798 3.30762 3.30762 2.42798 4.38955 1.87671C5.04769 1.54138 5.77479 1.39252 6.65494 1.32061C7.51929 1.24999 8.59472 1.25 9.96644 1.25ZM6.77708 2.81563C5.9897 2.87996 5.48197 3.00359 5.07054 3.21322C4.27085 3.62068 3.62068 4.27085 3.21322 5.07054C3.00359 5.48197 2.87996 5.9897 2.81563 6.77708C2.75058 7.57322 2.75 8.58749 2.75 10V14.2283C2.75 15.8972 4.10284 17.25 5.77166 17.25H6.37341C7.68311 17.25 8.57867 18.5728 8.09226 19.7888C7.96197 20.1145 8.33709 20.409 8.62255 20.2051L11.2333 18.3403L11.2902 18.2997C12.2493 17.6239 13.3922 17.2576 14.5655 17.2501L14.6354 17.25H15.1842C16.9261 17.25 17.6363 17.2424 18.1958 17.0783C19.5848 16.671 20.671 15.5848 21.0783 14.1958C21.2424 13.6363 21.25 12.9261 21.25 11.1842V10C21.25 8.58749 21.2494 7.57322 21.1844 6.77708C21.12 5.9897 20.9964 5.48197 20.7868 5.07054C20.3793 4.27085 19.7291 3.62068 18.9295 3.21322C18.518 3.00359 18.0103 2.87996 17.2229 2.81563C16.4268 2.75058 15.4125 2.75 14 2.75H10C8.58749 2.75 7.57322 2.75058 6.77708 2.81563Z" fill="currentColor" />
+                <svg width="18" height="18" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className="size-[18px] shrink-0 text-current" aria-hidden>
+                  <path d="M10 8H54C55.1 8 56 8.9 56 10V42C56 43.1 55.1 44 54 44H24L10 56V44C8.9 44 8 43.1 8 42V10C8 8.9 8.9 8 10 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Message
             </button>
@@ -610,11 +657,24 @@ function LandingPageContent() {
         </div>
       )}
 
-      <div className="px-6 pt-0 pb-32">
+      <div className="px-6 pt-4 pb-32">
         {selectedCategory === 'Explore' ? (
           <>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.keys(BRANDS_BY_CATEGORY).map((cat) => (
+            <div className="relative">
+              {!exploreReady && (
+                <div className="grid grid-cols-2 gap-4" aria-busy="true">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="aspect-[4/3] rounded-2xl" />
+                  ))}
+                </div>
+              )}
+              <div
+                className="grid grid-cols-2 gap-4 transition-opacity duration-300 ease-out"
+                style={{ opacity: exploreReady ? 1 : 0, position: exploreReady ? 'relative' : 'absolute', top: 0, left: 0, right: 0 }}
+              >
+              {Object.keys(BRANDS_BY_CATEGORY).map((cat, index) => {
+                const totalCategories = Object.keys(BRANDS_BY_CATEGORY).length;
+                return (
                 <button
                   key={cat}
                   type="button"
@@ -626,8 +686,15 @@ function LandingPageContent() {
                       src={CATEGORY_CARD_IMAGES[cat]}
                       alt=""
                       fill
+                      priority={index < 4}
                       sizes="(max-width: 768px) 50vw, 33vw"
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onLoad={() => {
+                        exploreLoadedRef.current += 1;
+                        if (exploreLoadedRef.current >= totalCategories) {
+                          setExploreReady(true);
+                        }
+                      }}
                     />
                   ) : (
                     <div className="absolute inset-0 bg-relay-surface dark:bg-relay-surface-dark flex items-center justify-center">
@@ -637,7 +704,9 @@ function LandingPageContent() {
                   <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-transparent" />
                   <span className="absolute bottom-3 left-0 right-0 text-center text-white text-xs font-semibold tracking-normal px-2">{cat}</span>
                 </button>
-              ))}
+                );
+              })}
+              </div>
             </div>
           </>
         ) : (
@@ -665,30 +734,32 @@ function LandingPageContent() {
 
         <div className="grid grid-cols-1 gap-14">
           {loading ? (
-            <div className="py-32 text-center flex flex-col items-center">
-              <div className="size-16 rounded-full border-2 border-primary border-t-transparent animate-spin mb-6" />
-              <p className="text-relay-muted font-bold text-[10px] tracking-widest">Loading marketplace...</p>
+            <div className="grid grid-cols-1 gap-14">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[1/1.618] rounded-[32px]" />
+              ))}
             </div>
           ) : (
           <>
-          {filteredItems.map((item) => (
-            <div 
-              key={item.id} 
+          {filteredItems.map((item, idx) => (
+            <div
+              key={item.id}
               onClick={() => {
                 const params = new URLSearchParams();
                 params.set('from', 'home');
                 params.set('category', selectedCategory);
                 router.push(`/listing/${item.id}?${params.toString()}`);
               }}
-              className="group cursor-pointer active-scale transition-all duration-500"
+              className="group cursor-pointer active-scale transition-transform duration-300"
             >
-              <div className="relative aspect-[1/1.618] overflow-hidden rounded-[64px] bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-2xl">
+              <div className="relative aspect-[1/1.618] overflow-hidden rounded-[32px] bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-2xl">
                 <Image
                   src={item.image}
                   alt={item.name}
                   fill
+                  priority={idx === 0}
                   sizes="(max-width: 768px) 100vw, 60vw"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000 grayscale-[10%] group-hover:grayscale-0"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute top-8 left-8 flex flex-col gap-2">
                     {(() => {
@@ -698,7 +769,7 @@ function LandingPageContent() {
                       const bgWithAlpha = `${bgHex}E6`;
                       return (
                         <div
-                          className="px-4 py-2 glass-card rounded-xl text-[9px] font-bold tracking-widest border border-relay-border dark:border-relay-border-dark"
+                          className="px-4 py-2 glass-card no-blur rounded-xl text-[9px] font-bold tracking-widest border border-relay-border dark:border-relay-border-dark"
                           style={{
                             background: bgWithAlpha,
                             color: textHex,
@@ -720,7 +791,7 @@ function LandingPageContent() {
                     type="button"
                     onClick={(e) => toggleWishlist(item.id, e)}
                     aria-label={wishlist.includes(item.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                    className="size-12 rounded-full glass-card flex items-center justify-center transition-all active-scale group/fav border border-relay-border dark:border-relay-border-dark"
+                    className="size-12 rounded-full glass-card no-blur flex items-center justify-center transition-all active-scale group/fav border border-relay-border dark:border-relay-border-dark"
                   >
                     <WishlistHeartIcon
                       active={wishlist.includes(item.id)}
@@ -848,24 +919,24 @@ function LandingPageContent() {
                     <span className="material-symbols-outlined text-relay-muted dark:text-relay-muted-light">chevron_right</span>
                   </button>
                   <div className="py-4">
-                    <p className="text-[10px] font-bold tracking-tight text-relay-muted dark:text-relay-muted-light">Proximity</p>
+                    <p className="text-[10px] font-bold tracking-tight text-relay-muted dark:text-relay-muted-light">Distance</p>
                     {userLocation && (
                       <p className="text-xs font-medium text-relay-text dark:text-relay-text-dark mt-0.5">
                         {`${distanceRange} miles`}
                       </p>
                     )}
                     {!userLocation ? (
-                      <div className="mt-3 p-4 rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark">
+                      <div className="mt-3">
                         {locationError && (
                           <p className="text-[10px] text-relay-text dark:text-relay-text-dark/80 mb-2" role="alert">
                             {locationError}
                           </p>
                         )}
-                        <div
+                        <button
+                          type="button"
                           onClick={locationLoading ? undefined : requestLocation}
-                          role="button"
                           aria-label="Share my location to see nearby swap"
-                          className="inline-flex cursor-pointer"
+                          className="inline-flex items-center justify-center"
                         >
                           <svg
                             width="24"
@@ -883,7 +954,7 @@ function LandingPageContent() {
                               fill="#FF6B59"
                             />
                           </svg>
-                        </div>
+                        </button>
                       </div>
                     ) : (
                       <div className="mt-3">
@@ -957,17 +1028,17 @@ function LandingPageContent() {
                       setPriceRange(2000);
                       setDistanceRange(100);
                     }}
-                    className="flex-1 h-8 rounded-2xl border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-bg-dark text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
+                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
                   >
                     Reset
                   </button>
-                  <NextStepButton
+                  <button
                     type="button"
                     onClick={() => setShowFilters(false)}
-                    className="flex-[1.5] h-8 rounded-2xl tracking-tight active-scale"
+                    className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph active-scale"
                   >
                     Apply Selection
-                  </NextStepButton>
+                  </button>
                 </div>
               </>
             ) : (
@@ -976,7 +1047,7 @@ function LandingPageContent() {
                   <button type="button" onClick={() => setFilterSubPanel(null)} className="size-10 flex items-center justify-center text-relay-text dark:text-relay-text-dark">
                     <ChevronIcon direction="left" className="size-6" />
                   </button>
-                  <h2 className="text-[10px] font-bold tracking-[0.4em] text-relay-muted dark:text-relay-muted-light">
+                  <h2 className="text-[22px] font-semibold tracking-tighter text-relay-text dark:text-relay-text-dark">
                     {filterSubPanel === 'brand' ? 'Brand' : filterSubPanel === 'condition' ? 'Condition' : 'Storage'}
                   </h2>
                   <button type="button" onClick={() => { setShowFilters(false); setFilterSubPanel(null); }} className="size-10 flex items-center justify-center text-relay-text dark:text-relay-text-dark">
@@ -986,11 +1057,11 @@ function LandingPageContent() {
                 <div className="flex-1 overflow-y-auto px-6 py-4 hide-scrollbar">
                   {filterSubPanel === 'brand' && (
                     <>
-                      <button type="button" onClick={() => setSelectedBrands([])} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.length === 0 ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                      <button type="button" onClick={() => setSelectedBrands([])} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.length === 0 ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                         All
                       </button>
                       {brandsForFilter.map((b) => (
-                        <button key={b} type="button" onClick={() => handleBrandToggle(b)} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.includes(b) ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                        <button key={b} type="button" onClick={() => handleBrandToggle(b)} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedBrands.includes(b) ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                           {b.toUpperCase()}
                         </button>
                       ))}
@@ -998,11 +1069,11 @@ function LandingPageContent() {
                   )}
                   {filterSubPanel === 'condition' && (
                     <>
-                      <button type="button" onClick={() => setSelectedConditions([])} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.length === 0 ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                      <button type="button" onClick={() => setSelectedConditions([])} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.length === 0 ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                         All
                       </button>
                       {conditions.map((c) => (
-                        <button key={c} type="button" onClick={() => handleConditionToggle(c)} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.includes(c) ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                        <button key={c} type="button" onClick={() => handleConditionToggle(c)} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedConditions.includes(c) ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                           {c.toUpperCase()}
                         </button>
                       ))}
@@ -1010,11 +1081,11 @@ function LandingPageContent() {
                   )}
                   {filterSubPanel === 'storage' && (
                     <>
-                      <button type="button" onClick={() => setSelectedStorages([])} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.length === 0 ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                      <button type="button" onClick={() => setSelectedStorages([])} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.length === 0 ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                         All
                       </button>
                       {STORAGE_OPTIONS.map((s) => (
-                        <button key={s} type="button" onClick={() => handleStorageToggle(s)} className={`w-full py-4 text-sm text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.includes(s) ? 'text-primary text-xs font-semibold' : 'text-relay-text dark:text-relay-text-dark'}`}>
+                        <button key={s} type="button" onClick={() => handleStorageToggle(s)} className={`w-full py-4 text-xs font-medium text-left border-b border-relay-border dark:border-relay-border-dark ${selectedStorages.includes(s) ? 'text-primary' : 'text-relay-text dark:text-relay-text-dark'}`}>
                           {s}
                         </button>
                       ))}
@@ -1029,11 +1100,11 @@ function LandingPageContent() {
                       else if (filterSubPanel === 'condition') setSelectedConditions([]);
                       else setSelectedStorages([]);
                     }}
-                    className="flex-1 h-8 rounded-2xl border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-bg-dark text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
+                    className="flex-1 h-8 rounded-full bg-[#F1F5F9] shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph text-relay-muted dark:text-relay-muted-light text-[10px] font-bold tracking-tight active-scale"
                   >
                     Reset
                   </button>
-                  <button type="button" onClick={() => setFilterSubPanel(null)} className="next-step-button flex-[1.5] h-8 rounded-2xl text-white text-xs font-semibold tracking-tight active-scale">
+                  <button type="button" onClick={() => setFilterSubPanel(null)} className="flex-[1.5] h-8 rounded-full bg-primary text-white text-xs font-semibold tracking-tight shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph active-scale">
                     Apply Selection
                   </button>
                 </div>

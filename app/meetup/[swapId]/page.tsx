@@ -4,7 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
-import { LivePickupMap } from '@/app/components/LivePickupMap';
+import dynamic from 'next/dynamic';
+
+const LivePickupMap = dynamic(
+  () => import('@/app/components/LivePickupMap').then(m => ({ default: m.LivePickupMap })),
+  { ssr: false, loading: () => <div className="w-full h-64 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -579,7 +584,7 @@ export default function MeetupPage() {
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark">
       <div className="page-scroll">
         <header
-          className="sticky top-0 z-20 glass-card flex items-center justify-between px-4 py-3 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95 backdrop-blur-md pt-safe-1"
+          className="sticky top-0 z-20 glass-card no-blur flex items-center justify-between px-4 py-3 border-b border-relay-border dark:border-relay-border-dark bg-relay-surface/95 dark:bg-relay-surface-dark/95 pt-safe-1"
           style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
         >
           <button
@@ -590,7 +595,7 @@ export default function MeetupPage() {
           >
             <span className="material-symbols-outlined">close</span>
           </button>
-          <span className="text-[10px] font-bold tracking-tight text-relay-muted">Meetup</span>
+          <span className="text-[12px] font-bold tracking-tight text-relay-muted dark:text-[#f4f4f4]">Meetup</span>
           <Link
             href={otherId ? `/report?userId=${otherId}` : '/report'}
             className="size-10 rounded-full flex items-center justify-center text-relay-muted"
@@ -630,26 +635,37 @@ export default function MeetupPage() {
         )}
 
         <div className="flex-1 px-4 pt-4 pb-6">
-        <div className="p-4 rounded-2xl glass-card border border-relay-border dark:border-relay-border-dark shadow-lg">
-          <div className="flex flex-nowrap items-center gap-3 mb-1">
-            <p className="text-relay-text dark:text-relay-text-dark font-semibold text-base min-w-0 flex-1">{statusHeading}</p>
+        <div className="p-4 rounded-2xl glass-card meetup-card border border-relay-border dark:border-relay-border-dark shadow-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="relative shrink-0 cursor-pointer active-scale"
+              onClick={() => otherId && router.push(`/profile/${otherId}`)}
+            >
+              <div className="size-12 rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center">
+                {otherAvatarUrl ? (
+                  <img src={otherAvatarUrl} alt={otherDisplayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-sm">{(otherDisplayName ?? '??').slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              {meetupStage === 2 && (
+                <div className="absolute -bottom-0.5 -right-0.5 size-3.5 bg-green-500 rounded-full border-2 border-relay-surface dark:border-relay-surface-dark" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-relay-text dark:text-relay-text-dark font-semibold text-sm truncate">{otherDisplayName}</p>
+              <p className="text-relay-muted dark:text-relay-muted-light text-xs">{pickupTimeLabel}</p>
+            </div>
             {location && (
               <button
                 type="button"
                 onClick={sharingLocation ? stopSharingLocation : startSharingLocation}
-                className={`shrink-0 active-scale ${
-                  sharingLocation
-                    ? 'text-primary'
-                    : 'text-relay-muted dark:text-relay-muted-light hover:text-primary'
-                }`}
-                style={{ margin: 2 }}
+                className={`shrink-0 active-scale ${sharingLocation ? 'text-primary' : 'text-relay-muted dark:text-relay-muted-light hover:text-primary'}`}
                 aria-label={sharingLocation ? 'Stop sharing location' : 'Share my location'}
               >
                 <BroadcastLocationIcon className="size-6" />
               </button>
             )}
           </div>
-          <p className="text-relay-text dark:text-relay-text-dark text-sm text-relay-muted mb-2">{pickupTimeLabel}</p>
           <div className="flex gap-1 mb-4">
             {([1, 2, 3] as const).map((s) => (
                 <div
@@ -671,7 +687,7 @@ export default function MeetupPage() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-white text-[10px] font-normal tracking-tighter"
+                className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="size-6 shrink-0 text-current" aria-hidden>
                   <path fillRule="evenodd" clipRule="evenodd" d="M12 6.25C9.92893 6.25 8.25 7.92893 8.25 10C8.25 12.0711 9.92893 13.75 12 13.75C14.0711 13.75 15.75 12.0711 15.75 10C15.75 7.92893 14.0711 6.25 12 6.25ZM9.75 10C9.75 8.75736 10.7574 7.75 12 7.75C13.2426 7.75 14.25 8.75736 14.25 10C14.25 11.2426 13.2426 12.25 12 12.25C10.7574 12.25 9.75 11.2426 9.75 10Z" fill="currentColor" />
@@ -682,7 +698,7 @@ export default function MeetupPage() {
             )}
             <Link
               href={conversationId ? `/messages/${conversationId}` : `/messages/${swapId}`}
-              className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-white text-[10px] font-normal tracking-tighter"
+              className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark text-[10px] font-normal tracking-tighter shadow-inner"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="size-6 shrink-0 text-current" aria-hidden>
                 <path d="M11.2885 10.2372C11.0054 9.38779 9.92735 9.13331 9.29426 9.7664L8.53033 10.5303C8.23744 10.8232 7.76256 10.8232 7.46967 10.5303C7.17678 10.2374 7.17678 9.76256 7.46967 9.46967L8.2336 8.70574C9.65517 7.28417 12.0758 7.8556 12.7115 9.76283C12.9946 10.6122 14.0726 10.8667 14.7057 10.2336L15.4697 9.46967C15.7626 9.17678 16.2374 9.17678 16.5303 9.46967C16.8232 9.76256 16.8232 10.2374 16.5303 10.5303L15.7664 11.2943C14.3448 12.7158 11.9242 12.1444 11.2885 10.2372Z" fill="currentColor" />
@@ -877,11 +893,11 @@ export default function MeetupPage() {
                   }`}
                 >
                   <span
-                    className={`size-4 rounded-full border flex items-center justify-center ${
-                      issueReason === opt.id ? 'border-primary' : 'border-relay-border dark:border-relay-border-dark'
+                    className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center ${
+                      issueReason === opt.id ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   >
-                    {issueReason === opt.id && <span className="size-2 rounded-full bg-primary" />}
+                    {issueReason === opt.id && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
                   </span>
                   <span className="text-[13px] leading-snug">{opt.label}</span>
                 </button>

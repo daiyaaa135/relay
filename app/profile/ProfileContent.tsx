@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { fetchProfile, fetchExchangeCount, fetchFollowerCount, isFollowing, followProfile, unfollowProfile, type Profile } from '@/lib/profiles';
@@ -162,7 +162,11 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
   const avatarUrl = profile?.avatar_url || getDefaultAvatar(profile?.id ?? displayName);
   const rating = profile ? profile.rating : 0;
   const ratingCount = profile ? profile.rating_count : 0;
-  const items = tab === 'active' ? activeGadgets : tab === 'swapped' ? swappedGadgets : [];
+  // Memoized: only recomputes when tab or gadget arrays change, not on every render.
+  const items = useMemo(
+    () => (tab === 'active' ? activeGadgets : tab === 'swapped' ? swappedGadgets : []),
+    [tab, activeGadgets, swappedGadgets]
+  );
 
   if (loading) {
     return (
@@ -188,7 +192,7 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
+    <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-bg-dark transition-colors">
       <header className="shrink-0 px-6 pb-8 pt-safe-3">
         {/* Back / Settings row */}
         <div className="flex w-full justify-between items-center mb-8">
@@ -237,7 +241,7 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
 
           {/* Right: name + joined + action buttons */}
           <div className="flex flex-col flex-1 min-w-0">
-            <h1 className="font-serif text-4xl font-bold text-relay-text dark:text-relay-text-dark tracking-tighter leading-none">{displayName}</h1>
+            <h1 className="font-serif text-h2 font-bold text-relay-text dark:text-relay-text-dark tracking-tighter leading-none">{displayName}</h1>
             {profile?.created_at && (
               <p className="text-[10px] font-light text-relay-muted dark:text-relay-muted-light mt-2">
                 {formatJoinedDate(profile.created_at)}
@@ -250,7 +254,7 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
                 <button
                   onClick={handleMessageClick}
                   disabled={messageLoading}
-                  className="px-6 h-8 flex items-center justify-center rounded-full bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark shadow-sm disabled:opacity-60 active-scale"
+                  className="px-6 h-8 flex items-center justify-center rounded-full btn-dark-neumorph bg-relay-surface dark:bg-transparent border border-relay-border dark:border-transparent text-relay-text dark:text-relay-text-dark shadow-sm disabled:opacity-60 active-scale"
                 >
                   {messageLoading ? (
                     <span className="size-4 border-2 border-relay-border border-t-primary rounded-full animate-spin" />
@@ -293,19 +297,19 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
         <div className="flex px-6 border-b border-relay-border dark:border-relay-border-dark">
           <button
             onClick={() => setTab('active')}
-            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-[0.25em] uppercase transition-all border-b-2 ${
+            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-normal uppercase transition-all border-b-2 ${
               tab === 'active' ? 'text-primary' : 'border-transparent text-relay-muted dark:text-relay-muted-light'
             }`}
             style={{ borderBottomColor: tab === 'active' ? '#FF5721' : 'transparent', borderBottomWidth: 2 }}
           >
-            <span>Active Listings</span>
+            <span>Listings</span>
             {tab !== 'active' && activeGadgets.length > 0 && (
               <span className="text-[9px] font-medium">{activeGadgets.length}</span>
             )}
           </button>
           <button
             onClick={() => setTab('swapped')}
-            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-[0.25em] uppercase transition-all border-b-2 ${
+            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-normal uppercase transition-all border-b-2 ${
               tab === 'swapped' ? 'text-primary' : 'border-transparent text-relay-muted dark:text-relay-muted-light'
             }`}
             style={{ borderBottomColor: tab === 'swapped' ? '#FF5721' : 'transparent', borderBottomWidth: 2 }}
@@ -317,7 +321,7 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
           </button>
           <button
             onClick={() => setTab('reviews')}
-            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-[0.25em] uppercase transition-all border-b-2 ${
+            className={`flex-1 pb-4 pt-1 flex flex-col items-center gap-1 text-[9px] font-bold tracking-normal uppercase transition-all border-b-2 ${
               tab === 'reviews' ? 'text-primary' : 'border-transparent text-relay-muted dark:text-relay-muted-light'
             }`}
             style={{ borderBottomColor: tab === 'reviews' ? '#FF5721' : 'transparent', borderBottomWidth: 2 }}
@@ -342,7 +346,7 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
       </div>
 
       {tab === 'reviews' ? (
-        <div className="flex-1 overflow-y-auto px-6 pb-32 hide-scrollbar scroll-bounce">
+        <div className="flex-1 overflow-y-auto px-6 pb-32 hide-scrollbar scroll-bounce bg-relay-surface dark:bg-relay-bg-dark">
           {reviewsLoading ? (
             <div className="flex justify-center py-16">
               <div className="size-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
@@ -411,7 +415,7 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
           )}
         </div>
       ) : (
-      <div className="grid grid-cols-2 gap-6 px-6 pb-32">
+      <div className="grid grid-cols-2 gap-6 px-6 pb-32 bg-relay-surface dark:bg-relay-bg-dark">
         {items.length === 0 ? (
           <div className="col-span-2 py-16 text-center">
             <p className="text-relay-muted dark:text-relay-muted-light text-sm">{tab === 'active' ? 'No active listings.' : 'No swapped items.'}</p>
@@ -441,9 +445,9 @@ export default function ProfileContent({ username, profileId: profileIdProp, isS
                 )}
               </div>
               <div className="flex flex-col gap-1 px-2">
-                <h3 className="font-serif text-sm  text-relay-text dark:text-relay-text-dark group-hover:text-primary transition-colors leading-tight">{item.name}</h3>
+                <h3 className="font-serif text-xs text-relay-text dark:text-relay-text-dark group-hover:text-primary transition-colors leading-tight">{item.name}</h3>
                 <div className="flex justify-between items-center">
-                  <p className="text-[8px] tracking-[0.2em] text-relay-muted">{item.category}</p>
+                  <p className="text-[8px] tracking-tight text-relay-text dark:text-relay-text-dark">{item.category}</p>
                   <span className="text-[10px] font-display font-bold text-primary">{item.credits} Cr</span>
                 </div>
               </div>

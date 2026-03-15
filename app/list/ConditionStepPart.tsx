@@ -64,6 +64,7 @@ const CONDITION_DESCRIPTIONS: Record<string, Record<string, string>> = {
     New: 'Brand new and unused. Original packaging and all accessories included.',
   },
 };
+
 export function getWorstCondition(
   front: string | null,
   back: string | null,
@@ -84,12 +85,32 @@ interface ConditionStepPartProps {
   question: string;
   value: string | null;
   onChange: (v: string) => void;
+  /** Called when the user taps "Change" on the collapsed summary. Parent should reset value to null. */
+  onClear?: () => void;
   variant?: 'front' | 'back';
-  /** When set to a device-look category (Video Games, MP3, etc.), shows descriptions instead of images with a softer background */
+  /** When set to a device-look category (Video Games, MP3, etc.), shows descriptions instead of images. */
   category?: string;
+  /** When true, reveals the battery health input after the user selects a condition. */
+  showBatteryHealth?: boolean;
+  batteryHealth?: string;
+  onBatteryHealthChange?: (v: string) => void;
+  /** When true, the image/buttons stay visible after selection (no collapse). */
+  noCollapse?: boolean;
 }
 
-export function ConditionStepPart({ question, value, onChange, variant = 'front', category }: ConditionStepPartProps) {
+export function ConditionStepPart({
+  question,
+  value,
+  onChange,
+  onClear,
+  variant = 'front',
+  category,
+  showBatteryHealth = false,
+  batteryHealth = '',
+  onBatteryHealthChange,
+  noCollapse = false,
+}: ConditionStepPartProps) {
+  const isSelected = value !== null;
   const useLimitedGrades = category === 'Console' || category === 'Speaker';
   const grades = useLimitedGrades ? (['Good', 'Mint', 'New'] as const) : CONDITION_GRADES;
   const defaultGrade = useLimitedGrades ? 'Good' : 'Poor';
@@ -100,45 +121,108 @@ export function ConditionStepPart({ question, value, onChange, variant = 'front'
   const descriptions = useDescriptions ? CONDITION_DESCRIPTIONS[category] : null;
   const descriptionText = descriptions?.[selected] ?? '';
 
+  const handleBatteryInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    if (raw === '') { onBatteryHealthChange?.(''); return; }
+    const n = parseInt(raw, 10);
+    if (n > 100) { onBatteryHealthChange?.('100'); return; }
+    onBatteryHealthChange?.(raw);
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold text-relay-text dark:text-relay-text-dark uppercase">{question}</h2>
-      <div
-        className={`rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark aspect-[4/3] flex items-center justify-center p-6 ${
-          useDescriptions ? 'bg-relay-bg dark:bg-relay-bg-dark' : 'bg-relay-surface dark:bg-relay-surface-dark'
-        }`}
-      >
-        {useDescriptions ? (
-          <p className="text-sm text-gray-700 dark:text-gray-700 font-bold text-center leading-relaxed">
-            {descriptionText}
-          </p>
-        ) : (
-          <img src={imgSrc} alt={selected} className="w-full h-full object-cover object-bottom" />
+
+      {/* ── Question header — always visible ── */}
+      <div className="flex items-center justify-between min-h-[28px]">
+        <h2 className="text-lg font-semibold text-relay-text dark:text-relay-text-dark">
+          {question}
+        </h2>
+        {isSelected && !noCollapse && (
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            <span className="text-sm font-bold text-primary">{value}</span>
+            {onClear && (
+              <button
+                type="button"
+                onClick={onClear}
+                className="text-[11px] text-relay-muted underline underline-offset-2 hover:text-relay-text dark:hover:text-relay-text-dark transition-colors"
+              >
+                Change
+              </button>
+            )}
+          </div>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        {grades.map((grade) => (
-          <button
-            key={grade}
-            type="button"
-            onClick={() => onChange(grade)}
-            className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-              value === grade
-                ? 'border-transparent bg-primary/10 dark:bg-primary/20'
-                : 'border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark hover:border-relay-muted'
+
+      {/* ── Collapsible: preview card + grade buttons ── */}
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isSelected && !noCollapse ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[600px] opacity-100'
+        }`}
+      >
+        <div className="space-y-6">
+          {/* Preview card */}
+          <div
+            className={`rounded-xl overflow-hidden border border-relay-border dark:border-relay-border-dark aspect-[4/3] flex items-center justify-center p-6 ${
+              useDescriptions ? 'bg-relay-bg dark:bg-relay-bg-dark' : 'bg-relay-surface dark:bg-relay-surface-dark'
             }`}
           >
-            <span
-              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                value === grade ? 'border-transparent bg-primary' : 'border-relay-muted'
-              }`}
-            >
-              {value === grade && <span className="w-2 h-2 rounded-full bg-relay-bg dark:bg-relay-bg-dark" />}
-            </span>
-            <span className="text-sm font-medium text-relay-text dark:text-relay-text-dark">{grade}</span>
-          </button>
-        ))}
+            {useDescriptions ? (
+              <p className="text-sm text-gray-700 dark:text-gray-700 font-bold text-center leading-relaxed">
+                {descriptionText}
+              </p>
+            ) : (
+              <img src={imgSrc} alt={selected} className="w-full h-full object-cover object-bottom" />
+            )}
+          </div>
+
+          {/* Grade buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            {grades.map((grade) => (
+              <button
+                key={grade}
+                type="button"
+                onClick={() => onChange(grade)}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                  value === grade
+                    ? 'border-transparent bg-primary/10 dark:bg-primary/20'
+                    : 'border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark hover:border-relay-muted'
+                }`}
+              >
+                <span
+                  className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 ${
+                    value === grade ? 'border-transparent bg-primary' : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                >
+                  {value === grade && <span className="w-1.5 h-1.5 rounded-full bg-white dark:bg-relay-bg-dark" />}
+                </span>
+                <span className="text-sm font-medium text-relay-text dark:text-relay-text-dark">{grade}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* ── Battery health — revealed after condition is selected ── */}
+      {showBatteryHealth && isSelected && (
+        <div className="space-y-2 w-1/2">
+          <label className="text-[10px] font-bold tracking-widest text-relay-muted dark:text-relay-muted-light uppercase">
+            Battery Health
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={3}
+              placeholder="e.g. 87"
+              value={batteryHealth}
+              onChange={handleBatteryInput}
+              className="w-full h-12 bg-relay-surface dark:bg-relay-surface-dark border border-relay-border dark:border-relay-border-dark rounded-lg text-relay-text dark:text-relay-text-dark px-4 text-sm"
+            />
+            <span className="text-sm font-medium text-relay-muted shrink-0">%</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

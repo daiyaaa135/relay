@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Capacitor } from '@capacitor/core';
 import { createClient } from '@/lib/supabase';
+import { startNativeOAuth } from '@/lib/capacitorOAuth';
 
 /** Format 10 digits as +1 XXX XXX XXXX for confirmation display */
 function formatPhoneForDisplay(digits: string): string {
@@ -49,20 +51,16 @@ export default function WelcomePage() {
     setGoogleLoading(true);
     try {
       const supabase = createClient();
-      const redirectTo =
+      const webRedirectTo =
         typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo },
-      });
-      if (authError) {
-        setGoogleError(authError.message ?? 'Could not start sign-in.');
-        setGoogleLoading(false);
-        return;
+
+      await startNativeOAuth(supabase, 'google', webRedirectTo);
+
+      // On native, session is set — navigate home
+      if (Capacitor.isNativePlatform()) {
+        router.replace('/');
       }
-      if (data?.url && typeof window !== 'undefined') {
-        window.location.href = data.url;
-      }
+      // On web, signInWithOAuth redirects automatically
     } catch (err) {
       setGoogleError(err instanceof Error ? err.message : 'Could not start sign-in.');
       setGoogleLoading(false);
@@ -94,21 +92,21 @@ export default function WelcomePage() {
           <div className="gadget-float stagger-1 flex justify-center items-end">
             <img
               alt="Smartphone"
-              className="w-24 h-24 object-contain drop-shadow-2xl rounded-xl"
+              className="w-24 h-24 object-contain shadow-xl rounded-xl"
               src={HERO_PHONE_IMG}
             />
           </div>
           <div className="gadget-float stagger-2 flex justify-center items-center" style={{ animation: 'gadget-float 6s ease-in-out infinite 1.5s' }}>
             <img
               alt="Laptop"
-              className="w-32 h-32 object-contain drop-shadow-2xl rounded-xl"
+              className="w-32 h-32 object-contain shadow-xl rounded-xl"
               src={HERO_LAPTOP_IMG}
             />
           </div>
           <div className="gadget-float stagger-3 flex justify-center items-start col-span-2" style={{ animation: 'gadget-float 6s ease-in-out infinite 3s' }}>
             <img
               alt="Headphones"
-              className="w-28 h-28 object-contain drop-shadow-2xl rounded-xl"
+              className="w-28 h-28 object-contain shadow-xl rounded-xl"
               src={HERO_HEADPHONES_IMG}
             />
           </div>
@@ -143,7 +141,7 @@ export default function WelcomePage() {
             type="button"
             onClick={handleContinue}
             disabled={!canContinue}
-            className="inline-flex items-center justify-center text-primary font-semibold text-xs tracking-tight disabled:opacity-50 disabled:pointer-events-none"
+            className="size-10 rounded-full bg-primary shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph inline-flex items-center justify-center text-white disabled:opacity-50 disabled:pointer-events-none"
             aria-label="Continue"
           >
             <span className="material-symbols-outlined text-[20px]">arrow_forward</span>

@@ -122,7 +122,7 @@ export default function SettingsPage() {
         { label: 'Notifications', icon: 'notifications', path: '/settings/notifications', iconComponent: NotificationIcon },
         { label: 'Privacy & Safety', icon: 'shield', path: '/safety', iconComponent: PrivacyIcon },
         { label: 'Availability', icon: 'schedule', path: '/settings/availability', iconComponent: AvailabilityIcon },
-        { label: 'Reset password', icon: 'lock_reset', path: '/forgot-password?from=settings', iconComponent: ResetPasswordIcon },
+        { label: 'Reset password', icon: 'lock_reset', path: '/reset-password', iconComponent: ResetPasswordIcon },
         { label: 'Appearance', icon: 'dark_mode', type: 'toggle', iconComponent: AppearanceIcon },
       ]
     },
@@ -181,7 +181,7 @@ export default function SettingsPage() {
         <div className="space-y-12">
           {sections.map((section) => (
             <div key={section.title} className="space-y-4">
-              <h3 className="text-[10px] font-bold tracking-[0.3em] text-relay-muted px-2">{section.title}</h3>
+              <h3 className="text-[10px] font-bold tracking-normal text-relay-muted px-2">{section.title}</h3>
               <div className="space-y-1">
                 {section.items.map((item) => {
                   const isToggle = item.type === 'toggle';

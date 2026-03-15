@@ -20,6 +20,15 @@ const config: CapacitorConfig = {
   appId: 'com.rellay.app',
   appName: 'Rellay',
   webDir: 'public',
+  plugins: {
+    SplashScreen: {
+      launchAutoHide: false,
+      launchShowDuration: 0,
+    },
+    Browser: {
+      // Uses SFSafariViewController on iOS — keeps OAuth inside the app
+    },
+  },
   server: isDev
     ? { url: devServerUrl, cleartext: true }
     : prodServerUrl

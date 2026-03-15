@@ -237,7 +237,7 @@ function HelpPageContent() {
             search
           </span>
           <input
-            className="w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-14 pr-5 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 outline-none transition-all shadow-inner"
+            className="search-bar-input w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-14 pr-5 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 outline-none transition-all shadow-inner"
             placeholder="Search help articles"
             value={query}
             onChange={(e) => {

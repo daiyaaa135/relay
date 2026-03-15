@@ -1,0 +1,604 @@
+[
+  {
+    "id": "TC001",
+    "title": "Create a swap from a listing and see it appear as pending in the dashboard",
+    "description": "Verifies a user can initiate a swap, confirm it, and see a new pending swap with details in the dashboard list.",
+    "category": "Swap Creation and Matching",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Swap\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Swap\" on a listing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Confirm\" in the confirmation modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"pending\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Swap details\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Confirm participation from a suggested swap banner and see pending swap in dashboard",
+    "description": "Verifies a user can confirm participation via a suggestion CTA and the matched swap appears in the dashboard list as pending.",
+    "category": "Swap Creation and Matching",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm participation\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Confirm participation\" on the suggested swap banner"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Confirm\" in the confirmation modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"pending\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Swap details\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Cancel swap creation from the confirmation modal",
+    "description": "Verifies the user can back out of swap initiation by canceling/closing the confirmation modal and returning to the listing state.",
+    "category": "Swap Creation and Matching",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Swap\" on a listing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Cancel\" in the confirmation modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Swap\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Insufficient credits error shows actions and Cancel returns to listing",
+    "description": "Verifies that when swap matching fails due to insufficient credits, the inline error and action buttons appear and Cancel returns to the listing view.",
+    "category": "Swap Creation and Matching",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Swap\" on a listing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Confirm\" in the confirmation modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Insufficient credits\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Add credits\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Cancel\""
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Match failure error shows appropriate message and user can dismiss it",
+    "description": "Verifies that a non-credit-related match failure shows an error state the user can dismiss and continue browsing listings.",
+    "category": "Swap Creation and Matching",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Swap\" on a listing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Confirm\" in the confirmation modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Match failed\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Cancel\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Swap\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Prevent duplicate submission by clicking Confirm once and verifying a single pending swap entry appears",
+    "description": "Verifies that confirming swap creation does not result in duplicate pending swaps being displayed in the dashboard list.",
+    "category": "Swap Creation and Matching",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Swap\" on a listing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Confirm\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Confirm\" in the confirmation modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"pending\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Swap details\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"pending\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Swap state updates are visible after successful creation or matching",
+    "description": "Verifies that after a swap is created/matched, the UI visibly reflects the updated swap state on the main dashboard without requiring manual navigation.",
+    "category": "Swap Creation and Matching",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Swap\" on a listing"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Confirm\" in the confirmation modal"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"pending\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Swap details\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Swap\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Open a swap conversation thread from the dashboard",
+    "description": "Verifies a user can open a conversation thread by using the Message entry point on a swap card/banner.",
+    "category": "Messaging and Read Receipts",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Active swap banner\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Message\" on an active swap banner or swap card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation thread\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Message input field\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Send\" button is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Scroll through existing messages in a conversation thread",
+    "description": "Verifies existing messages are viewable and the thread supports scrolling within the conversation view.",
+    "category": "Messaging and Read Receipts",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Message\" on a swap card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation thread\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the top of the message list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Older message\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the bottom of the message list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Message input field\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Send a message and see it appended with a timestamp",
+    "description": "Verifies a user can send a new message and it appears in the thread along with a visible timestamp.",
+    "category": "Messaging and Read Receipts",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Message\" on a swap card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation thread\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Hello from E2E test\" into the message input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Hello from E2E test\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Timestamp for the new message\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Mark messages as read when opening a thread (UI evidence via unread badge decrease)",
+    "description": "Verifies that opening a conversation results in read behavior reflected by a decreased unread badge count in the UI.",
+    "category": "Messaging and Read Receipts",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Unread messages badge\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Message\" on a swap card that shows an unread indicator"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation thread\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Unread indicator\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Unread messages badge\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"0\" is visible in the unread messages badge"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Prevent sending an empty message",
+    "description": "Verifies the UI blocks sending when the message input is empty (no new message appears).",
+    "category": "Messaging and Read Receipts",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Message\" on a swap card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation thread\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Message failed to send\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Empty message validation\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Conversation thread persists after sending message (no unexpected navigation away)",
+    "description": "Verifies the user remains in the conversation thread after sending a message and can continue typing.",
+    "category": "Messaging and Read Receipts",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Message\" on a swap card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation thread\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Staying in thread\" into the message input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation thread\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Message input field\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Placeholder page loads and shows authentication pending/required messaging",
+    "description": "Verifies the placeholder route renders and communicates that authentication is required or not yet implemented.",
+    "category": "Authentication Placeholder",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify page title contains \"Relay\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"authentication\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"pending\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Placeholder provides a recommended next-step CTA or link",
+    "description": "Verifies the placeholder page presents an actionable next step (such as a login link or support/contact guidance).",
+    "category": "Authentication Placeholder",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Sign up\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Log in\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"next\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"support\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Attempting to sign up via placeholder CTA shows 'Not implemented' notice",
+    "description": "Verifies placeholder signup action communicates it is not implemented via an inline notice.",
+    "category": "Authentication Placeholder",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign up\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Not implemented\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"support\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Attempting to log in via placeholder CTA shows 'Not implemented' notice",
+    "description": "Verifies placeholder login action communicates it is not implemented via an inline notice.",
+    "category": "Authentication Placeholder",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Log in\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Not implemented\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"authentication\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Placeholder page communicates protected functionality is unavailable without auth",
+    "description": "Verifies the placeholder messaging indicates users cannot access protected parts of the app until auth exists.",
+    "category": "Authentication Placeholder",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"protected\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"cannot\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"access\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"until\" is visible"
+      }
+    ]
+  }
+]

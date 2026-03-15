@@ -12,9 +12,21 @@ import { fetchExchangeCount, fetchProfile } from '@/lib/profiles';
 import { fetchTransactions } from '@/lib/transactions';
 import { createClient } from '@/lib/supabase';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
-import { PickupCalendarModal, type PickupSlot } from '@/app/components/PickupCalendarModal';
-import { LocationMapWithAvatar } from '@/app/components/LocationMapWithAvatar';
-import { PickupLocationsMap } from '@/app/components/PickupLocationsMap';
+import nextDynamic from 'next/dynamic';
+import type { PickupSlot } from '@/app/components/PickupCalendarModal';
+
+const PickupCalendarModal = nextDynamic(
+  () => import('@/app/components/PickupCalendarModal').then(m => ({ default: m.PickupCalendarModal })),
+  { ssr: false, loading: () => null }
+);
+const LocationMapWithAvatar = nextDynamic(
+  () => import('@/app/components/LocationMapWithAvatar').then(m => ({ default: m.LocationMapWithAvatar })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const PickupLocationsMap = nextDynamic(
+  () => import('@/app/components/PickupLocationsMap').then(m => ({ default: m.PickupLocationsMap })),
+  { ssr: false, loading: () => <div className="w-full h-48 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
 import { RatingDisplay } from '@/app/components/RatingDisplay';
 import { WishlistHeartIcon } from '@/app/components/WishlistHeartIcon';
 import type { Gadget } from '@/lib/types';
@@ -604,7 +616,7 @@ function ListingDetailPageContent() {
           <div 
             ref={scrollRef}
             onScroll={handleScroll}
-            className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar rounded-[56px] border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark shadow-2xl aspect-[3/4]"
+            className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar rounded-[32px] border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark shadow-2xl aspect-[3/4]"
           >
             {itemImages.map((img, i) => (
               <div key={i} className="relative min-w-full h-full snap-center">
@@ -726,46 +738,227 @@ function ListingDetailPageContent() {
 
           {/* Description & Bundled Extras */}
           {(() => {
-            const specsWithoutImei = item.specs
-              ? item.specs.replace(/\b\d{15}\b|\b\d{2}\s+\d{6}\s+\d{6}\s+\d{1}\b/g, '').replace(/\s*•\s*•/g, ' •').replace(/^\s*•\s*|\s*•\s*$/g, '').trim()
-              : '';
+            const rawDescription = item.description ?? '';
+
+            // ── Accessories (from description) ──
             let accessories: string[] = [];
-            let descriptionText = item.description ?? '';
-            const accessoryMatch = descriptionText.match(/^Accessories:\s*(.+)/m);
+            const accessoryMatch = rawDescription.match(/^Accessories:\s*(.+)/m);
             if (accessoryMatch) {
-              accessories = accessoryMatch[1].split(',').map((a) => a.trim()).filter(Boolean);
-              descriptionText = descriptionText.replace(/^Accessories:\s*.+\n?/m, '').trim();
+              accessories = accessoryMatch[1].split(',').map((a: string) => a.trim()).filter(Boolean);
             }
-            let displayText = [specsWithoutImei, descriptionText].filter(Boolean).join('. ') || 'No details provided.';
-            displayText = displayText.replace(/\.\s*;\s*/g, '. ').replace(/;\s*\./g, '. ');
-            const accessoryIcons: Record<string, string> = {
-              'Charging Cable': 'cable',
-              'SIM Ejector Pin': 'sim_card',
-              'S Pen': 'stylus',
-              'Original Box': 'inventory_2',
-            };
+
+            // ── Condition bullet ──
+            let conditionBullet = '';
+            const condDetailsMatch = rawDescription.match(/^Condition details:\s*(.+)/m);
+            const category = item.category;
+            const conditionRaw = (item.condition || '').trim();
+            const condition = conditionRaw.toLowerCase();
+            const isPhoneTabletLaptop = ['phones', 'tablets', 'laptops'].includes(category.toLowerCase());
+            if (isPhoneTabletLaptop) {
+              const CONDITION_COPY: Record<string, string> = {
+                new: 'Brand new in original box with all accessories. Never used.',
+                mint: 'Excellent cosmetic condition with minimal signs of use.',
+                good: 'Shows light signs of use. There are a few light scratches or marks.',
+                fair: 'Noticeable wear and tear. There are visible scratches or marks.',
+                poor: 'Damage such as deep scratches or cracks. Some features may not work as expected.',
+              };
+              conditionBullet = CONDITION_COPY[condition] ?? '';
+            } else {
+              // Console / Headphones / Speaker / Gaming Handhelds / MP3 / Video Games:
+              // use the same condition descriptions as the listing flow.
+              const LOOK_CONDITION_COPY: Record<string, Record<string, string>> = {
+                'Video Games': {
+                  Poor: 'Heavy scratches, scuffs, or cracks on disc/cartridge and case. Case may be broken or missing entirely. Manual absent.',
+                  Fair: 'Visible scratches and wear on disc/cartridge and case. Case may have cracks or heavy scuffing. Manual likely missing.',
+                  Good: 'Minor surface scratches on disc/cartridge. Case shows light wear. Manual may or may not be included.',
+                  Mint: 'Near-perfect cosmetic condition. Disc/cartridge and case are clean and well-preserved. Manual included.',
+                  New: 'Factory sealed. No signs of opening or use. All original packaging and inserts present.',
+                },
+                MP3: {
+                  Poor: 'Deep scratches across screen and body. Heavy scuffing, dents, or discoloration.',
+                  Fair: 'Noticeable scratches and scuffs on screen and body. Visible signs of heavy use.',
+                  Good: 'Light scratches on body. Screen has minor scuffs but remains clear.',
+                  Mint: 'Barely visible marks. Excellent cosmetic appearance overall.',
+                  New: 'Unopened, in original packaging with all accessories. No marks or blemishes.',
+                },
+                'Gaming Handhelds': {
+                  Poor: 'Cracked casing, heavy scratches on screen and body, missing parts or covers.',
+                  Fair: 'Significant scratching on screen and shell. Heavy cosmetic wear throughout.',
+                  Good: 'Light scratches on body. Screen is clear with minimal marks.',
+                  Mint: 'Minimal cosmetic wear. Looks nearly new with no notable marks or damage.',
+                  New: 'Brand new in original box with all accessories. Never used.',
+                },
+                Console: {
+                  Poor: 'Cracks, deep scratches, heavy discoloration or yellowing on shell.',
+                  Fair: 'Significant scuffs, scratches, or yellowing on the housing. Heavy cosmetic wear.',
+                  Good: 'Light surface scratches on shell. Minor cosmetic blemishes only.',
+                  Mint: 'Excellent cosmetic condition with minimal signs of use.',
+                  New: 'Factory sealed in original box with all accessories. Pristine condition.',
+                },
+                Headphones: {
+                  Poor: 'Ear pads heavily cracked, torn, or missing. Headband visibly damaged or peeling.',
+                  Fair: 'Ear pads show significant wear or peeling. Headband has visible scratches or cracks.',
+                  Good: 'Light wear on ear pads and headband. Minor scuffs or marks only.',
+                  Mint: 'Ear pads and headband are clean and intact. Looks nearly new.',
+                  New: 'Unopened with all original packaging and accessories. No wear of any kind.',
+                },
+                Speaker: {
+                  Poor: 'Torn or punctured grille, cracked or dented housing. Heavy cosmetic damage throughout.',
+                  Fair: 'Grille shows wear or minor damage. Housing has visible scuffs and scratches.',
+                  Good: 'Light scratches or scuffs on housing. Grille is intact with minimal marks.',
+                  Mint: 'Excellent cosmetic appearance. Minimal to no visible marks or blemishes.',
+                  New: 'Brand new and unused. Original packaging and all accessories included.',
+                },
+              };
+              const lookup = LOOK_CONDITION_COPY[category as keyof typeof LOOK_CONDITION_COPY];
+              if (lookup && conditionRaw && lookup[conditionRaw as keyof typeof lookup]) {
+                conditionBullet = lookup[conditionRaw as keyof typeof lookup];
+              } else if (condDetailsMatch) {
+                // Fallback: use the "Condition details" sentence if we don't have a mapped description
+                conditionBullet = condDetailsMatch[1].trim();
+              }
+            }
+
+            // ── Functionality bullet ──
+            let functionalityBullet = '';
+            const funcMatch = rawDescription.match(/^Functional:\s*(.+)/m);
+            const consoleFuncMatch = rawDescription.match(/^Device functional:\s*(.+)/m);
+
+            const GENERAL_FUNC_PATTERNS = [
+              'The device turns on, turns off, and charges',
+              'The front and rear cameras work perfectly',
+              'The speakers and microphones work perfectly',
+              'Touch ID and Face ID are functional',
+              'All other features including Wi-Fi, Bluetooth',
+            ];
+            const HANDHELD_FUNC_PATTERNS = [
+              'Powers on and off with no issues, and charges properly',
+              'Reads cartridges properly',
+              'The hinge is not damaged',
+              'LCD screen has no issues',
+              'Touchscreen functions correctly',
+              'Sound works properly',
+              'All buttons function normally',
+            ];
+
+            if (funcMatch) {
+              const rawFunc = funcMatch[1];
+              const isHandheldFunc = HANDHELD_FUNC_PATTERNS.some((p) => rawFunc.includes(p));
+              if (isHandheldFunc) {
+                const selected = HANDHELD_FUNC_PATTERNS.filter((p) => rawFunc.includes(p));
+                if (selected.length === HANDHELD_FUNC_PATTERNS.length) {
+                  functionalityBullet =
+                    'The handheld powers on/off, charges properly, reads cartridges, and its hinge, screen, touchscreen, sound, and buttons all work properly.';
+                } else if (selected.length > 0) {
+                  const LABELS: Record<string, string> = {
+                    [HANDHELD_FUNC_PATTERNS[0]]: 'powers on/off and charges',
+                    [HANDHELD_FUNC_PATTERNS[1]]: 'reads cartridges',
+                    [HANDHELD_FUNC_PATTERNS[2]]: 'hinge',
+                    [HANDHELD_FUNC_PATTERNS[3]]: 'LCD screen',
+                    [HANDHELD_FUNC_PATTERNS[4]]: 'touchscreen',
+                    [HANDHELD_FUNC_PATTERNS[5]]: 'sound',
+                    [HANDHELD_FUNC_PATTERNS[6]]: 'buttons',
+                  };
+                  const selectedLabels = HANDHELD_FUNC_PATTERNS.filter((p) => rawFunc.includes(p)).map((p) => LABELS[p]);
+                  const missingLabels = HANDHELD_FUNC_PATTERNS.filter((p) => !rawFunc.includes(p)).map((p) => LABELS[p]);
+                  functionalityBullet = '';
+                  if (selectedLabels.length > 0) {
+                    functionalityBullet += `The handheld has the following working features: ${selectedLabels.join(', ')}.`;
+                  }
+                  if (missingLabels.length > 0) {
+                    functionalityBullet += ` The following features may have issues or weren’t confirmed: ${missingLabels.join(', ')}.`;
+                  }
+                }
+              } else {
+                // General device checklist (phones, tablets, laptops, etc.)
+                const selected = GENERAL_FUNC_PATTERNS.filter((p) => rawFunc.includes(p));
+                const allSelected = selected.length === GENERAL_FUNC_PATTERNS.length;
+                const firstSelected = rawFunc.includes(GENERAL_FUNC_PATTERNS[0]);
+                if (allSelected) {
+                  functionalityBullet =
+                    'The device powers on/off, charges properly, and all features function normally.';
+                } else if (firstSelected) {
+                  const LABELS: Record<string, string> = {
+                    [GENERAL_FUNC_PATTERNS[1]]: 'camera',
+                    [GENERAL_FUNC_PATTERNS[2]]: 'speakers and microphones',
+                    [GENERAL_FUNC_PATTERNS[3]]: 'Touch ID / Face ID',
+                    [GENERAL_FUNC_PATTERNS[4]]: 'Wi‑Fi, Bluetooth, or buttons',
+                  };
+                  const missing = GENERAL_FUNC_PATTERNS.slice(1).filter((p) => !rawFunc.includes(p));
+                  const missingLabels = missing.map((p) => LABELS[p]).filter(Boolean);
+                  if (missingLabels.length > 0) {
+                    functionalityBullet =
+                      `The device powers on/off, charges properly, and all features function normally except for ${missingLabels.join(', ')}.`;
+                  } else {
+                    functionalityBullet =
+                      'The device powers on/off, charges properly, and all features function normally.';
+                  }
+                } else {
+                  functionalityBullet =
+                    'Some features may not work as expected. The device may not power on, charge properly, or have all features working.';
+                }
+              }
+            } else if (consoleFuncMatch) {
+              const val = consoleFuncMatch[1].trim();
+              if (val.toLowerCase() === 'yes') {
+                functionalityBullet = 'The item is fully functional as described, with no known issues.';
+              } else if (val.toLowerCase() === 'no') {
+                functionalityBullet = 'The item is not fully functional. Some features may not work as expected.';
+              } else {
+                functionalityBullet = `Device functional: ${val}.`;
+              }
+            }
+
+            // ── Battery health bullet ──
+            let batteryBullet = '';
+            const batteryMatch = rawDescription.match(/^Battery health:\s*(\d+)%/m);
+            if (batteryMatch) {
+              const pct = parseInt(batteryMatch[1], 10);
+              batteryBullet = `${pct}%`;
+            }
+
+            // ── Freeform notes (remaining lines) ──
+            let notesBullet = '';
+            if (rawDescription.trim()) {
+              const lines = rawDescription.split(/\r?\n/);
+              const noteLines = lines.filter(
+                (line) =>
+                  !/^(Accessories|Functional|Device functional|Battery health|Condition details):\s*/.test(line.trim())
+              );
+              notesBullet = noteLines.join(' ').trim();
+            }
+
+            const bullets: { label: string; value: string }[] = [];
+            if (conditionBullet) bullets.push({ label: 'Condition', value: conditionBullet });
+            if (functionalityBullet) bullets.push({ label: 'Functionality', value: functionalityBullet });
+            if (batteryBullet) bullets.push({ label: 'Battery health', value: batteryBullet });
+            if (accessories.length > 0) bullets.push({ label: 'Accessories', value: accessories.join(', ') });
+            if (notesBullet) bullets.push({ label: 'Notes', value: notesBullet });
+
             return (
               <div className="space-y-4 py-2">
                 <div className="space-y-3">
-                  <h4 className="text-[10px] font-semibold tracking-tight text-relay-muted dark:text-relay-muted-light">Description</h4>
-                  <p className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">
-                    {displayText}
-                  </p>
-                </div>
-
-                {accessories.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-semibold tracking-tight text-relay-muted dark:text-relay-muted-light">Bundled Extras</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {accessories.map((a) => (
-                        <div key={a} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-relay-border dark:border-relay-border-dark bg-relay-surface dark:bg-relay-surface-dark">
-                          <span className="material-symbols-outlined !text-[14px] text-relay-text dark:text-relay-text-dark">{accessoryIcons[a] ?? 'check_circle'}</span>
-                          <span className="text-[10px] font-bold tracking-widest text-relay-text dark:text-relay-text-dark">{a.replace('Charging Cable', 'Cable').replace('SIM Ejector Pin', 'SIM Pin').replace('Original Box', 'Box')}</span>
-                        </div>
+                  <h4 className="text-[10px] font-semibold tracking-tight text-relay-muted dark:text-relay-muted-light">
+                    Description
+                  </h4>
+                  {bullets.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {bullets.map((b) => (
+                        <p
+                          key={b.label}
+                          className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80"
+                        >
+                          <span className="font-semibold">{b.label}: </span>
+                          <span>{b.value}</span>
+                        </p>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-relay-text dark:text-relay-text-dark text-sm leading-relaxed font-light opacity-80">
+                      No details provided.
+                    </p>
+                  )}
+                </div>
               </div>
             );
           })()}
@@ -869,7 +1062,7 @@ function ListingDetailPageContent() {
             ) : (
               <button 
                 onClick={handleInitiateSwap}
-                className="flex-1 rounded-3xl bg-primary text-white flex items-center justify-center gap-4 shadow-2xl shadow-primary/40 active-scale transition-all"
+                className="flex-1 rounded-full bg-primary text-white flex items-center justify-center gap-4 shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c97a3a] btn-dark-neumorph active-scale transition-all"
                 style={{ height: '42px' }}
               >
                 <span className="text-xs font-semibold tracking-[0.1em]">Swap with Credits</span>
@@ -880,7 +1073,7 @@ function ListingDetailPageContent() {
             const hasActiveBuyerSwap = !!activeSwap;
             const hasEnoughCredits = credits >= item.credits;
             const fullyLoaded = creditsLoaded && activeSwapLoaded;
-            const canCancel = fullyLoaded && hasEnoughCredits && !hasActiveBuyerSwap;
+            const canCancel = fullyLoaded && hasEnoughCredits && !hasActiveBuyerSwap && item.status === 'available';
             const blockedReason = !fullyLoaded
               ? null
               : hasActiveBuyerSwap
@@ -892,6 +1085,15 @@ function ListingDetailPageContent() {
               return (
                 <div className="flex-1 rounded-3xl flex flex-col items-center justify-center gap-0.5 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark px-4" style={{ height: '42px' }}>
                   <span className="text-xs font-semibold tracking-[0.1em] text-relay-muted dark:text-relay-muted-light">Your listing</span>
+                </div>
+              );
+            }
+            if (item.status === 'swapped') {
+              return (
+                <div className="flex-1 rounded-3xl flex items-center justify-center bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark px-4" style={{ height: '42px' }}>
+                  <span className="text-xs font-semibold tracking-[0.1em] text-relay-muted dark:text-relay-muted-light">
+                    Listing completed
+                  </span>
                 </div>
               );
             }
@@ -1164,17 +1366,15 @@ function ListingDetailPageContent() {
               </div>
             </div>
             <div className="space-y-3">
-              <button 
+              <NextStepButton 
+                type="button"
                 onClick={confirmSwap}
                 disabled={isSwapping}
-                className="w-full rounded-2xl bg-primary text-white font-semibold text-xs tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active-scale"
+                className="w-full rounded-2xl tracking-widest shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active-scale"
                 style={{ height: '42px' }}
               >
-                <>
-                  <span className="material-symbols-outlined">verified</span>
-                  Confirm Swap
-                </>
-              </button>
+                Finalize
+              </NextStepButton>
               <button 
                 onClick={() => setShowConfirm(false)}
                 className="w-full rounded-2xl bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark text-relay-text dark:text-relay-text-dark font-semibold text-xs tracking-widest active-scale"

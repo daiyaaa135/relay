@@ -96,12 +96,7 @@ export default function PricingPage() {
         })}
       </div>
 
-      <div className="px-6 mt-20 text-center space-y-6">
-        <p className="text-[10px] font-bold tracking-[0.4em] text-relay-muted">Rellaey Secure Checkout</p>
-        <div className="flex justify-center items-center gap-8 opacity-40 grayscale hover:grayscale-0 transition-all">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe" className="h-5" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-5" />
-        </div>
+      <div className="px-6 mt-20 text-center">
         <p className="text-[9px] text-relay-muted px-10 leading-relaxed ">
           Subscriptions can be managed or cancelled at any time from your account settings. Taxes may apply based on your location.
         </p>

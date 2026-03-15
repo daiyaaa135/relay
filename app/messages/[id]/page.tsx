@@ -4,8 +4,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
-import { LivePickupMap } from '@/app/components/LivePickupMap';
-import { PickupCalendarModal, type PickupSlot } from '@/app/components/PickupCalendarModal';
+import dynamic from 'next/dynamic';
+import type { PickupSlot } from '@/app/components/PickupCalendarModal';
+
+const LivePickupMap = dynamic(
+  () => import('@/app/components/LivePickupMap').then(m => ({ default: m.LivePickupMap })),
+  { ssr: false, loading: () => <div className="w-full h-64 rounded-2xl bg-relay-bg animate-pulse" /> }
+);
+const PickupCalendarModal = dynamic(
+  () => import('@/app/components/PickupCalendarModal').then(m => ({ default: m.PickupCalendarModal })),
+  { ssr: false, loading: () => null }
+);
 import { getDefaultAvatar } from '@/lib/avatars';
 import { formatJoinedDate } from '@/lib/dateFormatters';
 import { ChevronIcon } from '@/app/components/ChevronIcon';
@@ -937,7 +946,7 @@ export default function ChatThreadPage() {
               onChange={(e) => { setMessage(e.target.value); setSendError(null); }}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
               placeholder="Message..."
-              className="w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl px-6 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+              className="search-bar-input w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl px-6 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
             />
           </div>
           <button
@@ -945,8 +954,8 @@ export default function ChatThreadPage() {
             disabled={!message.trim() || sending}
             className={`size-14 rounded-2xl flex items-center justify-center transition-all shrink-0 ${
               message.trim() && !sending
-                ? 'bg-primary text-white shadow-xl shadow-primary/20'
-                : 'bg-relay-bg dark:bg-relay-bg-dark text-relay-muted opacity-40'
+                ? 'bg-primary text-white shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph'
+                : 'bg-relay-bg dark:bg-relay-bg-dark text-relay-muted opacity-40 btn-dark-neumorph'
             } disabled:opacity-60 disabled:cursor-not-allowed`}
           >
             {sending ? (

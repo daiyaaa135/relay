@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { fetchGadgetById } from '@/lib/gadgets';
 import { loadWishlist, toggleWishlistItem } from '@/lib/wishlist';
@@ -48,9 +49,10 @@ export default function WishlistPage() {
   };
 
   const clearAll = async () => {
-    for (const id of wishlistIds) {
-      await toggleWishlistItem(wishlistProfileId, id, wishlistIds.filter((_, i) => wishlistIds.indexOf(id) <= i));
-    }
+    // Fire all removals in parallel instead of sequentially.
+    await Promise.all(
+      wishlistIds.map((id) => toggleWishlistItem(wishlistProfileId, id, wishlistIds))
+    );
     setWishlistIds([]);
     setWishlistedItems([]);
   };
@@ -98,12 +100,13 @@ export default function WishlistPage() {
                 onClick={() => router.push(`/listing/${item.id}`)}
                 className="group flex flex-col gap-4 cursor-pointer active-scale transition-all"
               >
-                <div className="aspect-[3/4] rounded-[40px] overflow-hidden relative bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-lg group-hover:-translate-y-2 transition-all duration-500">
-                  <img
+                <div className="aspect-[3/4] rounded-[32px] overflow-hidden relative bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-lg group-hover:-translate-y-2 transition-all duration-500">
+                  <Image
                     src={item.image}
                     alt={item.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 640px) 45vw, 200px"
+                    className="object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
                   />
                   <div className="absolute top-4 right-4">
                     <button
@@ -134,7 +137,7 @@ export default function WishlistPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <img src="/wishlist-empty-icon.png" alt="" className="w-24 h-24 object-contain mb-8" aria-hidden />
+            <Image src="/wishlist-empty-icon.png" alt="" width={96} height={96} className="object-contain mb-8" aria-hidden />
             <h2 className="text-relay-text dark:text-relay-text-dark font-serif text-lg font-semibold mb-2">Nothing saved yet</h2>
             <p className="text-relay-muted dark:text-relay-muted-light text-[11px] font-normal max-w-[240px] leading-relaxed mb-6">
               Explore the marketplace and heart items you want to keep an eye on.

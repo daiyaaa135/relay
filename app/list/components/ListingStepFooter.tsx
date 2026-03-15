@@ -25,9 +25,8 @@ type VerifyAndNextFooterProps = BaseFooterProps & {
 
 type PhotosFooterProps = BaseFooterProps & {
   variant: 'photos';
-  primaryLabel: string;
-  primaryDisabled: boolean;
-  onPrimary: () => void;
+  nextDisabled: boolean;
+  onNext: () => void;
 };
 
 type ReviewFooterProps = BaseFooterProps & {
@@ -45,7 +44,7 @@ export type ListingStepFooterProps =
   | ReviewFooterProps;
 
 const barClassName =
-  'fixed bottom-0 left-0 right-0 pt-2 px-4 pb-10 glass-card border-0 border-t border-relay-border dark:border-relay-border-dark backdrop-blur-[12px] z-[9999] max-w-md mx-auto rounded-t-2xl';
+  'fixed bottom-0 left-0 right-0 pt-2 px-4 pb-[calc(var(--safe-bottom)*0.4+0.5rem)] glass-card border-0 border-t border-relay-border dark:border-relay-border-dark backdrop-blur-[12px] z-[9999] max-w-md mx-auto rounded-t-2xl';
 const barStyle: React.CSSProperties = { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 };
 
 export function ListingStepFooter(props: ListingStepFooterProps) {
@@ -79,7 +78,7 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
             type="button"
             onClick={onVerify}
             disabled={verifyDisabled}
-            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-xs disabled:opacity-50 flex items-center justify-center gap-1.5"
+            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-xs disabled:opacity-50 flex items-center justify-center gap-1.5 btn-dark-neumorph"
           >
             {verifying ? (
               <>
@@ -105,17 +104,18 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
   }
 
   if (variant === 'photos') {
-    const { primaryLabel, primaryDisabled, onPrimary } = props;
+    const { nextDisabled, onNext } = props;
     return (
       <div className={`${barClassName} ${className ?? ''}`.trim()} style={barStyle}>
         <div className="flex items-center justify-end">
           <button
             type="button"
-            disabled={primaryDisabled}
-            onClick={onPrimary}
-            className="h-9 px-6 rounded-lg font-semibold text-[10px] tracking-widest uppercase flex items-center justify-center gap-1.5 next-step-button text-white disabled:bg-relay-bg dark:disabled:bg-relay-bg-dark disabled:text-relay-muted disabled:border disabled:border-relay-border disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={onNext}
+            disabled={nextDisabled}
+            className="flex items-center justify-center h-10 w-10 rounded-full text-relay-text dark:text-relay-text-dark disabled:opacity-50 disabled:cursor-not-allowed bg-relay-surface dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-sm"
+            aria-label="Next step"
           >
-            {primaryLabel}
+            <ChevronIcon direction="right" className="size-5" />
           </button>
         </div>
       </div>
@@ -132,7 +132,7 @@ export function ListingStepFooter(props: ListingStepFooterProps) {
             type="button"
             disabled={primaryDisabled}
             onClick={onPrimary}
-            className="ml-auto h-9 px-6 rounded-lg font-semibold text-[10px] tracking-widest uppercase flex items-center justify-center next-step-button text-white disabled:bg-relay-bg dark:disabled:bg-relay-bg-dark disabled:text-relay-muted disabled:border disabled:border-relay-border cursor-not-allowed disabled:opacity-50"
+            className="flex-1 h-9 rounded-full bg-primary text-white font-semibold text-[10px] tracking-widest uppercase disabled:opacity-50 flex items-center justify-center gap-1.5 btn-dark-neumorph"
           >
             {primaryLabel}
           </button>
