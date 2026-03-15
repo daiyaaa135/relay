@@ -616,7 +616,7 @@ function ListingDetailPageContent() {
           <div 
             ref={scrollRef}
             onScroll={handleScroll}
-            className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar rounded-[56px] border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark shadow-2xl aspect-[3/4]"
+            className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar rounded-[32px] border border-relay-border dark:border-relay-border-dark bg-relay-bg dark:bg-relay-bg-dark shadow-2xl aspect-[3/4]"
           >
             {itemImages.map((img, i) => (
               <div key={i} className="relative min-w-full h-full snap-center">

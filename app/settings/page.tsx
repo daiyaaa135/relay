@@ -181,7 +181,7 @@ export default function SettingsPage() {
         <div className="space-y-12">
           {sections.map((section) => (
             <div key={section.title} className="space-y-4">
-              <h3 className="text-[10px] font-bold tracking-[0.3em] text-relay-muted px-2">{section.title}</h3>
+              <h3 className="text-[10px] font-bold tracking-normal text-relay-muted px-2">{section.title}</h3>
               <div className="space-y-1">
                 {section.items.map((item) => {
                   const isToggle = item.type === 'toggle';

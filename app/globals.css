@@ -427,7 +427,7 @@ textarea {
   --color-primary: #1F2129;
 
   --color-relay-bg: #F3F4F7;
-  --color-relay-bg-dark: #2C2C2C;
+  --color-relay-bg-dark: #232323;
   --color-relay-surface: #FFFFFF;
   --color-relay-surface-dark: #1F2129;
   --color-relay-border: rgba(255, 255, 255, 0.30);
@@ -436,7 +436,7 @@ textarea {
   --color-relay-text-dark: #F4F4F4;
   --color-relay-muted: #7C8292;
   --color-relay-muted-light: #7C8292;
-  --color-relay-muted-light-dark: #969CAC;
+  --color-relay-muted-light-dark: #e8e8e8;
   --color-relay-input: #E3E5EB;
   --color-relay-input-dark: #171D26;
 
@@ -449,16 +449,16 @@ textarea {
 :root.dark,
 .dark {
   /* App background + surfaces (Dark) */
-  --background: #2C2C2C;
+  --background: #232323;
   --foreground: #F4F4F4;
-  --relay-bg: #2C2C2C;
+  --relay-bg: #232323;
   --relay-surface: #1F2129;
   --relay-border: rgba(255, 255, 255, 0.16);
 
   /* Typography (Dark) */
   --relay-text: #F4F4F4;
-  --relay-muted: #969CAC;
-  --relay-muted-light: #969CAC;
+  --relay-muted: #e8e8e8;
+  --relay-muted-light: #e8e8e8;
 
   /* Inputs */
   --relay-input: #171D26;
@@ -473,17 +473,17 @@ textarea {
   --color-foreground: var(--foreground);
   --color-primary: #F4F4F4;
 
-  --color-relay-bg: #2C2C2C;
-  --color-relay-bg-dark: #2C2C2C;
+  --color-relay-bg: #232323;
+  --color-relay-bg-dark: #232323;
   --color-relay-surface: #1F2129;
   --color-relay-surface-dark: #1F2129;
   --color-relay-border: rgba(255, 255, 255, 0.16);
   --color-relay-border-dark: rgba(255, 255, 255, 0.16);
   --color-relay-text: #F4F4F4;
   --color-relay-text-dark: #F4F4F4;
-  --color-relay-muted: #969CAC;
-  --color-relay-muted-light: #969CAC;
-  --color-relay-muted-light-dark: #969CAC;
+  --color-relay-muted: #e8e8e8;
+  --color-relay-muted-light: #e8e8e8;
+  --color-relay-muted-light-dark: #e8e8e8;
   --color-relay-input: #171D26;
   --color-relay-input-dark: #171D26;
 }

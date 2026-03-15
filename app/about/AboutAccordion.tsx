@@ -44,28 +44,26 @@ export function AboutAccordion() {
               key={item.id}
               type="button"
               onClick={() => toggleItem(item.id)}
-              className="w-full text-left rounded-2xl bg-relay-surface dark:bg-relay-surface-dark shadow-[0_18px_45px_rgba(15,23,42,0.18)] border border-relay-border dark:border-relay-border-dark active-scale transition-all"
+              className="w-full text-left flex items-center gap-4 py-3.5 px-4 rounded-[28px] bg-relay-bg dark:bg-relay-bg-dark active-scale transition-all group"
             >
-              <div className="flex items-center justify-between px-5 py-4">
-                <div className="flex items-center gap-4">
-                  <div className="size-11 rounded-full bg-primary/8 flex items-center justify-center border border-primary/20">
-                    <span className="material-symbols-outlined text-[18px] text-primary">{item.icon}</span>
-                  </div>
-                  <span className="text-base font-semibold text-relay-text dark:text-relay-text-dark tracking-tight">
-                    {item.title}
-                  </span>
-                </div>
-                <span className="material-symbols-outlined text-[18px] text-relay-muted">
-                  {isOpen ? 'expand_less' : 'expand_more'}
+              <div className="size-11 rounded-full bg-relay-surface dark:bg-relay-surface-dark flex items-center justify-center shrink-0 transition-all text-primary">
+                <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium text-relay-text dark:text-relay-text-dark tracking-tight">
+                  {item.title}
                 </span>
+                <div
+                  className={`text-xs text-relay-muted dark:text-relay-muted-light leading-relaxed transition-[max-height,opacity] duration-300 ease-out ${
+                    isOpen ? 'max-h-48 opacity-100 mt-1' : 'max-h-0 opacity-0 overflow-hidden'
+                  }`}
+                >
+                  {item.description}
+                </div>
               </div>
-              <div
-                className={`px-5 pb-5 pt-0 text-sm text-relay-muted dark:text-relay-muted-light leading-relaxed transition-[max-height,opacity] duration-300 ease-out ${
-                  isOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-                }`}
-              >
-                {item.description}
-              </div>
+              <span className="material-symbols-outlined text-relay-border dark:text-relay-border-dark group-hover:text-primary transition-colors">
+                {isOpen ? 'expand_less' : 'expand_more'}
+              </span>
             </button>
           );
         })}

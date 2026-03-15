@@ -20,6 +20,12 @@ const config: CapacitorConfig = {
   appId: 'com.rellay.app',
   appName: 'Rellay',
   webDir: 'public',
+  plugins: {
+    SplashScreen: {
+      launchAutoHide: false,
+      launchShowDuration: 0,
+    },
+  },
   server: isDev
     ? { url: devServerUrl, cleartext: true }
     : prodServerUrl

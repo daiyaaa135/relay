@@ -946,7 +946,7 @@ export default function ChatThreadPage() {
               onChange={(e) => { setMessage(e.target.value); setSendError(null); }}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
               placeholder="Message..."
-              className="w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl px-6 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+              className="search-bar-input w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl px-6 text-sm text-relay-text dark:text-relay-text-dark placeholder-relay-muted focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
             />
           </div>
           <button
@@ -955,7 +955,7 @@ export default function ChatThreadPage() {
             className={`size-14 rounded-2xl flex items-center justify-center transition-all shrink-0 ${
               message.trim() && !sending
                 ? 'bg-primary text-white shadow-[-2px_-2px_2px_#ffffff,_2px_2px_2px_#c9d9e8] btn-dark-neumorph'
-                : 'bg-relay-bg dark:bg-relay-bg-dark text-relay-muted opacity-40'
+                : 'bg-relay-bg dark:bg-relay-bg-dark text-relay-muted opacity-40 btn-dark-neumorph'
             } disabled:opacity-60 disabled:cursor-not-allowed`}
           >
             {sending ? (
