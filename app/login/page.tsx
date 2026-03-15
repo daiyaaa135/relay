@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core';
 import { EmailIcon } from '@/app/components/EmailIcon';
 import { LockIcon } from '@/app/components/LockIcon';
 import { createClient, INVALID_API_KEY_MESSAGE } from '@/lib/supabase';
+import { startNativeOAuth } from '@/lib/capacitorOAuth';
 import styles from './login.module.css';
 
 const HERO_PHONE_IMG = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNCcYl4u8O_H-LaOWuaXugtHtEshXJZbQmvNkpbSTIQYBeY_OiM05IBRomz4-Vyg63ZDe_HmBBjKajXKRAKai2rG9H2NfctNqy0bH7ahVy9UVHtcr6-lDOUchDSJtuJpZBLilzeVJQk1wDfAMy7ttqsXP2cG6Hy3rR1KmiFqSsu1EEXhn_ep8_goan1atzGG-XHifO8f7Jiocs246aK-2xED1grUroINALyT-k6627edRZN-p6ryJfJCKTiclwLZsllbQIguBu576S';
@@ -34,31 +35,22 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-
-      const redirectTo =
+      const webRedirectTo =
         typeof window !== 'undefined'
           ? `${window.location.origin}/profile`
           : undefined;
 
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo },
-      });
+      await startNativeOAuth(supabase, provider, webRedirectTo);
 
-      if (authError) {
-        const message = authError.message || 'Could not start sign-in.';
-        showToast(message);
-        setLoading(false);
-        return;
+      // On native, session is set — navigate to profile
+      if (Capacitor.isNativePlatform()) {
+        router.replace('/profile');
       }
-
-      if (data?.url && typeof window !== 'undefined') {
-        window.location.href = data.url;
-      }
+      // On web, signInWithOAuth redirects automatically
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Could not start sign-in.';
-      setError(message);
+      showToast(message);
       setLoading(false);
     }
   };

@@ -25,6 +25,9 @@ const config: CapacitorConfig = {
       launchAutoHide: false,
       launchShowDuration: 0,
     },
+    Browser: {
+      // Uses SFSafariViewController on iOS — keeps OAuth inside the app
+    },
   },
   server: isDev
     ? { url: devServerUrl, cleartext: true }

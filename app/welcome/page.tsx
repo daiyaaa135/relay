@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Capacitor } from '@capacitor/core';
 import { createClient } from '@/lib/supabase';
+import { startNativeOAuth } from '@/lib/capacitorOAuth';
 
 /** Format 10 digits as +1 XXX XXX XXXX for confirmation display */
 function formatPhoneForDisplay(digits: string): string {
@@ -49,20 +51,16 @@ export default function WelcomePage() {
     setGoogleLoading(true);
     try {
       const supabase = createClient();
-      const redirectTo =
+      const webRedirectTo =
         typeof window !== 'undefined' ? `${window.location.origin}/` : undefined;
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo },
-      });
-      if (authError) {
-        setGoogleError(authError.message ?? 'Could not start sign-in.');
-        setGoogleLoading(false);
-        return;
+
+      await startNativeOAuth(supabase, 'google', webRedirectTo);
+
+      // On native, session is set — navigate home
+      if (Capacitor.isNativePlatform()) {
+        router.replace('/');
       }
-      if (data?.url && typeof window !== 'undefined') {
-        window.location.href = data.url;
-      }
+      // On web, signInWithOAuth redirects automatically
     } catch (err) {
       setGoogleError(err instanceof Error ? err.message : 'Could not start sign-in.');
       setGoogleLoading(false);
