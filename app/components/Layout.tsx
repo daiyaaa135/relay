@@ -51,7 +51,7 @@ const BottomNav: React.FC = () => {
       if (!cancelled) setHasUnreadMessages(!!(unread && unread.length > 0));
     };
 
-    check();
+    check().catch(err => console.warn('[BottomNav] unread check failed:', err));
     // Re-check when window gains focus
     const onFocus = () => check();
     window.addEventListener('focus', onFocus);
@@ -178,8 +178,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  // Global error + unhandled rejection debug instrumentation has been removed.
-
+  // Guard against unhandled Promise rejections crashing the WKWebView process.
+  // On certain iOS/WebKit versions an unhandled rejection sends SIGABRT to the
+  // web content process (confirmed Apple DTS issue). event.preventDefault()
+  // stops that signal; we still log so it shows up in Xcode console logs.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (event: PromiseRejectionEvent) => {
+      event.preventDefault();
+      console.warn('[unhandledrejection]', event.reason);
+    };
+    window.addEventListener('unhandledrejection', handler);
+    return () => window.removeEventListener('unhandledrejection', handler);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -234,8 +245,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       try {
         await plugin.enablePullToRefresh();
       } catch (err) {
-        // Preserve previous behavior: surface the error
-        throw err;
+        // Log but do not rethrow — rethrowing inside an unawaited async IIFE
+        // creates an unhandled Promise rejection which crashes WKWebView on iOS.
+        console.warn('[PullToRefresh] enablePullToRefresh failed:', err);
+        return;
       }
 
       if (cancelled) return;

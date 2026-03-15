@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Raises the WKWebView web-content process memory ceiling on iPhone 12+.  -->
+	<!-- Requires: Developer Portal → App ID → Additional Capabilities →         -->
+	<!-- "Increased Memory Limit" ✓ (no App Store review required for most apps) -->
+	<key>com.apple.developer.kernel.increased-memory-limit</key>
+	<true/>
+</dict>
+</plist>
