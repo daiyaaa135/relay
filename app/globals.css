@@ -534,8 +534,22 @@ textarea {
     -webkit-backdrop-filter: none !important;
   }
 
+  /* .dark nav.glass-card uses `@apply !backdrop-blur-[15px]` which generates
+     backdrop-filter: blur(15px) !important with specificity [0,2,1] — higher
+     than the `*` rule above [0,0,0]. Override it explicitly with the same
+     selector so source-order (this block is last) makes our rule win. */
+  .dark nav.glass-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   /* Stop welcome-page hero floating animations — each creates a persistent GPU layer */
   .gadget-float {
     animation: none !important;
+  }
+
+  /* Disable will-change hints that force GPU layer promotion on mobile */
+  * {
+    will-change: auto !important;
   }
 }
