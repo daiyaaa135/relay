@@ -11,7 +11,6 @@ import { MessagesNavIcon } from '@/app/components/MessagesNavIcon';
 import { MoreNavIcon } from '@/app/components/MoreNavIcon';
 import { WishlistNavIcon } from '@/app/components/WishlistNavIcon';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import SplashScreen from '@/app/components/SplashScreen';
 
 const BottomNav: React.FC = () => {
   const pathname = usePathname();
@@ -150,7 +149,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const hideNavPaths = ['/login', '/signup'];
   const mainRef = React.useRef<HTMLElement>(null);
   const router = useRouter();
-  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     const cleanup = usePushNotifications(router);
@@ -182,18 +180,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Global error + unhandled rejection debug instrumentation has been removed.
 
-  // One-time per-session splash screen on home route
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (pathname !== '/') return;
-    try {
-      if (sessionStorage.getItem('splashShown')) return;
-      sessionStorage.setItem('splashShown', 'true');
-      setShowSplash(true);
-    } catch {
-      // ignore
-    }
-  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -279,11 +265,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               {children}
             </div>
           </main>
-          {showSplash && (
-            <div className="absolute inset-0 z-[9998] flex items-center justify-center">
-              <SplashScreen onDone={() => setShowSplash(false)} />
-            </div>
-          )}
           {!shouldHideNav && <BottomNav />}
         </div>
       </div>
