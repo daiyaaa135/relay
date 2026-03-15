@@ -14,8 +14,10 @@ final class BridgeViewController: CAPBridgeViewController {
     /// Splash is always shown for at least this long, even on fast connections.
     private let minSplashDuration: TimeInterval = 2.0
 
-    // KVO context — avoids conflicts with Capacitor's own observers
-    private var kvoContext = 0
+    // KVO context must be static so its address is stable for the entire
+    // app lifetime — instance vars are NOT guaranteed stable across calls.
+    private static var kvoContext: UInt8 = 0
+    private var kvoObserving = false   // guards against double remove/crash
 
     // MARK: — Lifecycle
 
@@ -36,12 +38,15 @@ final class BridgeViewController: CAPBridgeViewController {
 
         // Observe WebView load progress — dismiss splash as soon as the
         // first full navigation finishes (estimatedProgress reaches 1.0).
-        webView?.addObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            options: .new,
-            context: &kvoContext
-        )
+        if let wv = webView {
+            wv.addObserver(
+                self,
+                forKeyPath: #keyPath(WKWebView.estimatedProgress),
+                options: .new,
+                context: &BridgeViewController.kvoContext
+            )
+            kvoObserving = true
+        }
 
         // Hard cap: always dismiss after 4 s even if loading stalls.
         // This prevents the user from being stuck on the splash forever.
@@ -54,8 +59,14 @@ final class BridgeViewController: CAPBridgeViewController {
     }
 
     deinit {
-        // Safe to call even if the observer was already removed in dismissSplash()
-        webView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: &kvoContext)
+        // Only remove if we actually registered — double-remove crashes the app.
+        if kvoObserving {
+            webView?.removeObserver(
+                self,
+                forKeyPath: #keyPath(WKWebView.estimatedProgress),
+                context: &BridgeViewController.kvoContext
+            )
+        }
         dismissTimer?.invalidate()
     }
 
@@ -75,7 +86,7 @@ final class BridgeViewController: CAPBridgeViewController {
         change: [NSKeyValueChangeKey: Any]?,
         context: UnsafeMutableRawPointer?
     ) {
-        guard context == &kvoContext else {
+        guard context == &BridgeViewController.kvoContext else {
             // Not our observation — pass up the chain
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
@@ -114,7 +125,14 @@ final class BridgeViewController: CAPBridgeViewController {
         // Stop the timer and the KVO to avoid duplicate dismissals
         dismissTimer?.invalidate()
         dismissTimer = nil
-        webView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), context: &kvoContext)
+        if kvoObserving {
+            kvoObserving = false
+            webView?.removeObserver(
+                self,
+                forKeyPath: #keyPath(WKWebView.estimatedProgress),
+                context: &BridgeViewController.kvoContext
+            )
+        }
 
         splashOverlay = nil
 
