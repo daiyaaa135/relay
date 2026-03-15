@@ -24,7 +24,12 @@ const BottomNav: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const supabase = createClient();
+    let supabase: ReturnType<typeof createClient>;
+    try {
+      supabase = createClient();
+    } catch {
+      return; // Missing env vars — skip unread check silently
+    }
 
     const check = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -178,18 +183,37 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  // Guard against unhandled Promise rejections crashing the WKWebView process.
-  // On certain iOS/WebKit versions an unhandled rejection sends SIGABRT to the
-  // web content process (confirmed Apple DTS issue). event.preventDefault()
-  // stops that signal; we still log so it shows up in Xcode console logs.
+  // Guard against unhandled Promise rejections AND uncaught synchronous errors
+  // crashing the WKWebView process. On certain iOS/WebKit versions both types
+  // of unhandled JS errors send SIGABRT to the web content process.
+  // event.preventDefault() / returning true stops that signal.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handler = (event: PromiseRejectionEvent) => {
+
+    const rejectionHandler = (event: PromiseRejectionEvent) => {
       event.preventDefault();
       console.warn('[unhandledrejection]', event.reason);
     };
-    window.addEventListener('unhandledrejection', handler);
-    return () => window.removeEventListener('unhandledrejection', handler);
+
+    // Also suppress uncaught synchronous JS errors from crashing WKWebView.
+    // Returning true from window.onerror prevents the default "uncaught" handling.
+    const errorHandler = (
+      message: string | Event,
+      source?: string,
+      lineno?: number,
+      colno?: number,
+      error?: Error,
+    ): boolean => {
+      console.warn('[uncaughterror]', message, source, lineno, colno, error);
+      return true; // prevents default browser error handling (including WKWebView SIGABRT)
+    };
+
+    window.addEventListener('unhandledrejection', rejectionHandler);
+    window.onerror = errorHandler;
+    return () => {
+      window.removeEventListener('unhandledrejection', rejectionHandler);
+      if ((window.onerror as unknown) === errorHandler) window.onerror = null;
+    };
   }, []);
 
   useEffect(() => {
