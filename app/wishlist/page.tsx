@@ -49,9 +49,10 @@ export default function WishlistPage() {
   };
 
   const clearAll = async () => {
-    for (const id of wishlistIds) {
-      await toggleWishlistItem(wishlistProfileId, id, wishlistIds.filter((_, i) => wishlistIds.indexOf(id) <= i));
-    }
+    // Fire all removals in parallel instead of sequentially.
+    await Promise.all(
+      wishlistIds.map((id) => toggleWishlistItem(wishlistProfileId, id, wishlistIds))
+    );
     setWishlistIds([]);
     setWishlistedItems([]);
   };
@@ -99,12 +100,13 @@ export default function WishlistPage() {
                 onClick={() => router.push(`/listing/${item.id}`)}
                 className="group flex flex-col gap-4 cursor-pointer active-scale transition-all"
               >
-                <div className="aspect-[3/4] rounded-[40px] overflow-hidden relative bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-lg group-hover:-translate-y-2 transition-all duration-500">
-                  <img
+                <div className="aspect-[3/4] rounded-[32px] overflow-hidden relative bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-lg group-hover:-translate-y-2 transition-all duration-500">
+                  <Image
                     src={item.image}
                     alt={item.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 640px) 45vw, 200px"
+                    className="object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
                   />
                   <div className="absolute top-4 right-4">
                     <button

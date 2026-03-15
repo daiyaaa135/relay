@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 export const VALUATION_STORAGE_KEY = 'relay_listing_valuation';
 export const LISTING_DRAFT_KEY = 'relay_listing_draft';
@@ -59,6 +59,88 @@ function persistValuation(credits: number | null, price: number | null) {
   } catch {}
 }
 
+// ============================================================
+// Catalog Context — API-loaded brand/model options.
+// Memoized separately so components subscribing ONLY to catalog
+// data won't re-render on every keystroke in the form.
+// Use `useListingCatalog()` in step pages that need dropdowns.
+// ============================================================
+export interface ListingCatalogValue {
+  laptopModels: string[];
+  setLaptopModels: (v: string[]) => void;
+  laptopModelsLoading: boolean;
+  setLaptopModelsLoading: (v: boolean) => void;
+  laptopChipOptions: string[];
+  setLaptopChipOptions: (v: string[]) => void;
+  laptopYearOptions: string[];
+  setLaptopYearOptions: (v: string[]) => void;
+  laptopRamOptions: string[];
+  setLaptopRamOptions: (v: string[]) => void;
+  laptopSizeOptions: string[];
+  setLaptopSizeOptions: (v: string[]) => void;
+  laptopOptionsLoading: boolean;
+  setLaptopOptionsLoading: (v: boolean) => void;
+  phoneBrands: string[];
+  setPhoneBrands: (v: string[]) => void;
+  phoneBrandsLoading: boolean;
+  setPhoneBrandsLoading: (v: boolean) => void;
+  phoneModels: string[];
+  setPhoneModels: (v: string[]) => void;
+  phoneModelsLoading: boolean;
+  setPhoneModelsLoading: (v: boolean) => void;
+  tabletBrands: string[];
+  setTabletBrands: (v: string[]) => void;
+  tabletBrandsLoading: boolean;
+  setTabletBrandsLoading: (v: boolean) => void;
+  tabletModels: string[];
+  setTabletModels: (v: string[]) => void;
+  tabletModelsLoading: boolean;
+  setTabletModelsLoading: (v: boolean) => void;
+  tabletYearOptions: string[];
+  setTabletYearOptions: (v: string[]) => void;
+  tabletSizeOptions: string[];
+  setTabletSizeOptions: (v: string[]) => void;
+  tabletOptionsLoading: boolean;
+  setTabletOptionsLoading: (v: boolean) => void;
+  accessoryBrands: string[];
+  setAccessoryBrands: (v: string[]) => void;
+  accessoryBrandsLoading: boolean;
+  setAccessoryBrandsLoading: (v: boolean) => void;
+  accessoryModels: string[];
+  setAccessoryModels: (v: string[]) => void;
+  accessoryModelsLoading: boolean;
+  setAccessoryModelsLoading: (v: boolean) => void;
+  relicBrands: string[];
+  setRelicBrands: (v: string[]) => void;
+  relicBrandsLoading: boolean;
+  setRelicBrandsLoading: (v: boolean) => void;
+  relicModels: string[];
+  setRelicModels: (v: string[]) => void;
+  relicModelsLoading: boolean;
+  setRelicModelsLoading: (v: boolean) => void;
+  handheldBrands: string[];
+  setHandheldBrands: (v: string[]) => void;
+  handheldBrandsLoading: boolean;
+  setHandheldBrandsLoading: (v: boolean) => void;
+  handheldModels: string[];
+  setHandheldModels: (v: string[]) => void;
+  handheldModelsLoading: boolean;
+  setHandheldModelsLoading: (v: boolean) => void;
+  videoGameConsoles: string[];
+  setVideoGameConsoles: (v: string[]) => void;
+  videoGameConsolesLoading: boolean;
+  setVideoGameConsolesLoading: (v: boolean) => void;
+  dynamicColorOptions: string[] | null;
+  setDynamicColorOptions: (v: string[] | null) => void;
+  colorOptionsLoading: boolean;
+  setColorOptionsLoading: (v: boolean) => void;
+}
+
+const ListingCatalogCtx = createContext<ListingCatalogValue | null>(null);
+
+// ============================================================
+// Main Listing Context
+// ============================================================
 export interface ListingContextValue {
   // Auth
   userId: string | null;
@@ -161,7 +243,7 @@ export interface ListingContextValue {
   laptopMessage: string | null;
   setLaptopMessage: (v: string | null) => void;
 
-  // Loading / API data
+  // Loading / API data (also in ListingCatalogValue — kept here for useListing() backward compat)
   laptopModels: string[];
   setLaptopModels: (v: string[]) => void;
   laptopModelsLoading: boolean;
@@ -300,6 +382,9 @@ function generateVerificationCode(): string {
   for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
   return code;
 }
+
+/** Shape of the ref used by saveDraft to read latest state without deps. */
+type FormSnap = Omit<ListingDraft, 'step' | 'savedAt'>;
 
 export function ListingProvider({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
@@ -461,6 +546,94 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
   const [pendingLeaveCallback, setPendingLeaveCallback] = useState<(() => void) | null>(null);
   const hasResumedDraftRef = useRef(false);
 
+  // ──────────────────────────────────────────────────────────
+  // formStateRef — always holds the latest form snapshot.
+  // saveDraft reads from this ref so it needs ZERO deps,
+  // eliminating the previous 30+ dependency array that caused
+  // a new function reference (and subscriber re-renders) on
+  // every single keystroke.
+  // ──────────────────────────────────────────────────────────
+  const formStateRef = useRef<FormSnap>({
+    category: 'Phones',
+    brand: 'Apple',
+    modelName: '',
+    condition: null,
+    frontCondition: null,
+    backCondition: null,
+    sideTop: null,
+    sideBottom: null,
+    sideLeft: null,
+    sideRight: null,
+    conditionPercentage: null,
+    storage: '128GB',
+    ram: '16GB',
+    color: '',
+    carrier: 'Unlocked',
+    imei: '',
+    description: '',
+    accessories: [],
+    functionalityOptions: [],
+    consoleFunctional: null,
+    verificationCode: '------',
+    listingLocation: null,
+    listingPhotoUrls: [],
+    swappaCredits: null,
+    swappaPrice: null,
+    chipCpu: '',
+    year: '',
+    size: '',
+    verificationStatus: 'idle',
+    verificationMessage: '',
+    laptopSerialNumber: '',
+    laptopVerificationStatus: 'idle',
+    laptopVerificationMessage: '',
+    videoGameName: '',
+    videoGameCondition: '',
+    batteryHealth: '',
+  });
+
+  // Sync ref after every render (no cleanup needed — the ref is just a read).
+  useEffect(() => {
+    formStateRef.current = {
+      category,
+      brand,
+      modelName,
+      condition,
+      frontCondition,
+      backCondition,
+      sideTop,
+      sideBottom,
+      sideLeft,
+      sideRight,
+      conditionPercentage,
+      storage,
+      ram,
+      color,
+      carrier,
+      imei,
+      description,
+      accessories,
+      functionalityOptions,
+      consoleFunctional,
+      verificationCode,
+      listingLocation,
+      listingPhotoUrls,
+      swappaCredits,
+      swappaPrice,
+      chipCpu,
+      year,
+      size,
+      verificationStatus,
+      verificationMessage,
+      laptopSerialNumber,
+      laptopVerificationStatus,
+      laptopVerificationMessage,
+      videoGameName,
+      videoGameCondition,
+      batteryHealth,
+    };
+  });
+
   const hasProgress = useCallback((step: number) => {
     return step > 1 || category !== 'Phones' || brand !== 'Apple' || modelName.trim() !== '';
   }, [category, brand, modelName]);
@@ -482,56 +655,64 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  /**
+   * Persist a draft to localStorage.
+   * Reads from formStateRef so the dep array stays empty — this function
+   * reference never changes, preventing subscriber re-renders on keystrokes.
+   */
   const saveDraft = useCallback((step: number) => {
     if (typeof window === 'undefined') return;
     try {
-      const photoUrls = listingPhotoUrls.filter((u) => typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://')));
+      const s = formStateRef.current;
+      const photoUrls = s.listingPhotoUrls.filter(
+        (u) => typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://'))
+      );
       const draft: ListingDraft = {
         step,
         savedAt: Date.now(),
-        category,
-        brand,
-        modelName,
-        condition,
-        frontCondition,
-        backCondition,
-        sideTop,
-        sideBottom,
-        sideLeft,
-        sideRight,
-        conditionPercentage,
-        storage,
-        ram,
-        color,
-        carrier,
-        imei,
-        description,
-        accessories: [...accessories],
-        functionalityOptions: [...functionalityOptions],
-        consoleFunctional,
-        verificationCode,
-        listingLocation: listingLocation ? { ...listingLocation } : null,
+        category: s.category,
+        brand: s.brand,
+        modelName: s.modelName,
+        condition: s.condition,
+        frontCondition: s.frontCondition,
+        backCondition: s.backCondition,
+        sideTop: s.sideTop,
+        sideBottom: s.sideBottom,
+        sideLeft: s.sideLeft,
+        sideRight: s.sideRight,
+        conditionPercentage: s.conditionPercentage,
+        storage: s.storage,
+        ram: s.ram,
+        color: s.color,
+        carrier: s.carrier,
+        imei: s.imei,
+        description: s.description,
+        accessories: [...s.accessories],
+        functionalityOptions: [...s.functionalityOptions],
+        consoleFunctional: s.consoleFunctional,
+        verificationCode: s.verificationCode,
+        listingLocation: s.listingLocation ? { ...s.listingLocation } : null,
         listingPhotoUrls: photoUrls,
-        swappaCredits: swappaCredits,
-        swappaPrice: swappaPrice,
-        chipCpu,
-        year,
-        size,
-        verificationStatus,
-        verificationMessage,
-        laptopSerialNumber,
-        laptopVerificationStatus,
-        laptopVerificationMessage,
-        videoGameName,
-        videoGameCondition,
-        batteryHealth,
+        swappaCredits: s.swappaCredits,
+        swappaPrice: s.swappaPrice,
+        chipCpu: s.chipCpu,
+        year: s.year,
+        size: s.size,
+        verificationStatus: s.verificationStatus,
+        verificationMessage: s.verificationMessage,
+        laptopSerialNumber: s.laptopSerialNumber,
+        laptopVerificationStatus: s.laptopVerificationStatus,
+        laptopVerificationMessage: s.laptopVerificationMessage,
+        videoGameName: s.videoGameName,
+        videoGameCondition: s.videoGameCondition,
+        batteryHealth: s.batteryHealth,
       };
       window.localStorage.setItem(LISTING_DRAFT_KEY, JSON.stringify(draft));
-      if (swappaCredits != null || swappaPrice != null) {
-        persistValuation(swappaCredits, swappaPrice);
+      if (s.swappaCredits != null || s.swappaPrice != null) {
+        persistValuation(s.swappaCredits, s.swappaPrice);
       }
     } catch {}
-  }, [category, brand, modelName, condition, frontCondition, backCondition, sideTop, sideBottom, sideLeft, sideRight, conditionPercentage, storage, ram, color, carrier, imei, description, accessories, functionalityOptions, consoleFunctional, verificationCode, listingLocation, listingPhotoUrls, swappaCredits, swappaPrice, chipCpu, year, size, verificationStatus, verificationMessage, laptopSerialNumber, laptopVerificationStatus, laptopVerificationMessage, videoGameName, videoGameCondition, batteryHealth]);
+  }, []); // ← intentionally empty: reads from formStateRef instead of closing over state
 
   const loadDraft = useCallback((): { step: number } | null => {
     if (typeof window === 'undefined') return null;
@@ -599,6 +780,59 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
   }, []);
+
+  // ──────────────────────────────────────────────────────────
+  // Catalog context value — memoized by catalog data only.
+  // Components using useListingCatalog() will NOT re-render
+  // when form fields (category, brand, description, etc.) change.
+  // ──────────────────────────────────────────────────────────
+  const catalogValue = useMemo<ListingCatalogValue>(() => ({
+    laptopModels, setLaptopModels,
+    laptopModelsLoading, setLaptopModelsLoading,
+    laptopChipOptions, setLaptopChipOptions,
+    laptopYearOptions, setLaptopYearOptions,
+    laptopRamOptions, setLaptopRamOptions,
+    laptopSizeOptions, setLaptopSizeOptions,
+    laptopOptionsLoading, setLaptopOptionsLoading,
+    phoneBrands, setPhoneBrands,
+    phoneBrandsLoading, setPhoneBrandsLoading,
+    phoneModels, setPhoneModels,
+    phoneModelsLoading, setPhoneModelsLoading,
+    tabletBrands, setTabletBrands,
+    tabletBrandsLoading, setTabletBrandsLoading,
+    tabletModels, setTabletModels,
+    tabletModelsLoading, setTabletModelsLoading,
+    tabletYearOptions, setTabletYearOptions,
+    tabletSizeOptions, setTabletSizeOptions,
+    tabletOptionsLoading, setTabletOptionsLoading,
+    accessoryBrands, setAccessoryBrands,
+    accessoryBrandsLoading, setAccessoryBrandsLoading,
+    accessoryModels, setAccessoryModels,
+    accessoryModelsLoading, setAccessoryModelsLoading,
+    relicBrands, setRelicBrands,
+    relicBrandsLoading, setRelicBrandsLoading,
+    relicModels, setRelicModels,
+    relicModelsLoading, setRelicModelsLoading,
+    handheldBrands, setHandheldBrands,
+    handheldBrandsLoading, setHandheldBrandsLoading,
+    handheldModels, setHandheldModels,
+    handheldModelsLoading, setHandheldModelsLoading,
+    videoGameConsoles, setVideoGameConsoles,
+    videoGameConsolesLoading, setVideoGameConsolesLoading,
+    dynamicColorOptions, setDynamicColorOptions,
+    colorOptionsLoading, setColorOptionsLoading,
+  }), [
+    laptopModels, laptopModelsLoading, laptopChipOptions, laptopYearOptions,
+    laptopRamOptions, laptopSizeOptions, laptopOptionsLoading,
+    phoneBrands, phoneBrandsLoading, phoneModels, phoneModelsLoading,
+    tabletBrands, tabletBrandsLoading, tabletModels, tabletModelsLoading,
+    tabletYearOptions, tabletSizeOptions, tabletOptionsLoading,
+    accessoryBrands, accessoryBrandsLoading, accessoryModels, accessoryModelsLoading,
+    relicBrands, relicBrandsLoading, relicModels, relicModelsLoading,
+    handheldBrands, handheldBrandsLoading, handheldModels, handheldModelsLoading,
+    videoGameConsoles, videoGameConsolesLoading,
+    dynamicColorOptions, colorOptionsLoading,
+  ]);
 
   const value: ListingContextValue = {
     userId,
@@ -807,11 +1041,31 @@ export function ListingProvider({ children }: { children: React.ReactNode }) {
     hasProgress,
   };
 
-  return <ListingContext.Provider value={value}>{children}</ListingContext.Provider>;
+  return (
+    <ListingCatalogCtx.Provider value={catalogValue}>
+      <ListingContext.Provider value={value}>{children}</ListingContext.Provider>
+    </ListingCatalogCtx.Provider>
+  );
 }
 
+/** Full listing context — backward compatible. */
 export function useListing() {
   const ctx = useContext(ListingContext);
   if (!ctx) throw new Error('useListing must be used within ListingProvider');
   return ctx;
+}
+
+/**
+ * Subscribe only to API-loaded catalog data (brands, models, options).
+ *
+ * Prefer this over useListing() in step-page dropdown components so they
+ * skip re-renders caused by form-field keystrokes.
+ *
+ * @example
+ * const { phoneBrands, phoneModels } = useListingCatalog();
+ */
+export function useListingCatalog(): ListingCatalogValue {
+  const catalog = useContext(ListingCatalogCtx);
+  if (!catalog) throw new Error('useListingCatalog must be used within ListingProvider');
+  return catalog;
 }

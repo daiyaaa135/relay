@@ -3,6 +3,19 @@
 export const dynamic = 'force-dynamic';
 
 import React, { Suspense, useState, useMemo, useEffect, useCallback, useRef } from 'react';
+
+// Hoist the Capacitor Haptics dynamic import to module level so the bundle
+// chunk is fetched at most once across the session instead of being
+// re-requested on every pull-to-refresh threshold crossing.
+let hapticsPromise: Promise<{ Haptics: { impact: (o: { style: string }) => Promise<void> }; ImpactStyle: { Medium: string } } | null> | null = null;
+function getHaptics() {
+  if (!hapticsPromise) {
+    hapticsPromise = import('@capacitor/haptics')
+      .then((m) => m as { Haptics: { impact: (o: { style: string }) => Promise<void> }; ImpactStyle: { Medium: string } })
+      .catch(() => null);
+  }
+  return hapticsPromise;
+}
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
@@ -41,6 +54,8 @@ type UpcomingMeetup = {
   /** 1 = before time, 2 = time arrived, 3 = buyer confirmed */
   stage: 1 | 2 | 3;
   otherDisplayName?: string;
+  otherAvatarUrl?: string | null;
+  otherProfileId?: string;
   location?: { latitude: number; longitude: number; displayName?: string; city?: string; state?: string };
 };
 
@@ -94,25 +109,30 @@ function LandingPageContent() {
 
   const PULL_THRESHOLD = 72;
 
+  // Timestamp guard: skip focus re-fetches that happen within 30 s of the last one.
+  const lastFocusFetchRef = useRef(0);
+
   const loadUpcomingMeetup = React.useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return;
     const { data: swaps } = await supabase
       .from('swaps')
-      .select('id, status, completed_at, buyer_profile_id, seller_profile_id, buyer:profiles!buyer_profile_id(display_name), seller:profiles!seller_profile_id(display_name)')
+      .select('id, status, completed_at, buyer_profile_id, seller_profile_id, buyer:profiles!buyer_profile_id(display_name, avatar_url), seller:profiles!seller_profile_id(display_name, avatar_url)')
       .or(`buyer_profile_id.eq.${user.id},seller_profile_id.eq.${user.id}`)
       .in('status', ['pickup_arranged', 'completed'])
       .order('created_at', { ascending: false })
       .limit(1);
     if (!swaps?.length) return;
-    const row = swaps[0] as { id: string; status: string; completed_at: string | null; buyer_profile_id: string; seller_profile_id: string; buyer?: { display_name: string } | { display_name: string }[]; seller?: { display_name: string } | { display_name: string }[] };
+    const row = swaps[0] as { id: string; status: string; completed_at: string | null; buyer_profile_id: string; seller_profile_id: string; buyer?: { display_name: string; avatar_url?: string } | { display_name: string; avatar_url?: string }[]; seller?: { display_name: string; avatar_url?: string } | { display_name: string; avatar_url?: string }[] };
     const swapId = row.id;
     const { data: swapLocation } = await supabase.from('swaps').select('seller_arrived_at').eq('id', swapId).single();
     const sellerArrivedAt = swapLocation?.seller_arrived_at ?? null;
     const isBuyer = row.buyer_profile_id === user.id;
     const otherProfile = isBuyer ? (Array.isArray(row.seller) ? row.seller[0] : row.seller) : (Array.isArray(row.buyer) ? row.buyer[0] : row.buyer);
     const otherDisplayName = otherProfile?.display_name ?? (isBuyer ? 'Seller' : 'Buyer');
+    const otherAvatarUrl = otherProfile?.avatar_url ?? null;
+    const otherProfileId = isBuyer ? row.seller_profile_id : row.buyer_profile_id;
     const status = row.status;
     const { data: conv } = await supabase.from('conversations').select('id').eq('swap_id', swapId).limit(1).maybeSingle();
     const conversationId = (conv as { id: string } | null)?.id;
@@ -156,7 +176,7 @@ function LandingPageContent() {
       }
     }
 
-    setUpcomingMeetup({ swapId, conversationId, pickupTimeLabel, stage, otherDisplayName, location });
+    setUpcomingMeetup({ swapId, conversationId, pickupTimeLabel, stage, otherDisplayName, otherAvatarUrl, otherProfileId, location });
   }, []);
 
   useEffect(() => {
@@ -165,12 +185,16 @@ function LandingPageContent() {
 
   useEffect(() => {
     const onFocus = () => {
+      const now = Date.now();
+      // Skip if a fetch ran within the last 30 s (tab-switch spam / iOS app-resume).
+      if (now - lastFocusFetchRef.current < 30_000) return;
+      lastFocusFetchRef.current = now;
       loadGadgets();
       loadUpcomingMeetup();
     };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, [loadUpcomingMeetup]);
+  }, [loadGadgets, loadUpcomingMeetup]);
 
   useEffect(() => {
     loadWishlist().then(({ ids, profileId }) => {
@@ -247,12 +271,14 @@ function LandingPageContent() {
       if (clamped >= PULL_THRESHOLD && !hapticFiredRef.current) {
         hapticFiredRef.current = true;
         // Capacitor Haptics on iOS/Android, vibrate fallback on web
-        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
-          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        getHaptics().then((mod) => {
+          if (!mod) {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+            return;
+          }
+          mod.Haptics.impact({ style: mod.ImpactStyle.Medium }).catch(() => {
             if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
           });
-        }).catch(() => {
-          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
         });
       }
     };
@@ -560,12 +586,26 @@ function LandingPageContent() {
           onKeyDown={(e) => e.key === 'Enter' && router.push(`/meetup/${upcomingMeetup.swapId}`)}
           className="mx-6 mt-0 mb-4 p-5 rounded-2xl glass-card meetup-card border border-relay-border dark:border-relay-border-dark shadow-lg cursor-pointer active:scale-[0.99] transition-transform"
         >
-          <p className="text-relay-text dark:text-relay-text-dark font-semibold text-base mb-1">
-            {upcomingMeetup.stage === 1 && 'Preparing for your meetup...'}
-            {upcomingMeetup.stage === 2 && `${upcomingMeetup.otherDisplayName ?? 'They'} is here`}
-            {upcomingMeetup.stage === 3 && 'Pickup Confirmed'}
-          </p>
-          <p className="text-relay-text dark:text-relay-text-dark text-sm mb-3">{upcomingMeetup.pickupTimeLabel}</p>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="relative shrink-0"
+              onClick={(e) => { e.stopPropagation(); if (upcomingMeetup.otherProfileId) router.push(`/profile/${upcomingMeetup.otherProfileId}`); }}
+            >
+              <div className="size-12 rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-orange-400 flex items-center justify-center cursor-pointer active-scale">
+                {upcomingMeetup.otherAvatarUrl ? (
+                  <img src={upcomingMeetup.otherAvatarUrl} alt={upcomingMeetup.otherDisplayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-sm">{(upcomingMeetup.otherDisplayName ?? '??').slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              {upcomingMeetup.stage === 2 && (
+                <div className="absolute -bottom-0.5 -right-0.5 size-3.5 bg-green-500 rounded-full border-2 border-relay-surface dark:border-relay-surface-dark" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-relay-text dark:text-relay-text-dark font-semibold text-sm truncate">{upcomingMeetup.otherDisplayName}</p>
+              <p className="text-relay-muted dark:text-relay-muted-light text-xs">{upcomingMeetup.pickupTimeLabel}</p>
+            </div>
+          </div>
           <div className="flex gap-1 mb-4">
             {[1, 2, 3].map((s) => (
               <div
@@ -696,7 +736,7 @@ function LandingPageContent() {
           {loading ? (
             <div className="grid grid-cols-1 gap-14">
               {Array.from({ length: 2 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[1/1.618] rounded-[64px]" />
+                <Skeleton key={i} className="aspect-[1/1.618] rounded-[32px]" />
               ))}
             </div>
           ) : (
@@ -712,7 +752,7 @@ function LandingPageContent() {
               }}
               className="group cursor-pointer active-scale transition-all duration-500"
             >
-              <div className="relative aspect-[1/1.618] overflow-hidden rounded-[64px] bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-2xl">
+              <div className="relative aspect-[1/1.618] overflow-hidden rounded-[32px] bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-2xl">
                 <Image
                   src={item.image}
                   alt={item.name}

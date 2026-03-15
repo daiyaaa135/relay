@@ -1,6 +1,19 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+
+// Hoist the Capacitor Haptics dynamic import to module level so it is
+// loaded at most once across the entire session instead of being
+// re-imported on every pull-to-refresh threshold crossing.
+let hapticsPromise: Promise<{ Haptics: { impact: (o: { style: string }) => Promise<void> }; ImpactStyle: { Medium: string } } | null> | null = null;
+function getHaptics() {
+  if (!hapticsPromise) {
+    hapticsPromise = import('@capacitor/haptics')
+      .then((m) => m as { Haptics: { impact: (o: { style: string }) => Promise<void> }; ImpactStyle: { Medium: string } })
+      .catch(() => null);
+  }
+  return hapticsPromise;
+}
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -126,12 +139,14 @@ export function BrowseCategoryClient({ initialData }: { initialData?: BrowseResp
       setPullDistance(clamped);
       if (clamped >= PULL_THRESHOLD && !hapticFiredRef.current) {
         hapticFiredRef.current = true;
-        import('@capacitor/haptics').then(({ Haptics, ImpactStyle }) => {
-          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {
+        getHaptics().then((mod) => {
+          if (!mod) {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+            return;
+          }
+          mod.Haptics.impact({ style: mod.ImpactStyle.Medium }).catch(() => {
             if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
           });
-        }).catch(() => {
-          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
         });
       }
     };
@@ -245,10 +260,10 @@ export function BrowseCategoryClient({ initialData }: { initialData?: BrowseResp
             {data.brands.map(({ brand, devices }) => (
               <section key={brand}>
                 {(() => {
-                  const brandColor = BRAND_COLORS.Apple ?? '#000000';
+                  const brandColor = BRAND_COLORS[brand] ?? '#000000';
                   return (
                     <h2
-                      className="flex items-center gap-2 text-[16px] font-normal mb-3"
+                      className="flex items-center gap-2 text-[16px] font-normal mb-3 dark:!text-relay-text-dark"
                       style={{ color: brandColor }}
                     >
                       {sectionLabel(data.category, brand)}
@@ -289,8 +304,8 @@ export function BrowseCategoryClient({ initialData }: { initialData?: BrowseResp
                                 <Smartphone className="size-8 text-relay-muted dark:text-relay-muted-light" />
                               )}
                             </div>
-                            <div className="px-2 py-1 min-w-0 bg-white dark:bg-white">
-                              <p className="text-relay-text text-[10px] truncate">{device.brand} {device.model}</p>
+                            <div className="px-2 py-1 min-w-0 bg-white dark:bg-black">
+                              <p className="text-relay-text dark:text-relay-text-dark text-[10px] truncate">{device.brand} {device.model}</p>
                             </div>
                           </div>
                         )}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { type } from '@/lib/typography';
@@ -226,6 +226,30 @@ export default function MessagesPage() {
     return () => { cancelled = true; };
   }, []);
 
+  // ── Memoized filter ───────────────────────────────────────
+  // Avoids re-filtering on every render; only recomputes when
+  // conversations, active tab, or search query actually change.
+  const swapConversations = useMemo(
+    () => conversations.filter((c) => c.swapId != null),
+    [conversations]
+  );
+  const chatConversations = useMemo(
+    () => conversations.filter((c) => c.swapId == null),
+    [conversations]
+  );
+  const filteredConversations = useMemo(() => {
+    const list = activeTab === 'swap' ? swapConversations : chatConversations;
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((c) => {
+      const sender = c.sender?.toLowerCase() ?? '';
+      const gadget = c.gadgetName?.toLowerCase() ?? '';
+      const preview = c.lastMessage?.toLowerCase() ?? '';
+      return sender.includes(q) || gadget.includes(q) || preview.includes(q);
+    });
+  }, [activeTab, searchQuery, swapConversations, chatConversations]);
+  // ─────────────────────────────────────────────────────────
+
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-relay-surface dark:bg-relay-surface-dark transition-colors">
       <header
@@ -235,11 +259,11 @@ export default function MessagesPage() {
           <h1 className={`${type.h1} !font-semibold text-relay-text dark:text-relay-text-dark`}>Inbox</h1>
         </div>
         <div className="relative group">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-relay-muted transition-colors text-xl group-focus-within:text-primary">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-relay-muted dark:text-white/50 transition-colors text-xl group-focus-within:text-primary">
             search
           </span>
           <input
-            className="w-full h-14 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-12 pr-4 text-relay-text dark:text-relay-text-dark placeholder-relay-muted text-sm focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
+            className="search-bar-input w-full h-10 bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark rounded-2xl pl-12 pr-4 text-relay-text dark:text-relay-text-dark placeholder-relay-muted dark:placeholder-white/50 text-sm focus:ring-1 focus:ring-primary/40 transition-all shadow-inner"
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -312,18 +336,7 @@ export default function MessagesPage() {
             </button>
           </div>
         ) : (() => {
-          const swapConvs = conversations.filter((c) => c.swapId != null);
-          const chatConvs = conversations.filter((c) => c.swapId == null);
-          const list = activeTab === 'swap' ? swapConvs : chatConvs;
-          const q = searchQuery.trim().toLowerCase();
-          const filteredList = q
-            ? list.filter((c) => {
-                const sender = c.sender?.toLowerCase() ?? '';
-                const gadget = c.gadgetName?.toLowerCase() ?? '';
-                const preview = c.lastMessage?.toLowerCase() ?? '';
-                return sender.includes(q) || gadget.includes(q) || preview.includes(q);
-              })
-            : list;
+          const filteredList = filteredConversations;
           const isEmpty = filteredList.length === 0;
           return isEmpty ? (
             <div
@@ -339,10 +352,10 @@ export default function MessagesPage() {
               ) : (
                 <InboxIcon className="w-16 h-16 mb-4" />
               )}
-              <p className="text-relay-muted text-sm font-medium">
+              <p className="text-relay-muted dark:text-relay-muted-light text-sm font-medium">
                 {activeTab === 'swap' ? 'No swap threads yet' : 'No chat threads yet'}
               </p>
-              <p className="text-relay-muted text-xs">
+              <p className="text-relay-muted dark:text-relay-muted-light text-xs">
                 {activeTab === 'swap'
                   ? 'When you start a swap with credits, the thread will appear here.'
                   : 'General inquiries from the Message button on listings appear here.'}
@@ -358,7 +371,7 @@ export default function MessagesPage() {
                 <div
                   key={msg.id}
                   onClick={() => router.push(`/messages/${msg.id}`)}
-                  className={`group relative flex items-center gap-4 p-5 mx-2 rounded-3xl transition-all cursor-pointer ${msg.unread ? 'bg-primary/5 shadow-lg shadow-primary/5' : 'hover:bg-relay-bg dark:hover:bg-relay-bg-dark opacity-80 hover:opacity-100'}`}
+                  className={`group relative flex items-center gap-4 p-5 mx-2 rounded-3xl transition-all cursor-pointer ${msg.unread ? 'bg-primary/5 shadow-lg shadow-primary/5' : 'hover:bg-relay-bg dark:hover:bg-relay-bg-dark opacity-80 dark:opacity-100 hover:opacity-100'}`}
                 >
                   <div className="relative">
                     <div className="size-16 rounded-full overflow-hidden border-2 border-relay-border dark:border-relay-border-dark p-0.5">
@@ -370,13 +383,13 @@ export default function MessagesPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <h3 className={`text-sm font-serif  ${msg.unread ? 'text-relay-text dark:text-relay-text-dark font-bold' : 'text-relay-muted'}`}>{msg.sender}</h3>
-                      <span className="text-[9px] text-relay-muted font-medium tracking-normal">{msg.time}</span>
+                      <h3 className={`text-sm font-serif  ${msg.unread ? 'text-relay-text dark:text-relay-text-dark font-bold' : 'text-relay-muted dark:text-relay-muted-light'}`}>{msg.sender}</h3>
+                      <span className="text-[9px] text-relay-muted dark:text-relay-muted-light font-medium tracking-normal">{msg.time}</span>
                     </div>
                     {msg.gadgetName && (
                       <p className="text-[10px] font-semibold text-relay-text dark:text-relay-text-dark truncate mb-0.5">{msg.gadgetName}</p>
                     )}
-                    <p className={`text-xs truncate ${msg.unread ? 'text-relay-text dark:text-relay-text-dark font-medium' : 'text-relay-muted font-light'}`}>
+                    <p className={`text-xs truncate ${msg.unread ? 'text-relay-text dark:text-relay-text-dark font-medium' : 'text-relay-muted dark:text-relay-muted-light font-light'}`}>
                       {msg.lastMessage}
                     </p>
                   </div>

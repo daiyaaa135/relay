@@ -66,7 +66,7 @@ function getStorageFromSpecs(specs: string | null): string | null {
   return m ? m[1].replace(/\s+/g, ' ') : null;
 }
 
-function ListingCard({ listing, onPress }: { listing: DeviceListing; onPress: () => void }) {
+const ListingCard = React.memo(function ListingCard({ listing, onPress }: { listing: DeviceListing; onPress: () => void }) {
   const cond = COND_DISPLAY[listing.condition] ?? listing.condition;
   const storage = getStorageFromSpecs(listing.specs);
   const carrier = listing.carrier?.trim() || null;
@@ -138,7 +138,7 @@ function ListingCard({ listing, onPress }: { listing: DeviceListing; onPress: ()
       </div>
     </button>
   );
-}
+});
 
 function DeviceDetailContent({ initialData }: { initialData?: DeviceListingsResponse | null }) {
   const router = useRouter();
