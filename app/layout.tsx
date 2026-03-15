@@ -48,10 +48,9 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
-        {/* Adobe Fonts — Orpheus Pro (headings/titles) */}
-        {/* Replace YOUR_KIT_ID with your Typekit kit ID from fonts.adobe.com */}
-        <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
-        <link rel="stylesheet" href="https://use.typekit.net/YOUR_KIT_ID.css" />
+        {/* Adobe Fonts — Orpheus Pro: add Typekit kit ID here when ready */}
+        {/* <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" /> */}
+        {/* <link rel="stylesheet" href="https://use.typekit.net/YOUR_KIT_ID.css" /> */}
       </head>
       <body
         className="antialiased bg-relay-bg text-relay-text"

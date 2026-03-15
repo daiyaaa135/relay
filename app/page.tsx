@@ -769,7 +769,7 @@ function LandingPageContent() {
                       const bgWithAlpha = `${bgHex}E6`;
                       return (
                         <div
-                          className="px-4 py-2 glass-card rounded-xl text-[9px] font-bold tracking-widest border border-relay-border dark:border-relay-border-dark"
+                          className="px-4 py-2 glass-card no-blur rounded-xl text-[9px] font-bold tracking-widest border border-relay-border dark:border-relay-border-dark"
                           style={{
                             background: bgWithAlpha,
                             color: textHex,
@@ -791,7 +791,7 @@ function LandingPageContent() {
                     type="button"
                     onClick={(e) => toggleWishlist(item.id, e)}
                     aria-label={wishlist.includes(item.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                    className="size-12 rounded-full glass-card flex items-center justify-center transition-all active-scale group/fav border border-relay-border dark:border-relay-border-dark"
+                    className="size-12 rounded-full glass-card no-blur flex items-center justify-center transition-all active-scale group/fav border border-relay-border dark:border-relay-border-dark"
                   >
                     <WishlistHeartIcon
                       active={wishlist.includes(item.id)}

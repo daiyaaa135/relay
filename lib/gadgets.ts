@@ -210,7 +210,8 @@ export async function fetchGadgets(): Promise<Gadget[]> {
         )
       `)
       .eq('status', 'available')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(30);
 
     if (error) {
       const fallback = await fetchGadgetsWithoutJoin(supabase);
