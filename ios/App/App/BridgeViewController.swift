@@ -121,16 +121,16 @@ final class BridgeViewController: CAPBridgeViewController {
     // MARK: — WKWebView process crash recovery
 
     /// Called by WebKit whenever the web content process is terminated (OOM, crash, etc.).
-    /// CAPBridgeViewController may or may not implement this; override unconditionally to
-    /// ensure we always reload instead of showing a blank screen.
-    override func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+    /// CAPBridgeViewController conforms to WKNavigationDelegate but does NOT declare this
+    /// method, so we implement it directly here without `override`. WebKit calls it because
+    /// BridgeViewController is the WKWebView's navigationDelegate (inherited from Capacitor).
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         print("[BridgeViewController] Web content process terminated — reloading")
-        // Reset our splash guard so a new splash shows while the page reloads.
+        // Reset splash state so a fresh overlay covers the blank WebView during reload.
         splashDismissed = false
         splashMountTime = Date()
         mountSplashOverlay()
-        // Delegate to super (Capacitor's own handler) then reload.
-        super.webViewWebContentProcessDidTerminate(webView)
+        webView.reload()
     }
 
     private func dismissSplash() {
