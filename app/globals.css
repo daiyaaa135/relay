@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import "mapbox-gl/dist/mapbox-gl.css";
+/* mapbox-gl CSS is imported only on pages that actually render a map component */
+/* @import "mapbox-gl/dist/mapbox-gl.css"; */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -513,4 +514,28 @@ textarea {
 .auth-input-card input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
 .auth-input-card textarea {
   background-color: transparent !important;
+}
+
+/* ── Mobile GPU Performance ────────────────────────────────────────────────
+   iOS WKWebView has a separate GPU process with a fixed VRAM budget (~256 MB).
+   backdrop-filter: blur() requires the GPU to composite each element separately
+   into its own texture. A single blurred nav + 30 image cards easily exceeds
+   the budget, crashing the GPU process which then kills the web process.
+
+   Fix: disable ALL backdrop-filter on touch/pointer-coarse devices (phones &
+   tablets). The glass visuals fall back to their solid background colour which
+   is defined on each element. Hover animations that trigger GPU layer promotion
+   (scale, grayscale filter) are also disabled.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  * {
+    /* Kill all backdrop-blur / backdrop-filter compositor layers */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Stop welcome-page hero floating animations — each creates a persistent GPU layer */
+  .gadget-float {
+    animation: none !important;
+  }
 }

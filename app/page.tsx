@@ -750,7 +750,7 @@ function LandingPageContent() {
                 params.set('category', selectedCategory);
                 router.push(`/listing/${item.id}?${params.toString()}`);
               }}
-              className="group cursor-pointer active-scale transition-all duration-500"
+              className="group cursor-pointer active-scale transition-transform duration-300"
             >
               <div className="relative aspect-[1/1.618] overflow-hidden rounded-[32px] bg-relay-bg dark:bg-relay-bg-dark border border-relay-border dark:border-relay-border-dark shadow-2xl">
                 <Image
@@ -759,7 +759,7 @@ function LandingPageContent() {
                   fill
                   priority={idx === 0}
                   sizes="(max-width: 768px) 100vw, 60vw"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000 grayscale-[10%] group-hover:grayscale-0"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute top-8 left-8 flex flex-col gap-2">
                     {(() => {

@@ -92,21 +92,21 @@ export default function WelcomePage() {
           <div className="gadget-float stagger-1 flex justify-center items-end">
             <img
               alt="Smartphone"
-              className="w-24 h-24 object-contain drop-shadow-2xl rounded-xl"
+              className="w-24 h-24 object-contain shadow-xl rounded-xl"
               src={HERO_PHONE_IMG}
             />
           </div>
           <div className="gadget-float stagger-2 flex justify-center items-center" style={{ animation: 'gadget-float 6s ease-in-out infinite 1.5s' }}>
             <img
               alt="Laptop"
-              className="w-32 h-32 object-contain drop-shadow-2xl rounded-xl"
+              className="w-32 h-32 object-contain shadow-xl rounded-xl"
               src={HERO_LAPTOP_IMG}
             />
           </div>
           <div className="gadget-float stagger-3 flex justify-center items-start col-span-2" style={{ animation: 'gadget-float 6s ease-in-out infinite 3s' }}>
             <img
               alt="Headphones"
-              className="w-28 h-28 object-contain drop-shadow-2xl rounded-xl"
+              className="w-28 h-28 object-contain shadow-xl rounded-xl"
               src={HERO_HEADPHONES_IMG}
             />
           </div>
